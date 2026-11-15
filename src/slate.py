@@ -136,12 +136,36 @@ def confirmed_inactive_ids(season: int, week: int) -> set[str]:
     return {str(row["player_id"]) for row in report.get("players", []) if row.get("player_id")}
 
 
+def espn_availability(slate: pd.DataFrame, max_age_hours: float = 36.0) -> dict[str, dict]:
+    """player_id -> ESPN injury entry for slate players (fresh report only).
+
+    autopilot writes data/espn_injuries_nfl.json each run. A missing or stale
+    report adds nothing (the nflverse and official sources still apply).
+    """
+    from espn_injuries import is_fresh, match
+    path = os.path.join(DATA_DIR, "espn_injuries_nfl.json")
+    if slate.empty or not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as handle:
+        report = json.load(handle)
+    if not is_fresh(report, max_age_hours):
+        return {}
+    name_col = "player_display_name" if "player_display_name" in slate.columns else "full_name"
+    rows = slate[["player_id", name_col, "team"]].to_dict("records")
+    return {str(rows[i]["player_id"]): entry for i, entry in match(report, rows, name_col).items()}
+
+
 def availability_eligible(slate: pd.DataFrame, injured: set[str],
-                          confirmed_inactive: set[str]) -> pd.DataFrame:
+                          confirmed_inactive: set[str],
+                          espn: dict[str, dict] | None = None) -> pd.DataFrame:
     """Apply hard availability exclusions in every week, including Weeks 2+."""
     result = slate.copy()
     result["excl_reason"] = ""
     result.loc[result.player_id.isin(injured), "excl_reason"] = "injury: out/doubtful"
+    for pid, entry in (espn or {}).items():
+        if entry.get("unavailable"):
+            result.loc[(result.player_id == pid) & (result.excl_reason == ""),
+                       "excl_reason"] = f"espn: {entry['status'].lower()}"
     result.loc[result.player_id.isin(confirmed_inactive), "excl_reason"] = "official inactive"
     inactive_roster = result.get("status", pd.Series("ACT", index=result.index)).fillna("ACT") != "ACT"
     result.loc[inactive_roster & (result.excl_reason == ""), "excl_reason"] = "not on active roster"
