@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-15",
-  "as_of": "2026-11-15T20:37:18Z",
+  "as_of": "2026-11-15T21:36:08Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -62,25 +62,25 @@
       "comment": "Schroder has been diagnosed with a left hamstring strain and will be reevaluated in two weeks, Michael Scotto of HoopsHype.com reports."
     },
     {
+      "player_name": "Max Christie",
+      "team": "DAL",
+      "report_status": "Out",
+      "reported_at": "2026-11-15T21:24Z",
+      "comment": "Christie (ankle) has been ruled out for Sunday's game against the Celtics."
+    },
+    {
+      "player_name": "Kyrie Irving",
+      "team": "DAL",
+      "report_status": "Out",
+      "reported_at": "2026-11-15T21:20Z",
+      "comment": "Irving (knee) has been ruled out for Sunday's game against the Celtics."
+    },
+    {
       "player_name": "Santi Aldama",
       "team": "DAL",
       "report_status": "Day-To-Day",
       "reported_at": "2026-11-15T18:19Z",
       "comment": "Aldama (ankle) is listed as questionable for Sunday's game in Boston."
-    },
-    {
-      "player_name": "Max Christie",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T18:18Z",
-      "comment": "Christie (ankle) is doubtful to play Sunday's game against the Celtics."
-    },
-    {
-      "player_name": "Kyrie Irving",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T18:14Z",
-      "comment": "Irving (knee) is questionable to play in Sunday's game against the Celtics."
     },
     {
       "player_name": "Daniel Gafford",
@@ -134,8 +134,8 @@
     {
       "player_name": "Andrew Nembhard",
       "team": "IND",
-      "report_status": "Out",
-      "reported_at": "2026-11-15T16:44Z",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-15T20:57Z",
       "comment": "Nembhard (hip) has been ruled out for Sunday's game against the 76ers, Tony East of Forbes.com reports."
     },
     {
@@ -253,8 +253,8 @@
     {
       "player_name": "Joel Embiid",
       "team": "PHI",
-      "report_status": "Out",
-      "reported_at": "2026-11-14T22:05Z",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-15T20:58Z",
       "comment": "Embiid (right foot injury management) has been ruled out for Sunday's game against the Pacers."
     },
     {
@@ -316,9 +316,9 @@
     {
       "player_name": "De'Aaron Fox",
       "team": "SAS",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T18:27Z",
-      "comment": "Fox (hip) is listed as questionable for Sunday's game against Utah."
+      "report_status": "Out",
+      "reported_at": "2026-11-15T20:33Z",
+      "comment": "Fox (hip) has been ruled out for Sunday's game against the Jazz."
     },
     {
       "player_name": "Tobias Harris",
