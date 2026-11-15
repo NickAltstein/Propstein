@@ -1,0 +1,18 @@
+{
+ "nights": 4,
+ "graded": 431,
+ "brier_model": 0.2796,
+ "brier_market": 0.2464,
+ "all_rows": {
+  "wins": 189,
+  "losses": 242,
+  "units": -76.091
+ },
+ "top10_by_gap": {
+  "wins": 21,
+  "losses": 18,
+  "units": 0.776
+ },
+ "model_beats_market": false,
+ "verdict": "market more accurate than the model: no edge; board stays refused"
+}
