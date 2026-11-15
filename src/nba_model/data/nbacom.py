@@ -261,6 +261,16 @@ class NbaComProvider:
         home_row = next(
             (r for r in seen.values() if "vs." in str(r.get("MATCHUP", ""))), None)
         if home_row is None:
+            # stats.nba.com occasionally ships BOTH rows in the away form
+            # ("DEN @ IND" twice; seen for 0022600189 on 2026-11-07). "AWAY @ HOME"
+            # still names the home team unambiguously, so accept it only when
+            # both rows carry the identical string and it names exactly these two teams.
+            matchups = {str(r.get("MATCHUP", "")).strip() for r in seen.values()}
+            if len(matchups) == 1:
+                parts = [t.strip() for t in next(iter(matchups)).split("@")]
+                if len(parts) == 2 and set(parts) == set(seen) and parts[0] != parts[1]:
+                    home_row = seen[parts[1]]
+        if home_row is None:
             raise ProviderNetworkError(
                 f"game {gid}: no home ('vs.') row in MATCHUP set — fail-closed"
             )

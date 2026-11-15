@@ -218,6 +218,25 @@ def test_no_home_row_fails_closed():
         provider.fetch_range(["2026-11-02"])
 
 
+def test_duplicated_away_matchup_resolves_home_from_at_sign():
+    # stats.nba.com sent "DEN @ IND" for BOTH rows of 0022600189 (2026-11-07).
+    provider, _ = _provider([("leaguegamefinder", 200, _lgf_payload([
+        _team_row("DEN", "0022600189", "DEN @ IND", None),
+        _team_row("IND", "0022600189", "DEN @ IND", None),
+    ]))], [])
+    game = provider.fetch_range(["2026-11-07"])["games"][0]
+    assert (game["home_team"], game["away_team"]) == ("IND", "DEN")
+
+
+def test_duplicated_matchup_naming_other_teams_still_fails_closed():
+    provider, _ = _provider([("leaguegamefinder", 200, _lgf_payload([
+        _team_row("DEN", "0022600189", "BOS @ LAL", None),
+        _team_row("IND", "0022600189", "BOS @ LAL", None),
+    ]))], [])
+    with pytest.raises(ProviderNetworkError):
+        provider.fetch_range(["2026-11-07"])
+
+
 # ── robustness ──────────────────────────────────────────────────────────────
 def test_column_order_independence():
     shuffled = ["PTS", "MATCHUP", "GAME_ID", "TEAM_ABBREVIATION", "GAME_DATE", "WL", "TEAM_NAME", "TEAM_ID", "SEASON_ID"]
