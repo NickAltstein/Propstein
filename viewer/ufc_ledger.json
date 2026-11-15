@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-08T18:40:26Z",
+  "generated_at": "2026-11-15T19:38:13Z",
   "rules": "draw/NC/cancel/scratch = void (push); CLV vs lock snapshot only",
   "summary": {
     "n_decisions": 13,
@@ -175,6 +175,11 @@
           "result": "win"
         }
       ]
+    },
+    {
+      "event_id": "600061400",
+      "event_name": "UFC 334: Gane vs. Hokit",
+      "decisions": []
     }
   ]
 }
