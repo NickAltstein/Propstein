@@ -55,6 +55,13 @@ def _estimate_nb_alpha(y: np.ndarray, mu: np.ndarray) -> float:
     return float(max(resid.sum() / max(denom, 1e-9), 1e-3))
 
 
+#: AMEND-002 prediction guards (walk-forward selected on 2025, checked on 2026;
+#: docs/protocol_amendments/AMEND-002-nfl-projection-extrapolation.md).
+FEATURE_Z_CLIP = 2.5     # standardized features clipped to +/- this at prediction
+MAX_CATCH_RATE = 0.80    # mu_rec <= MAX_CATCH_RATE * forecast targets (f_targets) ...
+CAP_MIN_TARGETS = 3.0    # ... for players forecast 3+ targets (low-volume backs often catch every target)
+
+
 @dataclass
 class ReceivingModel:
     rec_params: np.ndarray
@@ -114,7 +121,16 @@ class ReceivingModel:
                 data.loc[data["is_open_field"] == 1, "wind"] = wind_mean
             data["wind"] = data["wind"].fillna(wind_mean)
         X, _, _ = _design(data, self.cols, self.means, self.sds)
+        # AMEND-002: the log link turns an outlying feature (one 19-target game
+        # pushing the target forecast far above anything in training) into an
+        # exponential over-projection. Clip standardized features at prediction
+        # time and cap receptions at a realistic share of forecast targets.
+        X[:, 1:] = np.clip(X[:, 1:], -FEATURE_Z_CLIP, FEATURE_Z_CLIP)
         mu_n = np.exp(np.clip(X @ self.rec_params, -6, 4))
+        if "f_targets" in data.columns:
+            targets = pd.to_numeric(data["f_targets"], errors="coerce").to_numpy(dtype=float)
+            known = np.isfinite(targets) & (targets >= CAP_MIN_TARGETS)
+            mu_n = np.where(known, np.minimum(mu_n, MAX_CATCH_RATE * targets), mu_n)
         mu_ypr = np.exp(np.clip(X @ self.ypr_params, -2, 4.2))
         return pd.DataFrame({"mu_rec": mu_n, "mu_ypr": mu_ypr}, index=df.index)
 
