@@ -1,0 +1,440 @@
+{
+ "schema": "propstein.grade.nfl.v1",
+ "model": "negbin-gamma alpha=0.1097 k=1.555",
+ "season": 2026,
+ "week": 8,
+ "rows": [
+  {
+   "player": "Jaxon Smith-Njigba",
+   "player_id": "00-0038543",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 8.73,
+   "fair_line": 8.5,
+   "actual": 6.0,
+   "abs_error": 2.73,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Jaxon Smith-Njigba",
+   "player_id": "00-0038543",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 122.98,
+   "fair_line": 113.5,
+   "actual": 118.0,
+   "abs_error": 4.98,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Colston Loveland",
+   "player_id": "00-0040126",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 4.65,
+   "fair_line": 4.5,
+   "actual": 7.0,
+   "abs_error": 2.35,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Colston Loveland",
+   "player_id": "00-0040126",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 50.91,
+   "fair_line": 45.0,
+   "actual": 65.0,
+   "abs_error": 14.09,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Luther Burden III",
+   "player_id": "00-0040735",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 3.76,
+   "fair_line": 3.5,
+   "actual": 7.0,
+   "abs_error": 3.24,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Luther Burden III",
+   "player_id": "00-0040735",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 47.14,
+   "fair_line": 41.0,
+   "actual": 56.0,
+   "abs_error": 8.86,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Rome Odunze",
+   "player_id": "00-0039919",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 3.18,
+   "fair_line": 2.5,
+   "actual": 4.0,
+   "abs_error": 0.82,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Rome Odunze",
+   "player_id": "00-0039919",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 41.49,
+   "fair_line": 35.0,
+   "actual": 87.0,
+   "abs_error": 45.51,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Cooper Kupp",
+   "player_id": "00-0033908",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 3.16,
+   "fair_line": 2.5,
+   "actual": 1.0,
+   "abs_error": 2.16,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Cooper Kupp",
+   "player_id": "00-0033908",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 37.41,
+   "fair_line": 31.5,
+   "actual": 7.0,
+   "abs_error": 30.41,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "AJ Barner",
+   "player_id": "00-0039793",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 2.83,
+   "fair_line": 2.5,
+   "actual": 2.0,
+   "abs_error": 0.83,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "AJ Barner",
+   "player_id": "00-0039793",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 28.27,
+   "fair_line": 23.5,
+   "actual": 23.0,
+   "abs_error": 5.27,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Kalif Raymond",
+   "player_id": "00-0032464",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.86,
+   "fair_line": 1.5,
+   "actual": 2.0,
+   "abs_error": 0.14,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Kalif Raymond",
+   "player_id": "00-0032464",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 19.54,
+   "fair_line": 14.5,
+   "actual": 14.0,
+   "abs_error": 5.54,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "D'Andre Swift",
+   "player_id": "00-0036275",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 2.81,
+   "fair_line": 2.5,
+   "actual": 2.0,
+   "abs_error": 0.81,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "D'Andre Swift",
+   "player_id": "00-0036275",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 18.99,
+   "fair_line": 15.5,
+   "actual": 10.0,
+   "abs_error": 8.99,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Cole Kmet",
+   "player_id": "00-0036290",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.97,
+   "fair_line": 1.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Cole Kmet",
+   "player_id": "00-0036290",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 18.29,
+   "fair_line": 14.0,
+   "result": "VOID"
+  },
+  {
+   "player": "Elijah Arroyo",
+   "player_id": "00-0040739",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 1.4,
+   "fair_line": 1.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Elijah Arroyo",
+   "player_id": "00-0040739",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 17.87,
+   "fair_line": 12.0,
+   "result": "VOID"
+  },
+  {
+   "player": "Jahdae Walker",
+   "player_id": "00-0040277",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.16,
+   "fair_line": 0.5,
+   "actual": 0.0,
+   "abs_error": 1.16,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Jahdae Walker",
+   "player_id": "00-0040277",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 15.74,
+   "fair_line": 9.0,
+   "actual": 0.0,
+   "abs_error": 15.74,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Zavion Thomas",
+   "player_id": "00-0041051",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.47,
+   "fair_line": 1.5,
+   "actual": 1.0,
+   "abs_error": 0.47,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Zavion Thomas",
+   "player_id": "00-0041051",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 15.17,
+   "fair_line": 10.5,
+   "actual": 4.0,
+   "abs_error": 11.17,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Roschon Johnson",
+   "player_id": "00-0039021",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.79,
+   "fair_line": 1.5,
+   "actual": 1.0,
+   "abs_error": 0.79,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Roschon Johnson",
+   "player_id": "00-0039021",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 14.08,
+   "fair_line": 10.5,
+   "actual": 11.0,
+   "abs_error": 3.08,
+   "over_fair": true,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Sam Roush",
+   "player_id": "00-0041558",
+   "team": "CHI",
+   "market": "receptions",
+   "model_mean": 1.45,
+   "fair_line": 1.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Sam Roush",
+   "player_id": "00-0041558",
+   "team": "CHI",
+   "market": "receiving_yards",
+   "model_mean": 13.69,
+   "fair_line": 9.5,
+   "result": "VOID"
+  },
+  {
+   "player": "George Holani",
+   "player_id": "00-0039299",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 1.66,
+   "fair_line": 1.5,
+   "actual": 0.0,
+   "abs_error": 1.66,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "George Holani",
+   "player_id": "00-0039299",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 13.21,
+   "fair_line": 9.5,
+   "actual": 0.0,
+   "abs_error": 13.21,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Eric Saubert",
+   "player_id": "00-0033576",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 1.33,
+   "fair_line": 1.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Eric Saubert",
+   "player_id": "00-0033576",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 12.61,
+   "fair_line": 8.0,
+   "result": "VOID"
+  },
+  {
+   "player": "Emanuel Wilson",
+   "player_id": "00-0038797",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 1.54,
+   "fair_line": 1.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Emanuel Wilson",
+   "player_id": "00-0038797",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 12.28,
+   "fair_line": 8.5,
+   "result": "VOID"
+  },
+  {
+   "player": "Brady Russell",
+   "player_id": "00-0038488",
+   "team": "SEA",
+   "market": "receptions",
+   "model_mean": 1.26,
+   "fair_line": 1.5,
+   "actual": 0.0,
+   "abs_error": 1.26,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  },
+  {
+   "player": "Brady Russell",
+   "player_id": "00-0038488",
+   "team": "SEA",
+   "market": "receiving_yards",
+   "model_mean": 11.56,
+   "fair_line": 7.0,
+   "actual": 0.0,
+   "abs_error": 11.56,
+   "over_fair": false,
+   "result": "NO_QUOTE"
+  }
+ ],
+ "markets": {
+  "receptions": {
+   "projected": 18,
+   "void": 5,
+   "mae": 1.42,
+   "over_fair_rate": 0.308,
+   "quoted": 0,
+   "brier_model": null,
+   "brier_market": null,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "units": 0
+   }
+  },
+  "receiving_yards": {
+   "projected": 18,
+   "void": 5,
+   "mae": 13.72,
+   "over_fair_rate": 0.385,
+   "quoted": 0,
+   "brier_model": null,
+   "brier_market": null,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "units": 0
+   }
+  }
+ }
+}
