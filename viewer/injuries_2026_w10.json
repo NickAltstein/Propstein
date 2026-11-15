@@ -1,9 +1,9 @@
 {
-  "as_of": "2026-11-15T00:32:40Z",
+  "as_of": "2026-11-15T17:36:56Z",
   "slate_week": 10,
   "season": 2026,
-  "total_active_injuries": 161,
-  "total_practice_entries": 184,
+  "total_active_injuries": 172,
+  "total_practice_entries": 175,
   "source": "nflverse injuries_2026.parquet; NFL.com confirmed inactives",
   "impacted_beneficiaries": {},
   "injuries": [
@@ -294,14 +294,36 @@
       "practice_status": "Full Participation in Practice"
     },
     {
+      "player_id": "00-0026190",
+      "player_name": "Calais Campbell",
+      "team": "BAL",
+      "opponent": "LAC",
+      "game_id": "2026_10_LAC_BAL",
+      "position": "DT",
+      "injury_type": "Injury",
+      "report_status": "PRACTICE ONLY",
+      "practice_status": "Did Not Participate In Practice"
+    },
+    {
+      "player_id": "00-0032965",
+      "player_name": "Ronnie Stanley",
+      "team": "BAL",
+      "opponent": "LAC",
+      "game_id": "2026_10_LAC_BAL",
+      "position": "T",
+      "injury_type": "Injury",
+      "report_status": "PRACTICE ONLY",
+      "practice_status": "Did Not Participate In Practice"
+    },
+    {
       "player_id": "00-0036302",
       "player_name": "Jaylinn Hawkins",
       "team": "BAL",
       "opponent": "LAC",
       "game_id": "2026_10_LAC_BAL",
       "position": "S",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Knee",
+      "report_status": "OUT",
       "practice_status": "Limited Participation in Practice"
     },
     {
@@ -377,8 +399,8 @@
       "opponent": "LAC",
       "game_id": "2026_10_LAC_BAL",
       "position": "RB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Neck",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -1620,8 +1642,8 @@
       "opponent": "MIA",
       "game_id": "2026_10_MIA_IND",
       "position": "DE",
-      "injury_type": "Hamstring",
-      "report_status": "QUESTIONABLE",
+      "injury_type": "Injury",
+      "report_status": "PRACTICE ONLY",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -2160,8 +2182,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "LB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Pectoral",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -2173,7 +2195,7 @@
       "position": "DE",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Did Not Participate In Practice"
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0033885",
@@ -2182,9 +2204,9 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "TE",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "injury_type": "Fibula",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0035688",
@@ -2193,9 +2215,9 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "T",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
-      "practice_status": "Did Not Participate In Practice"
+      "injury_type": "Not injury related - personal matter",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Limited Participation in Practice"
     },
     {
       "player_id": "00-0036736",
@@ -2204,9 +2226,9 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "G",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "injury_type": "Fibula",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0037320",
@@ -2226,8 +2248,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "S",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Calf",
+      "report_status": "OUT",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -2239,7 +2261,7 @@
       "position": "RB",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0038553",
@@ -2270,8 +2292,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "DE",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Ankle",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Limited Participation in Practice"
     },
     {
@@ -2281,8 +2303,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "WR",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Back",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -2292,8 +2314,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "CB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Ankle",
+      "report_status": "OUT",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -2303,8 +2325,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "G",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Ankle",
+      "report_status": "OUT",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -2338,7 +2360,7 @@
       "position": "CB",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0041550",
@@ -2347,8 +2369,8 @@
       "opponent": "BAL",
       "game_id": "2026_10_LAC_BAL",
       "position": "WR",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Hamstring",
+      "report_status": "DOUBTFUL",
       "practice_status": "Did Not Participate In Practice"
     },
     {

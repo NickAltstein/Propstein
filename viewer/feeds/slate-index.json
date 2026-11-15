@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-15T02:00:42Z",
+  "generated_at": "2026-11-15T17:36:32Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -89,7 +89,7 @@
       }
     },
     "nba": {
-      "default_slate": "2026-11-14",
+      "default_slate": null,
       "slates": {
         "2026-10-22": {
           "season": 2026,
@@ -259,22 +259,22 @@
         "2026-11-14": {
           "season": 2026,
           "date": "2026-11-14",
-          "shortLabel": "Nov 14 Slate",
-          "state": "Slate \u00b7 2026-11-14",
+          "shortLabel": "Nov 14 Audit",
+          "state": "Historical audit \u00b7 2026-11-14",
           "slate": "nba_slate_2026-11-14.json",
           "games": "nba_games_2026-11-14.json",
           "picks": null,
           "injuries": "nba_injuries_2026-11-14.json",
           "odds": "nba_odds_2026-11-14.json",
           "snapshots": null,
-          "historical": false,
+          "historical": true,
           "timezone": "America/New_York",
           "marketOnly": true
         }
       }
     },
     "ufc": {
-      "default_card": "2026-11-14",
+      "default_card": "2026-11-21",
       "cards": {
         "2026-10-31": {
           "date": "2026-10-31",
@@ -301,6 +301,15 @@
           "card": "ufc_card_2026-11-14.json",
           "status": "ufc_status_2026-11-14.json",
           "snapshots": "ufc_snapshots_2026-11-14.json",
+          "historical": true
+        },
+        "2026-11-21": {
+          "date": "2026-11-21",
+          "event_name": "UFC Fight Night: Proch\u00e1zka vs. Stirling",
+          "fights": 11,
+          "card": "ufc_card_2026-11-21.json",
+          "status": "ufc_status_2026-11-21.json",
+          "snapshots": "ufc_snapshots_2026-11-21.json",
           "historical": false
         }
       }
