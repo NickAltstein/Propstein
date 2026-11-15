@@ -49,3 +49,39 @@ def test_quote_identity_refuses_unknown_or_ambiguous_players():
     assert rows.empty and not mapped
     assert excluded["ambiguous_identity"] == 1
     assert excluded["unmatched_identity"] == 1
+
+
+# ── ESPN availability (injury feed) ─────────────────────────────────────────
+def _history():
+    rows = []
+    for d, gid in (("2026-11-10", "g1"), ("2026-11-12", "g2"), ("2026-11-13", "g3")):
+        for pid, name in (("p1", "Star Guard"), ("p2", "Role Wing")):
+            rows.append({"player_id": pid, "player_display_name": name, "team": "AAA",
+                         "game_id": gid, "game_date": d, "dnp": False})
+    # long-term absentee: last played two weeks ago
+    rows.append({"player_id": "p3", "player_display_name": "Hurt Big", "team": "AAA",
+                 "game_id": "g0", "game_date": "2026-10-30", "dnp": False})
+    return pd.DataFrame(rows)
+
+
+GAMES = [{"game_id": "nba-20261115-AAA-BBB", "gameday": "2026-11-15", "home_team": "BBB", "away_team": "AAA"}]
+
+
+def test_availability_rows_split_recent_and_long_term_outs():
+    report = {"injuries": [
+        {"player_name": "Star Guard", "team": "AAA", "report_status": "Out"},
+        {"player_name": "Hurt Big", "team": "AAA", "report_status": "Out"},
+        {"player_name": "Role Wing", "team": "AAA", "report_status": "Day-To-Day"},
+        {"player_name": "Nobody", "team": "AAA", "report_status": "Out"},       # unmatched
+        {"player_name": "Star Guard", "team": "ZZZ", "report_status": "Out"},   # team not on slate
+    ]}
+    rows, stats = bridge.availability_rows(report, _history(), GAMES, "2026-11-15")
+    by = {r["player_id"]: r["report_status"] for r in rows}
+    assert by == {"p1": "out", "p3": "out_long_term", "p2": "questionable"}
+    assert stats == {"entries": 4, "matched": 3, "out_recent": 1, "out_long_term": 1, "uncertain": 1}
+    assert all(r["game_id"] == "nba-20261115-AAA-BBB" for r in rows)
+
+
+def test_availability_rows_absent_report_is_neutral():
+    assert bridge.availability_rows(None, _history(), GAMES, "2026-11-15") == (None, {
+        "entries": 0, "matched": 0, "out_recent": 0, "out_long_term": 0, "uncertain": 0})

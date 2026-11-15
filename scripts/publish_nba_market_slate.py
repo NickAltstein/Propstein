@@ -18,6 +18,25 @@ from autopilot import VIEWER, write_manifest
 REFERENCE_BOOKS = {"fanduel", "kalshi"}
 
 
+def injury_report(day: str, games: list[dict], fallback_as_of: str) -> dict:
+    """ESPN availability for today's teams; the empty placeholder if ESPN is unreachable."""
+    teams = {g["home_team"] for g in games} | {g["away_team"] for g in games}
+    try:
+        sys.path.insert(0, str(VIEWER.parent / "src"))
+        from espn_injuries import fetch
+        report = fetch("nba")
+        rows = [{"player_name": p["player_name"], "team": p["team"], "report_status": p["status"],
+                 "reported_at": p["reported_at"], "comment": p["comment"]}
+                for p in report["players"] if p["team"] in teams and (p["unavailable"] or p["uncertain"])]
+        return {"_fixture": False, "slate_date": day, "as_of": report["fetched_at"],
+                "source": report["source"], "source_url": report["source_url"],
+                "injuries": rows, "impacted_beneficiaries": {}}
+    except Exception as exc:  # noqa: BLE001 - availability is additive, never blocking
+        print(f"ESPN injuries unavailable ({exc}); writing empty availability report", file=sys.stderr)
+        return {"_fixture": False, "slate_date": day, "as_of": fallback_as_of,
+                "source": "No injury feed configured", "injuries": [], "impacted_beneficiaries": {}}
+
+
 def publish(day: str) -> None:
     datetime.strptime(day, "%Y-%m-%d")
     games_path = VIEWER / f"nba_games_{day}.json"
@@ -36,14 +55,8 @@ def publish(day: str) -> None:
     if len({q["book"].lower() for q in odds["quotes"]}) != 1:
         raise ValueError("NBA market slate must come from one reference book")
     (VIEWER / f"nba_slate_{day}.json").write_text("[]\n", encoding="utf-8")
-    (VIEWER / f"nba_injuries_{day}.json").write_text(json.dumps({
-        "_fixture": False,
-        "slate_date": day,
-        "as_of": odds["updated_at"],
-        "source": "No injury feed configured",
-        "injuries": [],
-        "impacted_beneficiaries": {},
-    }, indent=2) + "\n", encoding="utf-8")
+    (VIEWER / f"nba_injuries_{day}.json").write_text(json.dumps(
+        injury_report(day, games, odds["updated_at"]), indent=2) + "\n", encoding="utf-8")
     now = datetime.now(ZoneInfo("America/New_York"))
     write_manifest(now)
     print(f"Registered NBA {day}: {len(games)} games, {len(odds['quotes'])} unverified {odds['quotes'][0]['book']} points quotes; no modeled predictions")

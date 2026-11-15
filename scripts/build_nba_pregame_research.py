@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import pandas as pd  # noqa: E402
 
 from nba_model.features.form import add_rolling_form  # noqa: E402
+from nba_model.features.injuries import add_availability_adjustments  # noqa: E402
 from nba_model.model.distribution import PointsDistribution  # noqa: E402
 from nba_model.model.projector import NBAPointsProjector  # noqa: E402
 from nba_model.publish.board import build_board, publish_board  # noqa: E402
@@ -99,7 +100,63 @@ def pregame_rows(history: pd.DataFrame, games: list[dict], quotes: list[dict], s
     return pd.DataFrame(rows), remapped, reasons
 
 
-def run(dataset_dir: Path, games_file: Path, odds_file: Path, out_dir: Path, slate: str) -> dict:
+#: ESPN status -> the availability vocabulary nba_model.features.injuries uses.
+ESPN_STATUS = {"out": "out", "suspension": "suspended", "suspended": "suspended",
+               "doubtful": "doubtful", "questionable": "questionable",
+               "day-to-day": "questionable", "game time decision": "gtd"}
+
+
+def availability_rows(report: dict | None, history: pd.DataFrame, games: list[dict], slate: str) -> tuple[list[dict] | None, dict]:
+    """ESPN injury report -> nba_model availability rows (player_id, team, game_id, report_status).
+
+    Names are resolved to one dataset player on that team (ambiguous -> skipped).
+    An Out player only triggers the teammate minutes boost when he played in one
+    of his team's last two games: a long absence is already in his teammates'
+    recent minutes, so boosting again would double count it.
+    """
+    stats = {"entries": 0, "matched": 0, "out_recent": 0, "out_long_term": 0, "uncertain": 0}
+    if not report or not report.get("injuries"):
+        return None, stats
+    played = history[(~history["dnp"]) & (history["game_date"] < slate)]
+    latest = played.sort_values(["game_date", "game_id"]).drop_duplicates("player_id", keep="last")
+    by_key: dict[tuple[str, str], list[dict]] = {}
+    for row in latest.to_dict("records"):
+        by_key.setdefault((name_key(str(row["player_display_name"])), row["team"]), []).append(row)
+    team_games = {team: sorted(played.loc[played["team"] == team, "game_id"].unique(),
+                               key=lambda g: played.loc[played["game_id"] == g, "game_date"].iloc[0])[-2:]
+                  for team in played["team"].unique()}
+    game_by_team = {}
+    for g in games:
+        if g.get("gameday") == slate:
+            game_by_team[g["home_team"]] = g["game_id"]
+            game_by_team[g["away_team"]] = g["game_id"]
+    rows = []
+    for entry in report["injuries"]:
+        status = ESPN_STATUS.get(str(entry.get("report_status", "")).lower())
+        team = entry.get("team")
+        if status is None or team not in game_by_team:
+            continue
+        stats["entries"] += 1
+        hits = by_key.get((name_key(str(entry.get("player_name", ""))), team), [])
+        if len(hits) != 1:
+            continue
+        stats["matched"] += 1
+        pid = hits[0]["player_id"]
+        if status in ("out", "suspended"):
+            recent = played[(played["player_id"] == pid) & (played["game_id"].isin(team_games.get(team, [])))]
+            if recent.empty:
+                stats["out_long_term"] += 1
+                status = "out_long_term"  # not projected; no teammate boost
+            else:
+                stats["out_recent"] += 1
+        else:
+            stats["uncertain"] += 1
+        rows.append({"player_id": pid, "team": team, "game_id": game_by_team[team], "report_status": status})
+    return rows, stats
+
+
+def run(dataset_dir: Path, games_file: Path, odds_file: Path, out_dir: Path, slate: str,
+        injuries_file: Path | None = None) -> dict:
     history = load_dataset(dataset_dir)
     meta = json.loads((dataset_dir / "nba_dataset_meta.json").read_text())
     games = json.loads(games_file.read_text())
@@ -117,6 +174,20 @@ def run(dataset_dir: Path, games_file: Path, odds_file: Path, out_dir: Path, sla
     test, mapped_quotes, exclusions = pregame_rows(history, games, quotes, slate)
     if test.empty:
         raise ValueError("no quote players resolved to historical players on today's teams")
+    report = json.loads(injuries_file.read_text()) if injuries_file and injuries_file.exists() else None
+    avail, avail_stats = availability_rows(report, history, games, slate)
+    if avail:
+        test = add_availability_adjustments(test, avail)
+        # long-term absences: not projected, but never a teammate boost
+        long_term = {r["player_id"] for r in avail if r["report_status"] == "out_long_term"}
+        test.loc[test["player_id"].isin(long_term), "availability_mult"] = 0.0
+    ruled_out = set(test.loc[test["availability_mult"] == 0.0, "player_id"]) if avail else set()
+    if ruled_out:
+        exclusions["ruled_out"] = len(ruled_out)
+        test = test[~test["player_id"].isin(ruled_out)].copy()
+        mapped_quotes = [q for q in mapped_quotes if q["player_id"] not in ruled_out]
+    if test.empty:
+        raise ValueError("every quoted player is ruled out")
     train = add_rolling_form(history[history["game_date"] < slate].copy())
     preds = NBAPointsProjector().fit(train).predict(test, history=train)
     by_quote = {(q["player_id"], q["game_id"]): q for q in mapped_quotes}
@@ -159,7 +230,11 @@ def run(dataset_dir: Path, games_file: Path, odds_file: Path, out_dir: Path, sla
         },
         "quote_feed_updated_at": feed.get("updated_at"), "quote_count": len(quotes),
         "independent_books": 1, "independent_books_required": 2,
-        "availability_feed": "not supplied; no injury adjustment applied",
+        "availability_feed": (f"{report.get('source', 'injury report')} as of {report.get('as_of')}: "
+                              f"{avail_stats['matched']}/{avail_stats['entries']} slate entries matched, "
+                              f"{avail_stats['out_recent']} newly out (teammate boost), "
+                              f"{avail_stats['out_long_term']} long-term out, {avail_stats['uncertain']} questionable"
+                              if avail else "not supplied; no injury adjustment applied"),
         "matched_count": len(records), "excluded": exclusions,
         "board_status": board["status"], "board_reasons": board["reasons"],
         "board_receipt_sha256": receipt, "records": records,
@@ -180,5 +255,6 @@ if __name__ == "__main__":
     ap.add_argument("--odds", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--date", required=True)
+    ap.add_argument("--injuries", type=Path, help="viewer/nba_injuries_<date>.json (ESPN availability)")
     a = ap.parse_args()
-    run(a.dataset_dir, a.games, a.odds, a.out, a.date)
+    run(a.dataset_dir, a.games, a.odds, a.out, a.date, a.injuries)
