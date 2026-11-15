@@ -396,6 +396,26 @@ def nfl_odds_pull_allowed(games: list[dict], now: datetime,
     return True, f"{remaining} credits available"
 
 
+def fetch_espn_injuries() -> None:
+    """Same-day IR/Out from ESPN -> data/espn_injuries_nfl.json (read by src/slate.py).
+
+    Fail-soft: on any error the previous file is left as is; src/slate.py ignores
+    reports older than 36h, so a dead feed never excludes players on stale data.
+    """
+    try:
+        if str(SRC) not in sys.path:
+            sys.path.insert(0, str(SRC))
+        from espn_injuries import fetch
+        report = fetch("nfl")
+        DATA.mkdir(parents=True, exist_ok=True)
+        (DATA / "espn_injuries_nfl.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
+        out = sum(p["unavailable"] for p in report["players"])
+        print(f"[autopilot] ESPN injuries: {len(report['players'])} entries, {out} unavailable (IR/Out/Doubtful)")
+    except Exception as exc:  # noqa: BLE001 - availability is additive, never blocking
+        print(f"[autopilot] ESPN injuries unavailable ({exc}); nflverse + official sources still apply",
+              file=sys.stderr)
+
+
 def run_model(season: int, week: int, with_odds: bool = False) -> bool:
     """Run src/week1.py for the week. Returns True on success."""
     cmd = [sys.executable, "week1.py", "--season", str(season), "--week", str(week)]
@@ -847,6 +867,7 @@ def main() -> int:
         print("[autopilot] model BLOCKED: game spread, total, and weather lack capture times; "
               "refreshing independent feeds only")
     elif not args.skip_model:
+        fetch_espn_injuries()
         with_odds, why = nfl_odds_pull_allowed(games, now)
         print(f"[autopilot] NFL sportsbook props pull: {'yes' if with_odds else 'skipped'} ({why})")
         if not run_model(season, week, with_odds=with_odds):
