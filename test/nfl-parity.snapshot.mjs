@@ -31,6 +31,8 @@ import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote
  *   6. monetization free-side release: #homeFailClosedShare is a public,
  *      non-operator explanation/share affordance in the empty state. The five
  *      render goldens add only that DOM registry key; model outputs are stable.
+ *   7. feed-age gate reads #boardPageStatus. When the sport is not fail-closed
+ *      the element is empty. The five render goldens add only that key.
  */
 
 process.env.TZ = 'America/New_York';
