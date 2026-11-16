@@ -11,6 +11,7 @@
     "test:extensions": "npm run test:core --prefix extensions",
     "test:all": "npm test && npm run test:extensions",
     "visual:baseline": "node scripts/visual/capture.mjs .visual/baseline --styles",
+    "share:generate": "node scripts/generate_audit_cards.mjs",
     "visual:check": "node scripts/visual/capture.mjs .visual/actual --styles && node scripts/visual/compare.mjs .visual/baseline .visual/actual .visual/diff"
   },
   "engines": {

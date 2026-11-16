@@ -690,3 +690,18 @@ html body.terminal-ui .mobile-usage-ticker {
 }
 html body.terminal-ui .mobile-usage-ticker :is(.mobile-usage-icon, .mobile-usage-label, .mobile-usage-count) { color: var(--ink-dim) !important; background: transparent !important; }
 html body.terminal-ui .terminal-quote-status::before { animation: none !important; }
+
+/* Equal treatment comparison rail; operator links remain disabled until approval. */
+.terminal-ui .price-rail { margin: 10px 12px 12px; border: 1px solid var(--terminal-border); border-radius: 9px; color: var(--terminal-text); }
+.terminal-ui .price-rail summary { min-height: 44px; padding: 10px 12px; cursor: pointer; color: var(--terminal-active-ink); font-size: 12px; font-weight: 650; }
+.terminal-ui .price-rail-scroll { overflow-x: auto; }
+.terminal-ui .price-rail table { width: 100%; min-width: 460px; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+.terminal-ui .price-rail th, .terminal-ui .price-rail td { padding: 8px 10px; text-align: left; border-top: 1px solid var(--terminal-border); }
+.terminal-ui .price-rail th { font-weight: 600; }
+.terminal-ui .price-rail p { margin: 8px 10px 10px; color: var(--terminal-muted); font-size: 11px; line-height: 1.4; }
+.terminal-ui .access-tiers { display: grid; gap: 8px; margin: 12px 0; }
+.terminal-ui .access-tier { padding: 12px; border: 1px solid var(--terminal-border); border-radius: 8px; background: var(--terminal-surface); }
+.terminal-ui .access-tier strong { color: var(--terminal-text); }
+.terminal-ui .access-tier p { margin: 5px 0 0; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
+.terminal-ui .home-fail-closed { margin: 8px 0 12px; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
+.terminal-ui .home-fail-closed a { color: var(--terminal-active-ink); white-space: nowrap; }

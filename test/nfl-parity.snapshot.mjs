@@ -28,6 +28,9 @@ import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote
  *      attach to the slate; the harness attaches ONE synthetic quote
  *      (attachSyntheticQuote) so render/modal/ledger goldens keep covering
  *      those paths. Goldens re-captured via PW_UPDATE_SNAPSHOTS=1.
+ *   6. monetization free-side release: #homeFailClosedShare is a public,
+ *      non-operator explanation/share affordance in the empty state. The five
+ *      render goldens add only that DOM registry key; model outputs are stable.
  */
 
 process.env.TZ = 'America/New_York';

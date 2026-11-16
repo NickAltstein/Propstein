@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PropStein Line Pricer</title>
+  <meta name="robots" content="noindex">
+  <link rel="alternate" type="application/json+oembed" href="https://propstein.com/widget/line-pricer/oembed.json" title="PropStein Line Pricer">
+  <link rel="stylesheet" href="/widget/line-pricer/widget.css?v=2026_v1">
+  <script src="/js/quant-math.js?v=2026_v215" defer></script>
+  <script src="/widget/line-pricer/widget.js?v=2026_v2" defer></script>
+</head>
+<body>
+  <main>
+    <header><a href="https://propstein.com/" target="_blank" rel="noopener noreferrer">PROPSTEIN</a><span>FREE LINE PRICER</span></header>
+    <p>Price a published NFL model line. This is model research, not a sportsbook quote.</p>
+    <form id="pricer">
+      <label>Player <select id="player" required><option>Loading slate…</option></select></label>
+      <label>Market <select id="market"><option value="receiving_yards">Receiving yards</option><option value="receptions">Receptions</option></select></label>
+      <label>Line <input id="line" type="number" min="0" step="0.5" required></label>
+      <label>Break-even probability <input id="break-even" type="number" min="0" max="100" step="0.1" value="50" required> %</label>
+    </form>
+    <section id="result" aria-live="polite">Waiting for published slate…</section>
+    <footer><a href="https://propstein.com/methodology/" target="_blank" rel="noopener noreferrer">Methodology</a> · <a href="https://propstein.com/performance/" target="_blank" rel="noopener noreferrer">Public audit</a> · <a href="https://propstein.com/" target="_blank" rel="noopener noreferrer">Open terminal ↗</a></footer>
+  </main>
+</body>
+</html>

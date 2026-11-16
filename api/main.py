@@ -18,6 +18,7 @@ import json
 import os
 import re
 import secrets
+import sqlite3
 import subprocess
 import sys
 import time
@@ -1626,6 +1627,9 @@ async def create_checkout_session(
     endpoint is rate-limited to 3 requests/min per principal+IP.
     """
     principal = _billing_principal(request, authorization, x_propstein_key, x_propwire_key)
+    from src.services.monetization import checkout_ready
+    if not checkout_ready()["ready"]:
+        raise HTTPException(503, "Paid access is frozen: live feed or prospective evidence gate is not ready")
     # The public performance record freezes new paid signups while live
     # closing-line alpha remains unproven. Existing customers can still use
     # the billing portal; only new checkout sessions are blocked by default.
@@ -1642,17 +1646,48 @@ async def create_checkout_session(
     except Exception:
         body = {}
     email = body.get("email")
-    plan = str(body.get("plan") or "pro_monthly")
+    plan = str(body.get("plan") or "")
 
     engine = get_sniper_engine()
     billing = BillingService(truth_store=engine.truth)
-    return billing.create_checkout_session(
-        user_id=principal,
-        email=email,
-        plan=plan,
-        success_url=_billing_safe_redirect(body.get("success_url")),
-        cancel_url=_billing_safe_redirect(body.get("cancel_url")),
-    )
+    try:
+        return billing.create_checkout_session(
+            user_id=principal,
+            email=email,
+            plan=plan,
+            success_url=_billing_safe_redirect(body.get("success_url")),
+            cancel_url=_billing_safe_redirect(body.get("cancel_url")),
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+@app.get("/api/billing/readiness")
+def billing_readiness():
+    """Public diagnostic; never reveals tokens or customer data."""
+    from src.services.monetization import checkout_ready
+    return checkout_ready()
+
+
+@app.post("/api/events", status_code=204)
+async def product_event(request: Request):
+    """Count an allowlisted event only; discard all other browser metadata."""
+    from src.observability.product_events import record_event
+    raw = await request.body()
+    if len(raw) > 256:
+        raise HTTPException(413, "Event too large")
+    try:
+        event = json.loads(raw)
+        if not isinstance(event, dict) or set(event) - {"event", "tier", "operator"}:
+            raise ValueError("Unexpected event fields")
+        record_event(event.get("event", ""), event.get("tier", "none"), event.get("operator", ""))
+    except (ValueError, TypeError):
+        raise HTTPException(400, "Invalid event")
+    except (OSError, sqlite3.Error):
+        raise HTTPException(503, "Event collector unavailable")
+    return None
 
 
 @app.post("/api/billing/create-portal-session")

@@ -1,0 +1,16 @@
+{
+  "schema_version": "monetization.v1",
+  "readiness": {
+    "max_feed_age_seconds": 900,
+    "min_verified_qualified_plays": 1,
+    "min_verified_books": 2,
+    "min_edge_fraction": 0.10
+  },
+  "tiers": {
+    "research": ["methodology", "settled_audit", "historical_board", "line_pricer", "distribution"],
+    "pro": ["live_board", "edge_badges", "alerts", "dfs_presets", "personal_ledger", "csv_export"],
+    "quant": ["fair_line_api", "bulk_export", "line_movement_webhooks", "kelly_sizing"]
+  },
+  "plans": ["pro_nfl_season", "pro_nba_season", "pro_annual", "pro_monthly", "quant_seat_usage"],
+  "checkout_enabled": false
+}

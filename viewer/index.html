@@ -51,15 +51,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v200">
-  <link rel="stylesheet" href="/style.css?v=2026_v255">
+  <link rel="stylesheet" href="/style.css?v=2026_v258">
   <link rel="stylesheet" href="/refresh-2026.css?v=2026_r14">
   <link rel="stylesheet" href="/design-system.css?v=2026_v229">
-  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v3">
+  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v4">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v181" defer></script>
   <script src="/js/sports/nba.js?v=2026_v221" defer></script>
   <script src="/js/quant-math.js?v=2026_v215" defer></script>
-  <script src="/app.js?v=2026_v255" defer></script>
+  <script src="/app.js?v=2026_v258" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v200" defer></script>
   <script src="/js/today-schedule.js?v=2026_v243" defer></script>
   <script src="/js/front-page.js?v=2026_v254" defer></script>
@@ -329,6 +329,7 @@
       </details>
       <div class="rf-status-strip">
         <p class="home-edge-status" id="homeEdgeStatus">Loading data and checking price status…</p>
+        <p class="home-fail-closed" id="homeFailClosedShare" hidden>No verified plays · fail closed. A quote needs a current timestamp and a passing receipt before it can qualify. <a data-fail-closed-share href="https://x.com/intent/post?text=No%20verified%20plays%20today.%20PropStein%20fails%20closed%20when%20quotes%20cannot%20be%20verified.%20The%20public%20audit%20stays%20open%3A%20https%3A%2F%2Fpropstein.com%2Fperformance%2F" target="_blank" rel="noopener noreferrer">Share why ↗</a></p>
         <button type="button" id="howMathWorksBtn" class="how-math-works-btn" title="How the quantitative model works">? Math</button>
       </div>
       <div class="home-edge-list" id="homeEdgeList"></div>
@@ -498,6 +499,7 @@
         </label>
       </div>
       <div class="pick-result" id="pickResult" aria-live="polite"></div>
+      <p class="pick-caveat">Use the <a href="/widget/line-pricer/">free embeddable Line Pricer</a> on another site.</p>
     </section>
 
     <section class="data-board" id="fullPlayerBoard" aria-label="Player slate">
@@ -817,8 +819,14 @@
       <div class="dialog-body" id="pricingContent">
         <div class="pricing-closed-note">
           <p><strong>The research terminal is free and open.</strong> Browse player props, model prices, and DFS research without an account.</p>
-          <p>Public board refreshes every 4 hours — same as every tier; no faster ingestion exists at any tier.</p>
+          <p>Today the public board refreshes every 4 hours. Paid tiers are not operating, and no faster ingestion is available in the current product.</p>
             <p>See the <a href="/performance/">public performance record</a>.</p>
+        </div>
+
+        <div class="access-tiers" aria-label="Planned access tiers">
+          <div class="access-tier"><strong>Research · Free</strong><p>Historical board, methodology, settled audit, model distributions and manual Line Pricer remain public.</p></div>
+          <div class="access-tier"><strong>Pro · Planned</strong><p>Live verified board, alerts, DFS presets, personal ledger and CSV export. Season passes are planned as the primary option. Pricing is unset and access is closed.</p></div>
+          <div class="access-tier"><strong>Quant · Planned</strong><p>Pro features plus fair-line API, bulk exports, line-movement webhooks and Kelly sizing. Seat and usage pricing is unset.</p></div>
         </div>
 
         <div class="pricing-community-row">

@@ -6,7 +6,8 @@ POST /api/billing/create-checkout-session (and the portal sibling) must:
 1. Reject unauthenticated callers with 401 BEFORE any Stripe API call.
 2. Derive the billing user_id SERVER-SIDE from the authenticated session
    token — request-body user_id is ignored (no cross-user session minting).
-3. Return the Stripe (or simulated) checkout URL for authenticated callers.
+3. Return a configured Stripe checkout URL for authenticated callers after
+   the independent readiness gate passes.
 4. Rate-limit session creation to 3 requests/min per principal+IP (429).
 5. Fail closed (401) on foreign tokens when a server key is configured.
 6. Clamp client-supplied success/cancel/return URLs to the app origin.
@@ -61,7 +62,7 @@ def test_paid_signups_frozen_by_default_even_for_authenticated_user(client, monk
 
 
 def _install_fake_billing(monkeypatch, recorded):
-    """Replace BillingService with a recorder; stub the sniper engine."""
+    """Replace BillingService with a recorder; isolate auth/rate tests from readiness."""
 
     class FakeBillingService:
         def __init__(self, truth_store=None):
@@ -80,6 +81,7 @@ def _install_fake_billing(monkeypatch, recorded):
             }
 
     monkeypatch.setattr("src.services.billing.BillingService", FakeBillingService)
+    monkeypatch.setattr("src.services.monetization.checkout_ready", lambda: {"ready": True})
     monkeypatch.setattr(api_main, "get_sniper_engine", lambda: SimpleNamespace(truth=None))
 
 

@@ -158,11 +158,10 @@ def test_stripe_billing_checkout_and_webhook(monkeypatch):
 
     client = TestClient(app)
     uid = f"usr_test_{secrets.token_hex(4)}"
-    # Exercise the billing contract under an explicit operator reopening.
-    # Production checkout remains frozen by default (see test_api_security).
+    # A legacy operator switch alone cannot reopen checkout.
     monkeypatch.setenv("PROPSTEIN_PAID_SIGNUPS_ENABLED", "1")
 
-    # 1. Create checkout session for $29/mo.
+    # 1. Checkout remains frozen until evidence, live feed and prices are ready.
     #    P2 contract (v175): checkout requires an authenticated session token
     #    (401 otherwise, BEFORE any Stripe call) and derives the billing
     #    user_id SERVER-SIDE from that token — the payload user_id below is a
@@ -172,13 +171,8 @@ def test_stripe_billing_checkout_and_webhook(monkeypatch):
         json={"plan": "pro_monthly", "user_id": "decoy_must_be_ignored", "email": "sharp@example.com"},
         headers={"X-PropStein-API-Key": uid},
     )
-    assert res_checkout.status_code == 200
-    ch_data = res_checkout.json()
-    assert "checkout_url" in ch_data
-    assert ch_data["plan"] == "pro_monthly"
-    # Server-side identity: the session token (sanitized verbatim < 48 chars)
-    # becomes the billing user, and the payload decoy never reaches the ledger.
-    assert "decoy_must_be_ignored" not in ch_data.get("checkout_url", "")
+    assert res_checkout.status_code == 503
+    assert "frozen" in res_checkout.json()["detail"].lower()
 
     # 2. Check billing status defaults to free observer before payment
     res_status = client.get(f"/api/billing/status?user_id={uid}")

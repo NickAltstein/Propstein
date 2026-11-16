@@ -233,6 +233,15 @@
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const bookShort = (book) => bookShortV152(book);
 
+  function trackProductEvent(event) {
+    if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return;
+    const endpoint = document.querySelector('meta[name="propstein-events-endpoint"]')?.content;
+    if (!endpoint || !endpoint.startsWith('/')) return;
+    const allowed = ['paywall_encounter', 'alert_engagement', 'price_rail_open', 'fail_closed_share'];
+    if (!allowed.includes(event)) return;
+    try { navigator.sendBeacon(endpoint, new Blob([JSON.stringify({ event, tier: 'research' })], { type: 'application/json' })); } catch (_) {}
+  }
+
   // ── v152 book identity — mirrors src/odds_adapter.py BOOK_META ──────────
   // Self-hosted wordmark badges (viewer/books/<id>.svg): same-origin, so the
   // CSP img-src 'self' policy that v150 fixed keeps working with zero
@@ -1407,12 +1416,15 @@
     const pricingBtn = $('#pricingBtn');
     if (pricingBtn && pricingDialog) {
       pricingBtn.addEventListener('click', () => {
+        trackProductEvent('paywall_encounter');
         triggerHaptic('light');
         pricingDialog.showModal();
       });
     }
 
     document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-fail-closed-share]')) trackProductEvent('fail_closed_share');
+      if (e.target.closest('#sniperBtn, #mobileSniperBtn')) trackProductEvent('alert_engagement');
       const modelHelp = e.target.closest('[data-model-only-help]');
       if (modelHelp) {
         e.preventDefault();
@@ -1453,6 +1465,7 @@
       const pricingTrigger = e.target.closest('[data-open-pricing]');
       if (pricingTrigger && pricingDialog) {
         e.preventDefault();
+        trackProductEvent('paywall_encounter');
         triggerHaptic('light');
         pricingDialog.showModal();
       }
@@ -4170,6 +4183,8 @@
       status.textContent = research.length
         ? `Showing ${homeEdgeExpanded ? research.length : Math.min(HOME_EDGE_LIMIT, research.length)} of ${research.length} model-ranked research lines. ${verifiedQuotes} receipt-verified in snapshot. Qualification paused: waiting on ${waitingOn}.`
         : `No verified plays · ${asOf ? `last odds update ${asOf}` : 'sportsbook prices not posted yet'} · model fair lines for research`;
+      const failClosedShare = $('#homeFailClosedShare');
+      if (failClosedShare) failClosedShare.hidden = false;
 
       const displayCards = research.slice(0, homeEdgeExpanded ? undefined : HOME_EDGE_LIMIT);
 
@@ -4223,6 +4238,8 @@
       .sort((a, b) => b.evaluation.ev - a.evaluation.ev)
       .slice(0, HOME_EDGE_LIMIT);
     status.textContent = `${plays.length ? `Top ${plays.length} verified ${plays.length === 1 ? 'edge' : 'edges'}` : 'No qualified edges'} · odds as of ${asOf || 'time unavailable'}`;
+    const failClosedShare = $('#homeFailClosedShare');
+    if (failClosedShare) failClosedShare.hidden = plays.length > 0;
 
     // Render Drop-in Institutional Controls
     if (mountEl) {
@@ -7212,8 +7229,35 @@
         <!-- Row 2: decision layout (research) or 4-column tabular grid (quoted) -->
         <div class="card-grid-row${isResearchCard ? ' v176-research' : ''}">
           ${gridColsHtml}
-        </div>${receivingInputs(row)}${recentHitRateMarkup(row, evaluation, state.filters.market)}
+        </div>${receivingInputs(row)}${recentHitRateMarkup(row, evaluation, state.filters.market)}${priceRailMarkup(row, evaluation)}
       </article>`;
+  }
+
+  function priceRailMarkup(row, evaluation) {
+    if (!evaluation.quote || !Number.isFinite(Number(evaluation.line))) return '';
+    const side = String(evaluation.side || '').toUpperCase();
+    if (!['OVER', 'UNDER'].includes(side)) return '';
+    const line = Number(evaluation.line);
+    const offers = (state.odds?.quotes || [])
+      .filter((q) => q.market === state.filters.market && Number(q.line) === line
+        && (q.player_id === row.player_id || String(q.player_name).toLowerCase() === String(row.player_display_name).toLowerCase())
+        && q.book && !quoteIsSynthetic(q))
+      .map((q) => ({ quote: q, price: Number(side === 'OVER' ? q.over_odds : q.under_odds) }))
+      .filter((item) => Number.isFinite(item.price) && item.price !== 0)
+      .sort((a, b) => b.price - a.price || String(a.quote.book).localeCompare(String(b.quote.book)));
+    if (!offers.length) return '';
+    const now = Date.now();
+    const rows = offers.map(({ quote, price }) => {
+      const timestamp = Date.parse(String(quote.observed_at || ''));
+      const age = Number.isFinite(timestamp) && timestamp <= now ? Math.ceil((now - timestamp) / 60000) : null;
+      const fresh = age !== null && age < 15 && quoteState(quote) === 'verified';
+      return `<tr><th scope="row">${esc(quote.book)}</th><td>${oddsText(price)}</td><td>${age === null ? 'Unknown' : `${age}m ago`}</td><td>${fresh ? 'Receipt verified' : 'Historical / research only'}</td></tr>`;
+    }).join('');
+    return `<details class="price-rail" aria-label="Compare prices for ${esc(row.player_display_name)}">
+      <summary>Compare ${offers.length} price${offers.length === 1 ? '' : 's'} · ${side} ${line.toFixed(1)}</summary>
+      <div class="price-rail-scroll"><table><thead><tr><th>Operator</th><th>Price</th><th>Age</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p>Affiliate disclosure: PropStein may earn from eligible operator links. No operator links are enabled in this jurisdiction map. Operator availability varies by location. Prices are research only when stale or unverified.</p>
+    </details>`;
   }
 
   // ── §16. Evaluation core — fair value, model gate, cell renderers ─────
@@ -7681,6 +7725,8 @@
   }
 
   function inspectFromEvent(event) {
+    if (event.target.closest('.price-rail summary')) { trackProductEvent('price_rail_open'); return; }
+    if (event.target.closest('.price-rail')) return;
     if (wasCardSwiped) {
       event.preventDefault();
       event.stopPropagation();

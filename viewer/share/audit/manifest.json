@@ -1,0 +1,88 @@
+{
+  "source": "viewer/clv_audit_report.json",
+  "generated_at": "2026-11-16T20:42:00.099Z",
+  "record_count": 8,
+  "cards": [
+    {
+      "file": "result-001.png",
+      "outcome": "WIN",
+      "receipt_id": "8e038b2029e5b60d",
+      "record_sha256": "676e1728541690b125d8d197a11ba7c4d0793f40a50e37f542979cd37baa07c8",
+      "model_range": {
+        "p10": 46.8,
+        "p90": 207
+      }
+    },
+    {
+      "file": "result-002.png",
+      "outcome": "WIN",
+      "receipt_id": "2339598e09fc2e66",
+      "record_sha256": "9a122a5c84af255860dcc77226b750e2b3b629f45a55f0f1ba92761c50654e35",
+      "model_range": {
+        "p10": 3.8,
+        "p90": 66.3
+      }
+    },
+    {
+      "file": "result-003.png",
+      "outcome": "WIN",
+      "receipt_id": "77d9bcbe2eb01039",
+      "record_sha256": "1720e998b586aa5375e018dd8cb80bcbe55f03d811a31f12341f2f1ce8b81a2f",
+      "model_range": {
+        "p10": 0,
+        "p90": 66.2
+      }
+    },
+    {
+      "file": "result-004.png",
+      "outcome": "LOSS",
+      "receipt_id": "e589c1aef0995704",
+      "record_sha256": "c8366dd3dc921a648119152cbc40849db1baa505e65c2d02e5092b8824f47280",
+      "model_range": {
+        "p10": 38.6,
+        "p90": 191
+      }
+    },
+    {
+      "file": "result-005.png",
+      "outcome": "WIN",
+      "receipt_id": "1e206a16627536f0",
+      "record_sha256": "7c1db419308a3b67ce8a3aa20c0bd9ffd7ead5b4b5cbac941e1407b78d2dd60a",
+      "model_range": {
+        "p10": 29.8,
+        "p90": 167.2
+      }
+    },
+    {
+      "file": "result-006.png",
+      "outcome": "WIN",
+      "receipt_id": "73a02de57412d51f",
+      "record_sha256": "3dae0b84d1aecab4019d964968d7c752fbf3705d7b77b6dcabe40d9660364d01",
+      "model_range": {
+        "p10": 17.3,
+        "p90": 127.7
+      }
+    },
+    {
+      "file": "result-007.png",
+      "outcome": "WIN",
+      "receipt_id": "3e6265abe8f5b07e",
+      "record_sha256": "641629b63638155077d281738cb352b29226a3d904c8039e7d5172a2e63ff41c",
+      "model_range": {
+        "p10": 15,
+        "p90": 112.1
+      }
+    },
+    {
+      "file": "result-008.png",
+      "outcome": "WIN",
+      "receipt_id": "f2b5fb58026cac4f",
+      "record_sha256": "8cab02a657eb78135d8de163a21c0c09fb6bf1819bdf6454482af445d862d4db",
+      "model_range": {
+        "p10": 9.5,
+        "p90": 102.1
+      }
+    }
+  ],
+  "summary_sha256": "79e11ef8f2a5357f581c46faf25b5c269bc68494c032b2310d8d007f826f4466"
+}

@@ -1,9 +1,9 @@
 """
-PropWire Monetization Engine: Stripe & Whop Subscription Integration
+PropStein Monetization Engine: Stripe & Whop Subscription Integration
 ====================================================================
 
 Manages:
-- $29/mo Sniper PRO (and $290/yr) Stripe Checkout Sessions
+- Configured Stripe Checkout prices; no amount is inferred in code
 - Stripe Customer Portal for self-serve management/cancellation
 - Idempotent Stripe webhook handling (HMAC-SHA256 signature verification)
 - Whop entitlement fallback so existing memberships continue working
@@ -29,10 +29,7 @@ from src.agents.persistence import TruthStore
 logger = logging.getLogger("propwire.billing")
 
 STRIPE_API_BASE = "https://api.stripe.com/v1"
-DEFAULT_PRO_MONTHLY_CENTS = 2900  # $29.00
-DEFAULT_PRO_YEARLY_CENTS = 29000  # $290.00
-
-# Mapping existing frozen plan IDs to clean institutional display names
+# Existing subscription plan IDs remain readable for legacy memberships.
 PLAN_DISPLAY_NAMES: dict[str, str] = {
     "sniper_pro_monthly": "Quant PRO (Monthly)",
     "sniper_pro_yearly": "Quant PRO (Yearly)",
@@ -114,29 +111,19 @@ class BillingService:
         cancel_url: str | None = None,
     ) -> dict[str, Any]:
         """
-        Creates a Stripe Checkout Session for $29/mo (or $290/yr).
-        Falls back to a simulated session URL if STRIPE_SECRET_KEY is unset in development.
+        Creates a configured Stripe Checkout Session. No implicit price or
+        simulated checkout can be used for the new commercial plans.
         """
         base_url = os.environ.get("APP_URL", "https://propstein.com").rstrip("/")
         succ_url = success_url or f"{base_url}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}"
         canc_url = cancel_url or f"{base_url}/?checkout=cancelled"
 
-        is_yearly = plan == "pro_yearly"
-        unit_amount = DEFAULT_PRO_YEARLY_CENTS if is_yearly else DEFAULT_PRO_MONTHLY_CENTS
-        interval = "year" if is_yearly else "month"
-        prod_name = "PropWire Sniper PRO (Yearly)" if is_yearly else "PropWire Sniper PRO ($29/mo)"
-
-        if not self.stripe_secret_key:
-            # Fallback simulated session for demo / testing without Stripe credentials
-            simulated_id = f"cs_test_mock_{user_id}_{int(time.time())}"
-            return {
-                "checkout_url": f"{base_url}/?session_id={simulated_id}&user_id={user_id}&tier=pro",
-                "session_id": simulated_id,
-                "plan": plan,
-                "mode": "simulated",
-            }
-
-        price_id = os.environ.get(f"STRIPE_PRICE_ID_{interval.upper()}")
+        from src.services.monetization import policy
+        if plan not in policy()["plans"] or plan == "quant_seat_usage":
+            raise ValueError("Unknown or sales-assisted plan")
+        price_id = os.environ.get(f"STRIPE_PRICE_ID_{plan.upper()}")
+        if not self.stripe_secret_key or not price_id:
+            raise RuntimeError("Checkout price or Stripe credentials are not configured")
         form_data: dict[str, Any] = {
             "mode": "subscription",
             "success_url": succ_url,
@@ -148,15 +135,8 @@ class BillingService:
         if email:
             form_data["customer_email"] = email
 
-        if price_id:
-            form_data["line_items[0][price]"] = price_id
-            form_data["line_items[0][quantity]"] = "1"
-        else:
-            form_data["line_items[0][price_data][currency]"] = "usd"
-            form_data["line_items[0][price_data][product_data][name]"] = prod_name
-            form_data["line_items[0][price_data][unit_amount]"] = str(unit_amount)
-            form_data["line_items[0][price_data][recurring][interval]"] = interval
-            form_data["line_items[0][quantity]"] = "1"
+        form_data["line_items[0][price]"] = price_id
+        form_data["line_items[0][quantity]"] = "1"
 
         resp = _stripe_request("checkout/sessions", form_data, self.stripe_secret_key)
         return {

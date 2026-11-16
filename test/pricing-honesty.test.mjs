@@ -24,11 +24,11 @@ test('pricing tiers make no ingestion-speed or unbuilt-capability claims', async
   }
 });
 
-test('pricing states the real odds refresh cadence at every tier', async () => {
+test('pricing states the current public refresh cadence and paid freeze', async () => {
   for (const page of PRICING_PAGES) {
     const html = await read(page);
     assert.match(html, /every 4 hours|four-hour/i, `${page}: the true cadence must be stated`);
-    assert.match(html, /same as every tier/i, `${page}: cadence must be declared identical across tiers`);
+    assert.match(html, /Paid tiers are not operating/i, `${page}: planned paid cadence must not be presented as live`);
   }
 });
 
