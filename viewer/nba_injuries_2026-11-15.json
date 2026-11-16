@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-15",
-  "as_of": "2026-11-16T00:07:08Z",
+  "as_of": "2026-11-16T02:17:05Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -209,13 +209,6 @@
       "comment": "Williams (back) has been ruled out for Sunday's game against the Kings."
     },
     {
-      "player_name": "Ajay Mitchell",
-      "team": "OKC",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T01:10Z",
-      "comment": "Mitchell (ankle) is questionable to suit up for Sunday's game against the Kings."
-    },
-    {
       "player_name": "Thomas Sorber",
       "team": "OKC",
       "report_status": "Out",
@@ -286,18 +279,32 @@
       "comment": "Williams underwent surgery Thursday to repair a torn labrum in his left shoulder and will miss an extended period of time, Shams Charania of ESPN reports."
     },
     {
+      "player_name": "De'Andre Hunter",
+      "team": "SAC",
+      "report_status": "Out",
+      "reported_at": "2026-11-16T01:18Z",
+      "comment": "Hunter (hip) is out for Sunday's game against the Thunder."
+    },
+    {
+      "player_name": "Zach LaVine",
+      "team": "SAC",
+      "report_status": "Out",
+      "reported_at": "2026-11-16T01:06Z",
+      "comment": "LaVine is out for Sunday's game against Oklahoma City due to illness, Brandon Rahbar of DailyThunder.com reports."
+    },
+    {
+      "player_name": "Precious Achiuwa",
+      "team": "SAC",
+      "report_status": "Out",
+      "reported_at": "2026-11-16T00:24Z",
+      "comment": "Achiuwa (ankle) has been ruled out for Sunday's game against the Thunder, Brenden Nunes of KHTK Sactown Sports 1140 reports."
+    },
+    {
       "player_name": "Maxime Raynaud",
       "team": "SAC",
       "report_status": "Out",
       "reported_at": "2026-11-15T01:00Z",
       "comment": "Raynaud (knee) has been ruled out for Sunday's game against the Thunder."
-    },
-    {
-      "player_name": "Precious Achiuwa",
-      "team": "SAC",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T00:57Z",
-      "comment": "Achiuwa (ankle) is questionable for Sunday's game against the Thunder."
     },
     {
       "player_name": "Ben Simmons",
