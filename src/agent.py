@@ -157,10 +157,15 @@ class PickAgent:
 # ----------------------------------------------------------------------------
 
 def log_picks(picks: list[Pick], path: str = "picks_log.jsonl") -> None:
+    from src.ledger.quote_source import tag_quote_source
     ts = datetime.now(timezone.utc).isoformat()
     with open(path, "a") as f:
         for p in picks:
-            f.write(json.dumps({"logged_at": ts, **asdict(p)}) + "\n")
+            row = {"logged_at": ts, **asdict(p)}
+            source = tag_quote_source(book=row.get("book"), explicit=row.get("entry_quote_source"))
+            row["entry_quote_source"] = source
+            row["close_quote_source"] = source
+            f.write(json.dumps(row) + "\n")
 
 
 def record_closing(path: str, closing: dict) -> None:
@@ -192,12 +197,38 @@ def clv_report(path: str = "picks_log.jsonl") -> dict:
         return {"status": "no closing lines recorded yet", "n": 0,
                 "excluded_demo": excluded_demo,
                 "note": "demo/scenario rows are excluded from CLV grading; no real CLV data exists yet"}
-    clv = np.array([r["clv"] for r in rows])
+    from src.ledger.quote_source import headline_clv, source_class, tag_ledger_row
+    tagged = []
+    for row in rows:
+        item = tag_ledger_row(row)
+        item["clv"] = row["clv"]
+        tagged.append(item)
+    report = headline_clv(tagged, "clv")
+    by_source = {}
+    for kind, stats in report["by_source"].items():
+        values = [item["clv"] for item in tagged if source_class(item["entry_quote_source"]) == kind]
+        by_source[kind] = {
+            "n": stats["n"],
+            "mean_clv": stats["mean"],
+            "pct_beating_close": float(sum(value > 0 for value in values) / len(values)),
+        }
+    headline = report["headline_source_class"]
+    if headline is None:
+        return {
+            "n": 0,
+            "excluded_demo": excluded_demo,
+            "headline_source_class": None,
+            "by_source": by_source,
+            "note": "CLV is reported per quote-source class and is not pooled",
+        }
+    clv = np.array([item["clv"] for item in tagged if source_class(item["entry_quote_source"]) == headline])
     se = float(clv.std(ddof=1) / np.sqrt(len(clv))) if len(clv) > 1 else 0.0
     mean_val = float(clv.mean())
     return {
         "n": len(clv),
         "excluded_demo": excluded_demo,
+        "headline_source_class": headline,
+        "by_source": by_source,
         "mean_clv": mean_val,
         "ci95": [float(mean_val - 1.96 * se), float(mean_val + 1.96 * se)],
         "pct_beating_close": float((clv > 0).mean()),

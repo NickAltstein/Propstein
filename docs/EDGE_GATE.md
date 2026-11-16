@@ -241,6 +241,21 @@ committed with rationale before further data collection, never applied
 retroactively, and never applied to already-collected signals. The first
 confirmatory attempt consumes an attempt regardless (§6).
 
+## 10. Quote source on the close (effective 2026-11-16)
+
+Scheduled odds after this date are Kalshi for NBA and Polymarket for NFL. A
+closing row matches an entry only when `quote_source` is the same tag, in
+addition to the same market, selection, line, and settlement rules. A different
+tag is unmatched and is not a price comparison.
+
+Tags are `odds_api:<book>`, `kalshi`, `polymarket`, or `unknown`. Rows already
+in the ledger are tagged from the stored book name when that name identifies
+one of those sources. Rows with no readable source stay `unknown`.
+
+Headline CLV is computed inside one source class only. `odds_api`, `kalshi`,
+`polymarket`, and `unknown` are not averaged together. The thresholds in §1
+are unchanged.
+
 **Related constant, no coupling (verified 2026-10-25).**
 `src/grade_clv.py` defines its own `edge_hurdle: float = 0.10` (line 95) and
 `--hurdle` default 0.10 (line 248). `grep -n '0\.10' src/grade_clv.py
