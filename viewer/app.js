@@ -639,9 +639,9 @@
     const unit = marketDef().naturalInsightUnit;
     if (evaluation.state === 'none') {
       if (proj >= marketDef().strongCeiling) {
-        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (${boardSourceClassLabel() ? `Waiting for ${boardSourceClassLabel()} quotes` : 'Waiting for a live quote'}).`;
       }
-      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (${boardSourceClassLabel() ? `Waiting for ${boardSourceClassLabel()} quotes` : 'Waiting for a live quote'}).`;
     }
     if (evaluation.closed) {
       return `Market closed (game started). Model fair ${fair.toFixed(1)} ${unit}.`;
@@ -851,6 +851,39 @@
     if (polymarket) return 'Polymarket CLOB';
     if (sportsbooks) return 'Sportsbook quotes';
     return 'No current market quotes';
+  }
+
+  function quoteSourceClass(book) {
+    const slug = String(book || '').toLowerCase().replace(/[-_ ]/g, '');
+    if (slug === 'kalshi') return 'kalshi';
+    if (slug === 'polymarket') return 'polymarket';
+    if (bookMeta(book)) return 'odds_api';
+    return slug ? 'other' : 'unknown';
+  }
+
+  function quoteSourceClassLabel(book) {
+    const sourceClass = quoteSourceClass(book);
+    if (sourceClass === 'kalshi') return 'Kalshi';
+    if (sourceClass === 'polymarket') return 'Polymarket';
+    if (sourceClass === 'odds_api') return 'sportsbook';
+    return book ? String(book) : 'live quote';
+  }
+
+  function boardSourceClassLabel() {
+    if (SPORT_ID === 'nba') return 'Kalshi';
+    if (SPORT_ID === 'nfl') return 'Polymarket';
+    return null;
+  }
+
+  function awaitingLivePriceCopy() {
+    const source = boardSourceClassLabel();
+    return source ? `No verified ${source} price yet` : 'No verified live price yet';
+  }
+
+  function pricesPostCopy() {
+    const source = boardSourceClassLabel();
+    const eventWord = SPORT_ID === 'nba' ? 'tipoff' : 'kickoff';
+    return source ? `${source} prices post closer to ${eventWord}` : `Live prices post closer to ${eventWord}`;
   }
 
   function updateFeedVerificationUI() {
@@ -2705,7 +2738,7 @@
 
     if (SPORT_ID === 'nfl' && state.featureContextLocked !== false) return deny('feature_cutoff_unverified', 'Model context has no pre-pricing capture timestamps. Execution is locked.');
     if (SLATES[state.slateKey]?.historical || health.dataKind === 'fixture') return deny('historical', 'Historical and fixture slates are research-only.');
-    if (result.state === 'none') return deny('no_quote', 'No sportsbook quote is available for this projection.');
+    if (result.state === 'none') return deny('no_quote', boardSourceClassLabel() ? `No ${boardSourceClassLabel()} quote is available for this projection.` : 'No live quote is available for this projection.');
     if (result.state !== 'verified') return deny('unverified', 'Price unverified—refresh or choose another book.');
     if (!completeQuote) return deny('incomplete_quote', 'The quote is missing its book, line, odds, timestamp, or receipt.');
     if (health.odds !== 'ok' || health.oddsFreshness !== 'ok') return deny('stale_odds', 'Odds are stale or unavailable. The slate is in research mode.');
@@ -2765,7 +2798,7 @@
         snapshotPill.textContent = 'Snapshot unavailable · Odds feed offline';
       } else if (!captured) {
         snapshotPill.textContent = !hasUpcomingSlate
-          ? 'Between slates · Sportsbook prices post closer to kickoff'
+          ? `Between slates · ${pricesPostCopy()}`
           : 'Snapshot time unavailable · Prices unverified';
       } else if (ageSeconds > 1800) {
         snapshotPill.textContent = `Snapshot Mode · Captured ${captured}`;
@@ -2920,7 +2953,7 @@
     receptions: { label: 'Receptions', unit: 'rec' },
     receiving_yards: { label: 'Receiving yards', unit: 'yds' }
   };
-  const PICK_CAVEAT = 'This is the published model probability at the line you entered, not a sportsbook price, and it can be wrong.';
+  const PICK_CAVEAT = 'This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong.';
 
   function pickMarketId() {
     const selected = $('#pickMarket') && $('#pickMarket').value;
@@ -3030,7 +3063,7 @@
     const pct1 = (value) => `${(value * 100).toFixed(1)}%`;
     const bookLine = book
       ? `<p class="pick-book">Verified ${esc(book.book)} line ${Number(book.line).toFixed(1)}</p>`
-      : '<p class="pick-book">No verified sportsbook price yet</p>';
+      : `<p class="pick-book">${awaitingLivePriceCopy()}</p>`;
     result.innerHTML = `
       ${bookLine}
       <dl class="pick-metrics">
@@ -4209,7 +4242,7 @@
         : 'independent quote receipt';
       status.textContent = research.length
         ? `Showing ${homeEdgeExpanded ? research.length : Math.min(HOME_EDGE_LIMIT, research.length)} of ${research.length} model-ranked research lines. ${verifiedQuotes} receipt-verified in snapshot. Qualification paused: waiting on ${waitingOn}.`
-        : `No verified plays · ${asOf ? `last odds update ${asOf}` : 'sportsbook prices not posted yet'} · model fair lines for research`;
+        : `No verified plays · ${asOf ? `last odds update ${asOf}` : pricesPostCopy()} · model fair lines for research`;
       const failClosedShare = $('#homeFailClosedShare');
       if (failClosedShare) failClosedShare.hidden = false;
 
@@ -4224,7 +4257,7 @@
           return `<article class="home-edge-card home-research-card" data-prop-card data-win-prob="${winProb}" data-default-ev="${defaultEv}">
             <div class="home-edge-player"><strong>${esc(pick.player || 'Unknown player')}</strong><span>${esc(previewMarketLabel(pick.market))}</span></div>
             <div class="home-edge-line"><span class="home-research-label">OBSERVED · UNVERIFIED</span><strong>${Number.isFinite(line) ? line.toFixed(1) : '—'} <small>${Number.isFinite(odds) ? (odds > 0 ? '+' : '') + odds : '—'}</small></strong><span>${previewBookPill(pick.book)}</span></div>
-            <p class="home-research-note" data-mode-edge-badge>Research only · price and availability must be checked at the book.</p>
+            <p class="home-research-note" data-mode-edge-badge>Research only · price and availability must be checked ${quoteSourceClass(pick.book) === 'kalshi' ? 'on Kalshi' : quoteSourceClass(pick.book) === 'polymarket' ? 'on Polymarket' : 'at the sportsbook'}.</p>
           </article>`;
         }).join('')
         : modelRows.length
@@ -4250,7 +4283,7 @@
             </div>
             ${dist.isTd ? '' : densityCurveSvg(dist, unit)}
             ${rfMethodStrip(row, state.filters.market)}
-            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · NO LIVE PRICE</span> No verified sportsbook price yet. Research only · no current edge or stake is available.</p>
+            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · NO LIVE PRICE</span> ${awaitingLivePriceCopy()}. Research only · no current edge or stake is available.</p>
           </article>`;
           }).join('')
           : '<p class="home-edge-empty">Prices or news are unavailable. No model slate is loaded; no picks are being recommended.</p>';
@@ -7189,7 +7222,7 @@
           <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'CLOSE SIM' : simVal !== null ? `SIM ${simVal.toFixed(1)} · EDIT` : 'SIM LINE'}</button>
           <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">COPY FAIR</button>
           <span class="card-research-tag${simVal !== null ? ' sim-active' : ''}">${simVal !== null ? 'SIMULATED · NOT A BOOK QUOTE' : 'NO LIVE QUOTE'}</span>
-          ${simVal !== null ? '' : '<span class="card-book-absent">No verified sportsbook price yet</span>'}
+          ${simVal !== null ? '' : `<span class="card-book-absent">${awaitingLivePriceCopy()}</span>`}
         </div>
         ${inlineSimPanelHtml(row, dist)}`;
     } else {
@@ -7202,7 +7235,7 @@
         : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
       gridColsHtml = `
         <div class="card-grid-col col-book">
-          <span class="grid-col-lbl">BOOK</span>
+          <span class="grid-col-lbl">${quoteSourceClass(evaluation.book) === 'kalshi' ? 'KALSHI' : quoteSourceClass(evaluation.book) === 'polymarket' ? 'POLY' : 'BOOK'}</span>
           <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
           ${listedSideBoxes(quote)}
@@ -7566,7 +7599,7 @@
         ${glyph}
       </span>
       ${listedSideBoxes(quote)}
-      ${implied > 0 ? `<span class="book-implied" title="Raw implied probability from listed ${esc(evaluation.side)} odds; includes bookmaker margin">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
+      ${implied > 0 ? `<span class="book-implied" title="${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? `Raw implied probability from the listed ${quoteSourceClassLabel(evaluation.book)} ${evaluation.side} price` : `Raw implied probability from listed ${evaluation.side} odds; includes bookmaker margin`)}">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
       ${sparklineHtml}
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
@@ -8135,7 +8168,7 @@
         <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
       </section>
       <section class="execution-summary" aria-label="Execution terms">
-        <div><span>Book</span><strong>${bookLogoImg(evaluation.book, 'book-logo')}${esc(evaluation.book || '—')}</strong></div>
+        <div><span>${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? quoteSourceClassLabel(evaluation.book) : 'Book')}</span><strong>${bookLogoImg(evaluation.book, 'book-logo')}${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? quoteSourceClassLabel(evaluation.book) : (evaluation.book || '—'))}</strong></div>
         <div><span>Timestamp</span><strong class="execution-time">${esc(timestamp)}</strong></div>
         <div><span>Price</span><strong>${esc(evaluation.side || '—')} ${Number(evaluation.line).toFixed(1)} · ${oddsText(evaluation.odds)}</strong></div>
         <div><span>Model fair</span><strong>${Number(fairValue(row)).toFixed(1)}</strong></div>
@@ -8160,11 +8193,11 @@
                 ? bestUnder > -Infinity && Number(offer.under_odds) === bestUnder
                 : bestOver > -Infinity && Number(offer.over_odds) === bestOver);
               return `<div class="cross-book-row ${offer === evaluation.quote ? 'is-selected' : ''} ${isBest && offer !== evaluation.quote ? 'is-best' : ''}">
-              <span><span class="cross-book-book">${bookLogoImg(offer.book_id || offer.book)}${esc(offer.book || 'Book')}</span><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
+              <span><span class="cross-book-book">${bookLogoImg(offer.book_id || offer.book)}${esc(quoteSourceClass(offer.book) === 'kalshi' || quoteSourceClass(offer.book) === 'polymarket' ? quoteSourceClassLabel(offer.book) : (offer.book || 'Book'))}</span><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
               <strong>${side} ${Number(offer.line).toFixed(1)}</strong><strong class="${isBest ? 'best-price' : ''}">${oddsText(price)}</strong>
               <span class="cross-book-status">${offer === evaluation.quote ? 'Selected' : isBest ? 'Best price' : verified ? 'Available' : 'Locked'}</span>
             </div>`;
-            }).join('') || '<p class="execution-empty">No sportsbook offers are present in this snapshot.</p>';
+            }).join('') || `<p class="execution-empty">No ${esc(boardSourceClassLabel() || 'live')} offers are present in this snapshot.</p>`;
           })()}
         </div>
         ${offers.length < 2 ? '<p class="execution-note">No alternative verified offers are available in this snapshot.</p>' : ''}
@@ -8680,7 +8713,7 @@
       : `${hurdlePct === null ? '' : label('HURDLE', hurdle, hurdlePct, 'bottom')}${label('FAIR', fair, fairPct, 'bottom')}`;
     const delta = fair - offer;
     const gateText = hurdle === null ? 'Gate hurdle unavailable for this market.'
-      : evaluation.state !== 'verified' ? 'Quote unverified; confirm price and availability at the book.'
+      : evaluation.state !== 'verified' ? (quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? `Quote unverified; confirm price and availability on ${quoteSourceClassLabel(evaluation.book)}.` : 'Quote unverified; confirm price and availability at the book.')
         : `Model gate threshold: ${side === 'UNDER' ? 'down to' : 'up to'} ${hurdle.toFixed(1)} ${unit}. Check execution status before logging.`;
     return `<div class="quant-ruler-card">
       <div class="quant-ruler-header"><span class="quant-ruler-title">Price discovery</span><span class="quant-ruler-delta">${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${unit} vs offer (${side})</span></div>

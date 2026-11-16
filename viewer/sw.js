@@ -1,12 +1,12 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v260-quote-source';
+const CACHE_NAME = 'propstein-v261-source-copy';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v260',
+  '/style.css?v=2026_v261',
   '/feed-status.css?v=2026_v260',
-  '/app.js?v=2026_v260',
+  '/app.js?v=2026_v261',
   '/design-system.css?v=2026_v229',
   '/terminal-ui.css?v=2026_v5',
   '/js/instrument-panel.js?v=2026_v1',
@@ -15,7 +15,7 @@ const STATIC_ASSETS = [
   '/refresh-2026.css?v=2026_r14',
   '/js/refresh-2026.js?v=2026_r2',
   '/js/quant-math.js?v=2026_v215',
-  '/js/today-schedule.js?v=2026_v260',
+  '/js/today-schedule.js?v=2026_v261',
   '/js/feed-status.js?v=2026_v260',
   '/js/sports/ufc.js?v=2026_v200',
   '/ufc.css?v=2026_v200',

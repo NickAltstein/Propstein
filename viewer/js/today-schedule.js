@@ -161,6 +161,19 @@
     return candidates[0] || null;
   }
 
+  function sourceClassLabel(book) {
+    const slug = String(book || '').toLowerCase().replace(/[-_ ]/g, '');
+    if (slug === 'kalshi') return 'Kalshi';
+    if (slug === 'polymarket') return 'Polymarket';
+    return book ? String(book) : 'Unlisted source';
+  }
+
+  function pricesPostCopy(sport) {
+    if (sport === 'nba') return 'Kalshi prices post closer to tipoff';
+    if (sport === 'nfl') return 'Polymarket prices post closer to kickoff';
+    return 'Live prices post closer to the event';
+  }
+
   function lineBoxes(quote, projection, feed) {
     if (!quote) return '<p class="today-no-line">No listed Over/Under line for this player today.</p>';
     const line = Number(quote.line).toFixed(1);
@@ -169,7 +182,7 @@
     const observed = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(quote.observed_at));
     const source = feed && feed.feedClosed
       ? `stale since ${escapeHtml(feed.staleSince || '')}`
-      : `${escapeHtml(quote.book)} · last seen ${escapeHtml(observed)} ET · ${quote.verified === true ? 'receipt verified' : 'unverified line'}`;
+      : `${escapeHtml(sourceClassLabel(quote.book))} · last seen ${escapeHtml(observed)} ET · ${quote.verified === true ? 'receipt verified' : 'unverified line'}`;
     return `<div class="today-line-boxes" aria-label="Last listed Over and Under prices">
       <span class="today-line-box over${lean === 'over' ? ' model-lean' : ''}"><b><span class="today-line-arrow" aria-hidden="true">↑</span> OVER ${line}</b><small>${escapeHtml(odds(quote.over_odds))}</small></span>
       <span class="today-line-box under${lean === 'under' ? ' model-lean' : ''}"><b><span class="today-line-arrow" aria-hidden="true">↓</span> UNDER ${line}</b><small>${escapeHtml(odds(quote.under_odds))}</small></span>
@@ -189,7 +202,7 @@
   function marketQuoteRow(quote, photos, feed) {
     const row = { player_display_name: quote.player_name, player_id: quote.player_id };
     return `<div class="today-prop-row">
-      <div class="today-prop-summary">${playerPhoto(row, photos)}<div class="today-prop-player"><strong>${escapeHtml(quote.player_name)}</strong><span>${escapeHtml(quote.book || 'Book')} line · unverified</span></div><div class="today-prop-projection"><b>${Number(quote.line).toFixed(1)}</b><small>PTS LINE</small></div></div>
+      <div class="today-prop-summary">${playerPhoto(row, photos)}<div class="today-prop-player"><strong>${escapeHtml(quote.player_name)}</strong><span>${escapeHtml(sourceClassLabel(quote.book))} line · unverified</span></div><div class="today-prop-projection"><b>${Number(quote.line).toFixed(1)}</b><small>PTS LINE</small></div></div>
       ${lineBoxes(quote, Number.NaN, feed)}
     </div>`;
   }
@@ -222,7 +235,7 @@
         ? extras.quotes.filter((quote) => quote.game_id === match.game.game_id && quote.market === 'points' && quote._fixture === false && quote.verified === false && isNbaBook(quote))
         : [];
       panel.innerHTML = marketQuotes.length
-        ? `<div class="today-prop-heading"><strong>${marketQuotes.length} ${escapeHtml(marketQuotes[0].book)} player-points lines</strong><span>${extras.feedClosed ? `stale since ${escapeHtml(extras.staleSince || '')} · no edges` : 'Unverified lines · no model predictions or qualified edges'}</span></div><div class="today-prop-list">${marketQuotes.map((quote) => marketQuoteRow(quote, extras.photos, extras)).join('')}</div>`
+        ? `<div class="today-prop-heading"><strong>${marketQuotes.length} ${escapeHtml(sourceClassLabel(marketQuotes[0].book))} player-points lines</strong><span>${extras.feedClosed ? `stale since ${escapeHtml(extras.staleSince || '')} · no edges` : 'Unverified lines · no model predictions or qualified edges'}</span></div><div class="today-prop-list">${marketQuotes.map((quote) => marketQuoteRow(quote, extras.photos, extras)).join('')}</div>`
         : rows.length
         ? `<div class="today-prop-heading"><strong>${rows.length} player props</strong><span>Model estimates · line snapshots, not picks</span></div><div class="today-prop-list">${rows.map((row) => projectionRow(row, sport, match.game, dateKey, extras.photos, extras.quotes)).join('')}</div>`
         : '<p class="today-prop-message">No player-points lines or PropStein projections are available for this matchup yet.</p>';
@@ -283,9 +296,10 @@
         hasSlate = Array.isArray(sources) && sources.some((s) => Array.isArray(s.slate) && s.slate.length > 0);
       } catch (_) {}
       if (requestId !== requestNumber) return;
+      const posted = pricesPostCopy(sport);
       const slateStatus = hasSlate
-        ? '<span>Model fair lines for the next slate are ready. Sportsbook prices post closer to kickoff.</span>'
-        : '<span>Sportsbook prices post closer to kickoff.</span>';
+        ? `<span>Model fair lines for the next slate are ready. ${posted}.</span>`
+        : `<span>${posted}.</span>`;
       gamesEl.innerHTML = `<div class="rf-next-up" role="status">
           <div class="rf-next-head">
             <span class="rf-next-dot" aria-hidden="true"></span>
