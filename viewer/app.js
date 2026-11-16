@@ -1273,6 +1273,24 @@
   }
 
   function bindControls() {
+    const compactDensity = $('#terminalCompact');
+    compactDensity?.addEventListener('change', () => {
+      $('#fullPlayerBoard')?.classList.toggle('terminal-compact', compactDensity.checked);
+    });
+    const simDialog = $('#terminalSimDialog');
+    if (simDialog) {
+      setupBottomSheet(simDialog);
+      simDialog.addEventListener('click', (event) => {
+        if (event.target.closest('#terminalSimBody')) inspectFromEvent(event);
+      });
+      simDialog.addEventListener('close', () => {
+        if (simDialog.open || !state.inlineSim) return;
+        const { pid } = state.inlineSim;
+        state.inlineSim = null;
+        renderBoard();
+        $$('#cardView [data-simulate-player]').find((button) => button.dataset.simulatePlayer === pid)?.focus({ preventScroll: true });
+      });
+    }
     const proBar = $('.front-pro-bar');
     if (proBar) proBar.addEventListener('click', (event) => {
       const button = event.target.closest('[data-pro-view]');
@@ -2018,6 +2036,7 @@
 
   function initKeyboardNav() {
     const handleKeyNav = (e) => {
+      if (document.querySelector('#terminalSearchDialog[open], #terminalSimDialog[open], #moreFiltersDialog[open]')) return;
       // 1. Ignore shortcuts if the user is already typing in an input (except Escape)
       const activeTag = (document.activeElement?.tagName || '').toUpperCase();
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.isContentEditable) {
@@ -2046,7 +2065,9 @@
         case '/': // Focus Search
           e.preventDefault();
           const searchInput = document.getElementById('frontInlineSearch') || document.getElementById('searchInput');
-          if (searchInput) {
+          const searchTrigger = $('#headerSearchTrigger');
+          if (searchTrigger) searchTrigger.click();
+          else if (searchInput) {
             searchInput.focus();
             searchInput.select();
           }
@@ -2480,6 +2501,7 @@
     const initialMode = (config.historical || config.modelContextStatus === 'AVAILABLE') ? 'all' : 'actionable';
     state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: initialMode, intent: 'all' };
     if ($('#searchInput')) $('#searchInput').value = '';
+    if ($('#frontInlineSearch')) $('#frontInlineSearch').value = '';
     if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
     if ($('#teamFilter')) $('#teamFilter').value = '';
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
@@ -2675,6 +2697,26 @@
     const banner = elById('dataQualityBanner');
     if (!banner) return;
     const health = feedHealthStates();
+    const quoteStatus = elById('terminalQuoteStatus');
+    if (quoteStatus) {
+      const status = feedVerificationLabel();
+      const age = health.oddsAgeSeconds;
+      const ageLabel = age === null ? '' : age >= 86400 ? `${Math.floor(age / 86400)}d`
+        : age >= 3600 ? `${Math.floor(age / 3600)}h`
+          : age >= 60 ? `${Math.floor(age / 60)}m` : 'under 1m';
+      const label = {
+        FIXTURE: 'Demo odds · synthetic',
+        OFFLINE: 'Odds feed offline',
+        STALE: 'Odds stale',
+        'TIME UNKNOWN': 'Odds timestamp unavailable',
+        VERIFIED: 'Receipt-verified quotes',
+        'RECEIPT-MATCHED': 'Receipt-matched quotes',
+        UNVERIFIED: 'Odds unverified',
+      }[status];
+      const text = ageLabel && status !== 'FIXTURE' ? `${label} · Last update ${ageLabel} ago` : label;
+      quoteStatus.dataset.state = status.toLowerCase();
+      if (quoteStatus.textContent !== text) quoteStatus.textContent = text;
+    }
     const snapshotPill = elById('snapshotAgePill');
     if (snapshotPill) {
       const feedTime = [health.oddsUpdatedAt, state.odds.generated_at,
@@ -3317,6 +3359,7 @@
   function clearFilters() {
     state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
     if ($('#searchInput')) $('#searchInput').value = '';
+    if ($('#frontInlineSearch')) $('#frontInlineSearch').value = '';
     if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
     if ($('#teamFilter')) $('#teamFilter').value = '';
     $$('.slate-mode-toggle button').forEach((btn) => {
@@ -3629,6 +3672,8 @@
       $('#cardView').classList.toggle('compact-grid', state.view === 'compact-grid');
     }
 
+    syncSimulatorSheet(isMobile);
+
     if (isResearchMode) {
       $('#emptyState').hidden = false;
       $('#tableView').hidden = isMobile || state.view !== 'table';
@@ -3643,6 +3688,26 @@
     updateStickyContext(displayRows);
     updateActiveFilterBadge();
     renderPickFlow();
+  }
+
+  function syncSimulatorSheet(isMobile) {
+    const dialog = $('#terminalSimDialog');
+    if (!dialog || (!dialog.open && (!isMobile || !state.inlineSim))) return;
+    const body = $('#terminalSimBody');
+    const panel = isMobile && $('#cardView .csim-panel');
+    if (!panel) {
+      if (dialog.open) dialog.close();
+      body.replaceChildren();
+      return;
+    }
+    const focused = body.contains(document.activeElement) ? document.activeElement : null;
+    body.replaceChildren(panel);
+    if (!dialog.open) dialog.showModal();
+    else if (focused) {
+      Array.from(panel.querySelectorAll('button')).find((button) =>
+        Object.entries(focused.dataset).every(([key, value]) => button.dataset[key] === value)
+      )?.focus({ preventScroll: true });
+    }
   }
 
   function renderNbaMarketOnly() {
@@ -6679,6 +6744,14 @@
     return { actual, line, delta, outcome, outcomeClass, isYards, side };
   }
 
+  function receivingInputs(row) {
+    if (SPORT_ID !== 'nfl' || state.filters.market !== 'receiving_yards') return '';
+    const receptions = Number(row.mu_rec);
+    const yardsPerCatch = Number(row.mu_ypr);
+    if (!(Number.isFinite(receptions) && receptions > 0 && Number.isFinite(yardsPerCatch) && yardsPerCatch > 0)) return '';
+    return `<span class="terminal-model-inputs" title="Model inputs: expected receptions and yards per catch">${receptions.toFixed(1)} rec · ${yardsPerCatch.toFixed(1)} yd/catch</span>`;
+  }
+
   function tableRow(row, hasPrices, index = 0) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
@@ -6726,7 +6799,7 @@
         </div>
       </td>
       <td class="td-num">${bookCell(evaluation, injury, row)}</td>
-      <td class="td-num">${bulletSvg}</td>
+      <td class="td-num">${bulletSvg}${receivingInputs(row)}</td>
       <td class="td-num">${priceCheckCell(evaluation, row, isLogged)}</td>
     </tr>`;
   }
@@ -6865,14 +6938,24 @@
 
   /** Copy-fair action: puts the honest research line (player, market, fair,
    *  projection, 80% CI) on the clipboard with an approximation disclaimer. */
-  function copyFairLine(playerId) {
+  function copyFairLine(playerId, button) {
     const row = (state.slate || []).find((r) => r.player_id === playerId);
     if (!row) return;
     const dist = distributionRange(row);
     const mdef = marketDef();
     const marketLabel = mdef.chipLabel || state.filters.market;
     const text = `${row.player_display_name} · ${marketLabel} — Model Fair ${dist.fair.toFixed(1)} | Proj ${dist.proj.toFixed(1)}${dist.isTd ? ` | P(TD) ${(dist.prob * 100).toFixed(0)}%` : ` | 80% CI ${dist.low}-${dist.high}`} | PropStein research output (approximate; not a betting recommendation)`;
-    const done = () => toast('Model fair line copied to clipboard');
+    const done = () => {
+      toast('Model fair line copied to clipboard');
+      if (!button || button.dataset.copied === 'true') return;
+      const label = button.textContent;
+      button.dataset.copied = 'true';
+      button.textContent = 'COPIED';
+      setTimeout(() => {
+        button.textContent = label;
+        delete button.dataset.copied;
+      }, 1400);
+    };
     const fail = () => toast('Clipboard unavailable in this context — copy manually');
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done, fail);
@@ -7108,7 +7191,7 @@
         <!-- Row 2: decision layout (research) or 4-column tabular grid (quoted) -->
         <div class="card-grid-row${isResearchCard ? ' v176-research' : ''}">
           ${gridColsHtml}
-        </div>${recentHitRateMarkup(row, evaluation, state.filters.market)}
+        </div>${receivingInputs(row)}${recentHitRateMarkup(row, evaluation, state.filters.market)}
       </article>`;
   }
 
@@ -7623,9 +7706,11 @@
         renderBoard();
         return;
       }
-      // v176: the simulator lives INSIDE the card — the trigger toggles the
-      // inline panel (open state rides in state.inlineSim so it survives
-      // renderBoard re-renders). The retired modal is gone by design.
+      const mobileSheet = $('#terminalSimDialog');
+      if (mobileSheet?.open && simBtn.closest('#terminalSimBody')) {
+        mobileSheet.close();
+        return;
+      }
       state.inlineSim = (state.inlineSim && state.inlineSim.pid === pid) ? null : { pid };
       renderBoard();
       return;
@@ -7682,7 +7767,7 @@
     const copyFairBtn = event.target.closest('[data-copy-fair]');
     if (copyFairBtn) {
       event.stopPropagation();
-      copyFairLine(copyFairBtn.dataset.copyFair);
+      copyFairLine(copyFairBtn.dataset.copyFair, copyFairBtn);
       return;
     }
     const simClose = event.target.closest('[data-sim-close]');

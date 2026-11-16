@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0c0f14">
+  <meta name="theme-color" content="#090A0F">
   <meta name="build-hash" content="2026-w10-v34">
   <meta name="description" content="PropStein quantitative player props research terminal for NFL &amp; NBA.">
   <link rel="canonical" href="https://propstein.com/">
@@ -51,20 +51,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v200">
-  <link rel="stylesheet" href="/style.css?v=2026_v249">
+  <link rel="stylesheet" href="/style.css?v=2026_v254">
   <link rel="stylesheet" href="/refresh-2026.css?v=2026_r14">
   <link rel="stylesheet" href="/design-system.css?v=2026_v229">
+  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v1">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v181" defer></script>
   <script src="/js/sports/nba.js?v=2026_v221" defer></script>
   <script src="/js/quant-math.js?v=2026_v215" defer></script>
-  <script src="/app.js?v=2026_v249" defer></script>
+  <script src="/app.js?v=2026_v254" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v200" defer></script>
   <script src="/js/today-schedule.js?v=2026_v243" defer></script>
-  <script src="/js/front-page.js?v=2026_v210" defer></script>
+  <script src="/js/front-page.js?v=2026_v254" defer></script>
   <script src="/js/refresh-2026.js?v=2026_r2" defer></script>
 </head>
-<body>
+<body class="terminal-ui">
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
 
   <header class="pw-terminal-chrome">
@@ -92,6 +93,12 @@
         </div>
       </div>
 
+      <nav class="desktop-league-nav terminal-leagues" aria-label="Leagues">
+        <div class="sport-switcher-bar" id="sportSwitcherBar">
+          <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
+        </div>
+      </nav>
+
       <!-- Center (Mobile Only): Institutional Sport/Week Context Badge -->
       <div class="pw-topbar-center pw-mobile-only">
         <button type="button" class="pw-mobile-context-pill" id="mobileContextPill" aria-label="Switch slate or sport">
@@ -112,8 +119,11 @@
           </svg>
         </button>
 
-        <!-- Slate Selector (Desktop) -->
-        <select id="slateSelector" class="pw-select pw-select-slate pw-desktop-only" aria-label="Select Slate">
+        <button type="button" id="headerSearchTrigger" class="terminal-control terminal-search-trigger" aria-haspopup="dialog" aria-controls="terminalSearchDialog">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5"/><path d="m12.3 12.3 4.2 4.2"/></svg><span>Search</span>
+        </button>
+        <!-- Slate Selector -->
+        <select id="slateSelector" class="pw-select pw-select-slate terminal-control" aria-label="Select Slate">
           <option value="2026_w7">NFL Board · Research Mode</option>
           <option value="2026_w1">W1 Audit</option>
         </select>
@@ -177,12 +187,6 @@
       </div>
     </div>
 
-    <nav class="desktop-league-nav" aria-label="Leagues">
-      <div class="sport-switcher-bar" id="sportSwitcherBar">
-        <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
-      </div>
-    </nav>
-
     <!-- TIER 2: Filter & Matchup Control Bar -->
     <div class="pw-filterbar">
       <div class="pw-command-row">
@@ -201,67 +205,71 @@
         <div class="mobile-league-list" id="mobileSportSwitcher" role="radiogroup" aria-label="Choose a league"></div>
       </nav>
 
-      <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
-      <div class="pw-chip-scroll-row" id="mobileFilterStrip" role="toolbar" aria-label="Filter chips">
-        <!-- Active vs All Mode Switcher -->
-        <div class="chip-segment-group" data-eyebrow="MODE" role="radiogroup" aria-label="Dataset Mode">
-          <button type="button" class="chip-pill active" data-mode="actionable" id="modeActionableBtn" role="radio" aria-checked="true" title="Show plays clearing edge gate">
-            <span>ACTIVE</span>
-            <span class="chip-count-pill" id="actionableCount">0</span>
-          </button>
-          <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
-            <span>TOP</span>
-            <span class="chip-count-pill" id="topCount">25</span>
-          </button>
-          <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
-            <span>ALL</span>
-            <span class="chip-count-pill" id="allCount">390</span>
-          </button>
-        </div>
-
-        <div class="chip-divider"></div>
-
-        <!-- Prop Market Chips (population is adapter-driven; see renderSportChrome) -->
-        <div class="chip-segment-group" id="marketChipGroup" data-eyebrow="MARKET" role="radiogroup" aria-label="Market">
-          <button type="button" class="chip-pill active" data-market="receiving_yards" role="radio" aria-checked="true">Yards</button>
-          <button type="button" class="chip-pill" data-market="receptions" role="radio" aria-checked="false">Rec</button>
-          <button type="button" class="chip-pill" data-market="anytime_td" role="radio" aria-checked="false">TD</button>
-        </div>
-
-        <div class="chip-divider"></div>
-
-        <!-- Secondary position filter stays available without crowding the primary markets. -->
-        <details class="position-filter-menu">
-          <summary id="positionFilterSummary">Position: All</summary>
-          <div class="chip-segment-group" id="positionChipGroup" data-eyebrow="POS" role="radiogroup" aria-label="Position">
-          <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>
-          <button type="button" class="chip-pill" data-pos="WR" role="radio" aria-checked="false">WR</button>
-          <button type="button" class="chip-pill" data-pos="TE" role="radio" aria-checked="false">TE</button>
-          <button type="button" class="chip-pill" data-pos="RB" role="radio" aria-checked="false">RB</button>
-          </div>
-        </details>
-
-        <div class="chip-divider"></div>
-
-        <!-- Mobile market-alert chip -->
-        <button type="button" class="chip-pill chip-sniper-btn" id="mobileSniperBtn" aria-label="Configure market alerts" title="Configure market alerts">
-          <span>ALERTS</span>
-          <span class="sniper-mobile-dot" id="mobileSniperDot" hidden></span>
-        </button>
-
+      <div class="terminal-board-controls">
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
-        <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-label="More Filters">
+        <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-haspopup="dialog" aria-controls="moreFiltersDialog" aria-label="More Filters">
           <svg class="prop-icon filter-funnel-icon" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1.5 2 14.5 2 9.5 8.5 9.5 13.5 6.5 15 6.5 8.5 1.5 2"/></svg>
           <span id="moreFiltersLabel">FILTERS</span>
           <span class="chip-chevron">▾</span>
         </button>
-        <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
-          <button type="button" data-view="table" class="pw-seg-btn" title="Detailed financial table">Table</button>
-          <button type="button" data-view="cards" class="pw-seg-btn active" title="Player cards">Grid</button>
-          <button type="button" data-view="compact-grid" class="pw-seg-btn" title="High-density compact grid">Compact</button>
+        <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
+        <div class="pw-chip-scroll-row" id="mobileFilterStrip" role="toolbar" aria-label="Filter chips">
+          <!-- Active vs All Mode Switcher -->
+          <div class="chip-segment-group" data-eyebrow="MODE" role="radiogroup" aria-label="Dataset Mode">
+            <button type="button" class="chip-pill active" data-mode="actionable" id="modeActionableBtn" role="radio" aria-checked="true" title="Show plays clearing edge gate">
+              <span>ACTIVE</span>
+              <span class="chip-count-pill" id="actionableCount">0</span>
+            </button>
+            <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
+              <span>TOP</span>
+              <span class="chip-count-pill" id="topCount">25</span>
+            </button>
+            <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
+              <span>ALL</span>
+              <span class="chip-count-pill" id="allCount">390</span>
+            </button>
+          </div>
+
+          <div class="chip-divider"></div>
+
+          <!-- Prop Market Chips (population is adapter-driven; see renderSportChrome) -->
+          <div class="chip-segment-group" id="marketChipGroup" data-eyebrow="MARKET" role="radiogroup" aria-label="Market">
+            <button type="button" class="chip-pill active" data-market="receiving_yards" role="radio" aria-checked="true">Yards</button>
+            <button type="button" class="chip-pill" data-market="receptions" role="radio" aria-checked="false">Rec</button>
+            <button type="button" class="chip-pill" data-market="anytime_td" role="radio" aria-checked="false">TD</button>
+          </div>
+
+          <div class="chip-divider"></div>
+
+          <!-- Secondary position filter stays available without crowding the primary markets. -->
+          <details class="position-filter-menu">
+            <summary id="positionFilterSummary">Position: All</summary>
+            <div class="chip-segment-group" id="positionChipGroup" data-eyebrow="POS" role="radiogroup" aria-label="Position">
+            <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>
+            <button type="button" class="chip-pill" data-pos="WR" role="radio" aria-checked="false">WR</button>
+            <button type="button" class="chip-pill" data-pos="TE" role="radio" aria-checked="false">TE</button>
+            <button type="button" class="chip-pill" data-pos="RB" role="radio" aria-checked="false">RB</button>
+            </div>
+          </details>
+
+          <div class="chip-divider"></div>
+
+          <!-- Mobile market-alert chip -->
+          <button type="button" class="chip-pill chip-sniper-btn" id="mobileSniperBtn" aria-label="Configure market alerts" title="Configure market alerts">
+            <span>ALERTS</span>
+            <span class="sniper-mobile-dot" id="mobileSniperDot" hidden></span>
+          </button>
+
+          <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
+            <button type="button" data-view="table" class="pw-seg-btn" title="Detailed financial table">Table</button>
+            <button type="button" data-view="cards" class="pw-seg-btn active" title="Player cards">Grid</button>
+            <button type="button" data-view="compact-grid" class="pw-seg-btn" title="High-density compact grid">Compact</button>
+          </div>
         </div>
+
       </div>
 
+      <span id="terminalQuoteStatus" class="terminal-quote-status" role="status">Checking odds feed</span>
       <button type="button" class="mobile-usage-ticker" id="mobileUsageTicker" aria-expanded="false" aria-controls="availabilityDetails">
         <span class="mobile-usage-icon" aria-hidden="true">!</span>
         <span class="mobile-usage-label">Injury &amp; usage</span>
@@ -282,16 +290,25 @@
       <button type="button" data-front-action="alerts">Injury alerts <span>↗</span></button>
       <button type="button" data-front-action="settings">Slate &amp; settings <span>↗</span></button>
       <button type="button" data-front-action="membership">Free terminal access <span>↗</span></button>
+      <button type="button" data-front-action="theme" class="terminal-menu-theme">Toggle light or dark theme</button>
       <a href="https://whop.com/propstein" target="_blank" rel="noopener noreferrer">Free community <span aria-hidden="true">↗</span></a>
     </div>
   </dialog>
 
+  <dialog id="terminalSearchDialog" class="terminal-search-dialog" aria-labelledby="terminalSearchTitle">
+    <form method="dialog">
+      <div class="terminal-search-head">
+        <h2 id="terminalSearchTitle">Search player props</h2>
+        <button type="button" id="terminalSearchClose" class="terminal-control" aria-label="Close search">×</button>
+      </div>
+      <label for="frontInlineSearch">Player, team, or prop</label>
+      <input type="search" id="frontInlineSearch" placeholder="Search player, team, or prop…" autocomplete="off" autofocus>
+      <button type="submit" class="terminal-control terminal-search-submit" value="results">Show results</button>
+    </form>
+  </dialog>
+
   <main class="shell page" id="slateBoard">
     <div class="snapshot-age-pill" id="snapshotAgePill" role="status" hidden></div>
-    <div class="front-inline-search">
-      <label for="frontInlineSearch">FIND A PLAYER PROP</label>
-      <input type="search" id="frontInlineSearch" placeholder="Search player, team, or prop..." autocomplete="off" aria-label="Search player, team, or prop">
-    </div>
     <section class="home-edge-preview" id="homeEdgePreview" aria-labelledby="homeEdgeTitle" aria-live="polite">
       <div id="marketStateBanner" class="market-state-banner" hidden></div>
       <div class="home-edge-heading">
@@ -484,6 +501,10 @@
     </section>
 
     <section class="data-board" id="fullPlayerBoard" aria-label="Player slate">
+      <div class="terminal-board-heading">
+        <h2 id="terminalBoardTitle" tabindex="-1">Player props</h2>
+        <label class="terminal-control terminal-density"><input type="checkbox" id="terminalCompact"> Compact density</label>
+      </div>
       <div class="front-pro-bar" role="group" aria-label="Player board quick views">
         <span>QUICK VIEW</span>
         <div class="front-pro-segments">
@@ -562,8 +583,13 @@
     </form>
   </dialog>
 
-  <!-- v176: the line simulator now lives INSIDE each player card (inline
-       panel); the old simulateLineDialog modal was retired with it. -->
+  <dialog class="detail-dialog terminal-sim-sheet" id="terminalSimDialog" aria-labelledby="terminalSimTitle">
+    <div class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header"><h2 id="terminalSimTitle">Line simulator</h2></div>
+      <div class="dialog-body" id="terminalSimBody"></div>
+    </div>
+  </dialog>
 
   <!-- Verified execution review: research handoff, never sportsbook placement. -->
   <dialog class="detail-dialog execution-dialog" id="executionDialog" aria-labelledby="executionTitle">

@@ -1,0 +1,300 @@
+/* Production terminal components. Legacy selectors stay scoped to this page
+   while the shared viewer styles continue to serve the research pages. */
+html .terminal-ui {
+  --terminal-canvas: #090a0f;
+  --terminal-surface: #12141c;
+  --terminal-raised: #181b26;
+  --terminal-border: #272b38;
+  --terminal-text: #eef1f8;
+  --terminal-muted: #a8b2c5;
+  --terminal-blue: #3b82f6;
+  --terminal-cyan: #06b6d4;
+  --terminal-active-ink: #a5e4fc;
+  --terminal-active-fill: #16283f;
+  --terminal-positive: #10b981;
+  --terminal-alert: #e9bb78;
+  --terminal-chrome: rgb(9 10 15 / 94%);
+  --terminal-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --terminal-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --terminal-content-width: 1440px;
+  --terminal-control-height: 38px;
+  --terminal-gutter: clamp(12px, 2.5vw, 32px);
+
+  --rf-bg: var(--terminal-canvas);
+  --rf-surface: var(--terminal-surface);
+  --rf-surface-2: var(--terminal-raised);
+  --rf-surface-3: var(--terminal-raised);
+  --rf-line: var(--terminal-border);
+  --rf-line-strong: var(--terminal-border);
+  --rf-accent: var(--terminal-blue);
+  --rf-accent-hi: var(--terminal-active-ink);
+  --rf-good: var(--terminal-positive);
+  --ps-bg: var(--terminal-canvas);
+  --ps-elev: var(--terminal-surface);
+  --ps-elev-2: var(--terminal-raised);
+  --ps-line: var(--terminal-border);
+}
+
+html[data-theme="light"] .terminal-ui {
+  --terminal-canvas: #f3f5f9;
+  --terminal-surface: #fff;
+  --terminal-raised: #eaf0f7;
+  --terminal-border: #ccd5e3;
+  --terminal-text: #162236;
+  --terminal-muted: #4c5d75;
+  --terminal-active-ink: #143e78;
+  --terminal-active-fill: #e0edff;
+  --terminal-positive: #047857;
+  --terminal-alert: #845619;
+  --terminal-chrome: rgb(243 245 249 / 95%);
+  --rf-accent: #2563eb;
+  --rf-text: var(--terminal-text);
+  --rf-dim: var(--terminal-muted);
+}
+
+html body.terminal-ui {
+  background: var(--terminal-canvas) !important;
+  color: var(--terminal-text);
+  font-family: var(--terminal-sans);
+}
+
+/* Header, league switcher and board filters */
+html body.terminal-ui .pw-terminal-chrome {
+  background: var(--terminal-chrome) !important;
+  border-color: var(--terminal-border) !important;
+  backdrop-filter: blur(12px);
+}
+.terminal-ui .pw-topbar,
+.terminal-ui .pw-filterbar,
+.terminal-ui .shell.page {
+  width: 100%;
+  max-width: var(--terminal-content-width) !important;
+  margin-inline: auto !important;
+  box-sizing: border-box;
+}
+html body.terminal-ui .pw-topbar {
+  display: flex !important;
+  gap: 12px !important;
+  min-height: 60px !important;
+  height: auto !important;
+  padding: 6px var(--terminal-gutter) !important;
+}
+.terminal-ui .terminal-leagues { margin: 0; padding: 0; flex: 0 0 auto; }
+.terminal-ui .terminal-leagues .sport-switcher-bar { padding: 0; }
+.terminal-ui .sport-switcher { gap: 2px; padding: 3px; border-radius: 10px; }
+.terminal-ui .pw-topbar-right { gap: 6px !important; }
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector) {
+  display: inline-flex !important;
+  align-items: center;
+  flex: 0 1 auto;
+}
+.terminal-ui .terminal-control,
+.terminal-ui #moreFiltersBtn,
+html body.terminal-ui #frontMenuBtn,
+html body.terminal-ui #slateSelector {
+  min-height: var(--terminal-control-height) !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--terminal-border) !important;
+  border-radius: 8px !important;
+  background: var(--terminal-surface) !important;
+  color: var(--terminal-text) !important;
+  box-shadow: none !important;
+  font: 600 13px/1.2 var(--terminal-sans);
+}
+.terminal-ui .terminal-search-trigger { gap: 7px; white-space: nowrap; }
+.terminal-ui #slateSelector { max-width: 172px; text-overflow: ellipsis; }
+.terminal-ui .terminal-board-controls {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+.terminal-ui #moreFiltersBtn { flex: none; }
+html body.terminal-ui .pw-filterbar {
+  flex-wrap: wrap;
+  gap: 4px !important;
+  padding: 0 var(--terminal-gutter) 6px !important;
+  backdrop-filter: none !important;
+}
+.terminal-ui #mobileFilterStrip { flex: 1; min-width: 0; padding: 4px 0 !important; }
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher) .sport-switch-btn.active,
+html body.terminal-ui #mobileFilterStrip .chip-segment-group .chip-pill.active,
+html body.terminal-ui .pw-view-toggle.view-switch .pw-seg-btn.active {
+  border-color: var(--terminal-blue) !important;
+  background: var(--terminal-active-fill) !important;
+  color: var(--terminal-active-ink) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher) .sport-switch-btn.active .sport-switch-label {
+  color: inherit !important;
+}
+
+/* Board, metrics and density */
+.terminal-ui .terminal-board-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--terminal-border);
+}
+.terminal-ui .terminal-board-heading h2 { margin: 0; font: 600 20px/1.2 var(--terminal-sans); }
+.terminal-ui .terminal-density { display: inline-flex; align-items: center; gap: 7px; margin-inline-start: auto; cursor: pointer; }
+.terminal-ui .terminal-density input { accent-color: var(--terminal-blue); }
+.terminal-ui .terminal-quote-status {
+  margin-inline-start: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--terminal-muted);
+  font: 500 11px/1.4 var(--terminal-mono);
+}
+.terminal-ui .terminal-quote-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"], [data-state="offline"], [data-state="time unknown"]) { color: var(--terminal-alert); }
+.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"])::before {
+  animation: terminal-status-pulse 1.8s ease-in-out 3;
+}
+.terminal-ui .terminal-quote-status[data-state="verified"] { color: var(--terminal-positive); }
+@keyframes terminal-status-pulse { 50% { opacity: .42; } }
+
+html body.terminal-ui #cardView .mobile-quant-row,
+html body.terminal-ui #tableView {
+  background: var(--terminal-surface) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui #cardView .mobile-quant-row:is(:hover, :focus-visible) {
+  transform: none !important;
+  border-color: var(--terminal-blue) !important;
+}
+html body.terminal-ui #cardView .mobile-quant-row .card-money-row { background: var(--terminal-raised); }
+html body.terminal-ui #cardView .mobile-quant-row .card-money-val:not(.fair) { color: var(--terminal-positive) !important; }
+html body.terminal-ui #cardView .mobile-quant-row .card-money-val.fair { color: var(--terminal-text) !important; }
+.terminal-ui :is(.card-money-val, .card-ci-chip, .slate-table .td-num, .terminal-quote-status, .csim-ro-v) {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.terminal-ui .terminal-model-inputs {
+  display: block;
+  margin-top: 4px;
+  color: var(--terminal-muted);
+  font: 500 11px/1.4 var(--terminal-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html body.terminal-ui #tableView :is(th, td:first-child) { background: var(--terminal-surface) !important; }
+html body.terminal-ui #tableView th { border-bottom-color: var(--terminal-border); backdrop-filter: none; }
+.terminal-ui .terminal-compact #tableView tbody td { padding-block: 5px !important; }
+.terminal-ui .terminal-compact #tableView .pw-avatar { display: none; }
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row .card-money-cell,
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row .card-ci-chip { padding-block: 6px !important; }
+.terminal-ui .terminal-compact #cardView .card-id-block .pw-avatar { display: none; }
+.terminal-ui .terminal-compact #cardView .rf-dist { max-height: 44px; }
+
+.terminal-ui .skeleton-card { background: var(--terminal-surface); border: 1px solid var(--terminal-border); }
+.terminal-ui .skeleton-card .skeleton-block { background: var(--terminal-raised); }
+.terminal-ui :is(.card-sim-primary, .card-btn-sim-quick, .card-ghost-act, .card-btn-log, .terminal-control) { transition: background-color .14s, border-color .14s, color .14s; }
+html body.terminal-ui :is(.card-sim-primary, .card-btn-sim-quick, .card-ghost-act, .card-btn-log, .terminal-control):active,
+html body.terminal-ui :is(.card-ghost-act[data-copied], .card-btn-log.logged) {
+  background: var(--terminal-active-fill) !important;
+  color: var(--terminal-active-ink) !important;
+}
+
+/* Search and native bottom sheets */
+.terminal-ui .terminal-search-dialog {
+  box-sizing: border-box;
+  width: min(440px, calc(100% - 24px));
+  padding: 16px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  background: var(--terminal-surface);
+  color: var(--terminal-text);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+.terminal-ui .terminal-search-dialog::backdrop { background: rgb(4 6 12 / 74%); }
+.terminal-ui .terminal-search-dialog form { display: grid; gap: 10px; }
+.terminal-ui .terminal-search-head { display: flex; align-items: center; justify-content: space-between; }
+.terminal-ui .terminal-search-head h2 { margin: 0; font: 600 18px/1.2 var(--terminal-sans); }
+.terminal-ui .terminal-search-dialog label { color: var(--terminal-muted); font-size: 13px; }
+.terminal-ui .terminal-search-dialog input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: var(--terminal-raised);
+  color: var(--terminal-text);
+  font: 500 16px/1.2 var(--terminal-sans);
+}
+.terminal-ui .terminal-search-submit { justify-self: end; }
+.terminal-ui .terminal-search-head button { min-width: 44px; }
+html body.terminal-ui :is(#moreFiltersDialog, #terminalSimDialog) .dialog-shell {
+  background: var(--terminal-surface) !important;
+  border-color: var(--terminal-border) !important;
+  color: var(--terminal-text);
+}
+.terminal-ui #terminalSimTitle { margin: 0; font: 600 18px/1.2 var(--terminal-sans); }
+.terminal-ui #terminalSimBody .csim-panel { display: block; margin: 0; }
+.terminal-ui #terminalSimBody :is(.csim-row, .csim-odds-chips, .csim-readout) { flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  html .terminal-ui { --terminal-control-height: 44px; }
+  html body.terminal-ui .pw-terminal-chrome { backdrop-filter: none; }
+  html body.terminal-ui .pw-topbar { gap: 6px !important; }
+  html body.terminal-ui #slateSelector { min-width: 0; max-width: clamp(78px, 30vw, 155px); }
+  .terminal-ui .pw-topbar-right { justify-content: flex-end; }
+  .terminal-ui #frontMenuBtn { gap: 5px; white-space: nowrap; }
+  .terminal-ui #mobileFilterStrip .position-filter-menu { display: none !important; }
+  .terminal-ui .terminal-search-trigger { min-width: 44px; justify-content: center; }
+  .terminal-ui .terminal-search-trigger span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  html body.terminal-ui .mobile-league-nav { padding-inline: 0 !important; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-btn,
+  html body.terminal-ui #mobileFilterStrip :is(.chip-pill, summary) { min-height: 44px !important; min-width: 44px !important; }
+  html body.terminal-ui .pw-terminal-chrome.rf-condensed :is(.mobile-league-nav, .mobile-usage-ticker) { visibility: hidden; }
+  html body.terminal-ui #mobileFilterStrip { padding-inline: 2px !important; }
+  .terminal-ui .terminal-board-heading { gap: 6px; }
+  .terminal-ui .terminal-board-heading h2 { font-size: 18px; }
+  .terminal-ui .terminal-quote-status { width: 100%; }
+  html body.terminal-ui #cardView .mobile-quant-row .card-money-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr); }
+  html body.terminal-ui #cardView .mobile-quant-row :is(.card-money-cell, .card-ci-chip) { padding-inline: 9px !important; }
+  html body.terminal-ui #cardView .mobile-quant-row .card-ci-chip { font-size: 11px !important; }
+  html body.terminal-ui :is(#cardView, #terminalSimBody, #moreFiltersDialog, #detailDialog) button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  html body.terminal-ui #cardView :is(.card-action-bar, .col-action) { flex-wrap: wrap !important; }
+  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-model { grid-column: 1; grid-row: 1; }
+  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-book { grid-column: 2; grid-row: 1; }
+  html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-shell { max-height: 90dvh !important; }
+  html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-sheet-handle {
+    height: 24px !important;
+    width: 100% !important;
+    background: none !important;
+    margin: 0 !important;
+    touch-action: none;
+    display: grid;
+    place-items: center;
+  }
+  .terminal-ui .dialog-sheet-handle::after { content: ""; width: 36px; height: 4px; border-radius: 999px; background: var(--terminal-muted); }
+  .terminal-ui .dialog-body { overscroll-behavior: contain; }
+}
+
+@media (max-width: 980px) {
+  html body.terminal-ui #themeToggle.rf-theme-toggle { display: none !important; }
+}
+
+@media (min-width: 981px) {
+  .terminal-ui .front-menu-actions .terminal-menu-theme { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-ui .terminal-quote-status::before { animation: none; }
+}
