@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-16",
-  "as_of": "2026-11-16T23:05:43Z",
+  "as_of": "2026-11-16T23:52:30Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -165,20 +165,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-15T22:13Z",
       "comment": "Jerome (hip) has been ruled out for Monday's game against the Wizards."
-    },
-    {
-      "player_name": "Quinten Post",
-      "team": "MEM",
-      "report_status": "Out",
-      "reported_at": "2026-11-15T22:12Z",
-      "comment": "Post (concussion) is questionable for Monday's game against the Wizards."
-    },
-    {
-      "player_name": "Zach Edey",
-      "team": "MEM",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T22:11Z",
-      "comment": "Edey (ankle) is questionable for Monday's game against Washington."
     },
     {
       "player_name": "Richie Saunders",
