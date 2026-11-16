@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v256-obsidian';
+const CACHE_NAME = 'propstein-v257-obsidian';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   '/style.css?v=2026_v255',
   '/app.js?v=2026_v255',
   '/design-system.css?v=2026_v229',
-  '/terminal-ui.css?v=2026_v2',
+  '/terminal-ui.css?v=2026_v3',
   '/refresh-2026.css?v=2026_r14',
   '/js/refresh-2026.js?v=2026_r2',
   '/js/quant-math.js?v=2026_v215',

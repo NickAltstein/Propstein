@@ -682,3 +682,11 @@ html body.terminal-ui .csim-ro-v.neg { color: var(--ink-dim) !important; }
 html body.terminal-ui #terminalSimBody .sketch-arrow .sketch-arrow-ink { stroke: var(--ink-dim) !important; }
 html body.terminal-ui .csim-panel { border-color: var(--terminal-border) !important; }
 html body.terminal-ui .front-menu-actions :is(button, a) { background: var(--surface-1) !important; color: var(--ink) !important; }
+html body.terminal-ui .mobile-usage-ticker {
+  background: var(--surface-1) !important;
+  border-color: var(--terminal-border) !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .mobile-usage-ticker :is(.mobile-usage-icon, .mobile-usage-label, .mobile-usage-count) { color: var(--ink-dim) !important; background: transparent !important; }
+html body.terminal-ui .terminal-quote-status::before { animation: none !important; }
