@@ -1,27 +1,33 @@
 /* Production terminal components. Legacy selectors stay scoped to this page
    while the shared viewer styles continue to serve the research pages. */
 html .terminal-ui {
-  --surface-0: #0a0c10;
-  --surface-1: #11141a;
-  --surface-2: #181c24;
-  --ink: #e8eaee;
-  --ink-dim: #9aa1ac;
-  --ink-faint: #858d9a;
-  --signal: #b8f53d;
-  --quote: #6fb7ff;
-  --warn: #f5b83d;
+  --surface-0: #0c0d0f;
+  --surface-1: #17181b;
+  --surface-2: #1c1e21;
+  --surface-page: linear-gradient(180deg, #121316 0%, #0c0d0f 100%);
+  --surface-card: linear-gradient(165deg, #1e2023 0%, #17181b 100%);
+  --surface-raised: linear-gradient(165deg, #26282c 0%, #1c1e21 100%);
+  --specular-card: inset 0 1px 0 0 rgb(196 200 205 / 12%);
+  --specular-raised: inset 0 1px 0 0 rgb(196 200 205 / 18%);
+  --ink: #e9ebee;
+  --ink-dim: #9da3ab;
+  --ink-faint: #6b7077;
+  --signal: #bfdbff;
+  --quote: #8fb5ea;
+  --accent-fill: #364962;
+  --warn: #e8b45a;
   --fail: #ff6b5e;
   --terminal-canvas: var(--surface-0);
   --terminal-surface: var(--surface-1);
   --terminal-raised: var(--surface-2);
-  --terminal-border: rgb(255 255 255 / 8%);
+  --terminal-border: rgb(169 173 178 / 10%);
   --terminal-text: var(--ink);
   --terminal-muted: var(--ink-dim);
   --terminal-blue: var(--quote);
   --terminal-cyan: var(--quote);
   --terminal-active-ink: var(--ink);
   --terminal-active-fill: var(--surface-2);
-  --terminal-positive: var(--signal);
+  --terminal-positive: var(--quote);
   --terminal-alert: var(--warn);
   --terminal-chrome: var(--surface-0);
   --terminal-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -294,11 +300,11 @@ html body.terminal-ui :is(#moreFiltersDialog, #terminalSimDialog) .dialog-shell 
 
 /* Obsidian Desk: a 44px portrait and an 18px crest that never covers the face. */
 html body.terminal-ui .pw-avatar {
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px !important;
-  min-height: 44px !important;
-  flex: 0 0 44px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex: 0 0 48px !important;
   border: 0 !important;
   border-radius: 50% !important;
   background: #26303b;
@@ -466,7 +472,7 @@ html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
   text-overflow: ellipsis;
 }
 html body.terminal-ui .terminal-quote-status[data-state="verified"] { color: var(--ink-faint); }
-html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { background: var(--signal); }
+html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { background: var(--quote); }
 html body.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"], [data-state="offline"], [data-state="time unknown"]) { color: var(--warn); }
 html body.terminal-ui .terminal-quote-status[data-state="offline"]::before { background: var(--fail); }
 html body.terminal-ui .terminal-scrolled .pw-filterbar {
@@ -588,7 +594,7 @@ html body.terminal-ui .home-edge-card[data-rf-card] { animation: none !important
 
 /* Recover command controls hidden by the older shared stylesheet. */
 html body.terminal-ui .pw-topbar .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #terminalQuoteStatus) { display: inline-flex !important; }
-html body.terminal-ui .pw-topbar-right > :not(#headerSearchTrigger):not(#slateSelector):not(#terminalQuoteStatus):not(#frontMenuBtn):not(#mobileSearchBtn) { display: none !important; }
+html body.terminal-ui .pw-topbar-right > :is(#slimInjuryBanner, #dismissInjuryBannerBtn, #headerRiskSteppers, #livePollingWidget, .pw-receipt-badge, #sniperBtn, #pricingBtn, #clvReportBtn, #portfolioBtn, #exportBtn, #mobileMenuBtn, #themeToggle) { display: none !important; }
 @media (max-width: 768px) {
   html body.terminal-ui #slateSelector { display: none !important; }
   html body.terminal-ui #headerSearchTrigger { display: inline-flex !important; }
@@ -616,6 +622,11 @@ html body.terminal-ui .terminal-receipt code {
   white-space: normal;
 }
 html body.terminal-ui .terminal-receipt:is([open], :hover) code { display: block; }
+html body.terminal-ui .terminal-receipt[open] { display: inline-block; max-width: 100%; }
+html body.terminal-ui .terminal-receipt[open] code {
+  position: static; display: block; width: min(70vw, 500px); max-width: 100%;
+  margin-top: 4px; box-sizing: border-box;
+}
 html body.terminal-ui:has(.terminal-quote-status[data-state="stale"]) :is(.home-edge-preview, .data-board) { border-top: 1px solid var(--warn) !important; }
 html body.terminal-ui .market-state-banner {
   border: 0 !important;
@@ -634,11 +645,11 @@ html body.terminal-ui .terminal-audit-link { display: inline-flex; margin-top: 8
 html body.terminal-ui #cardView .card-id-block .pw-avatar,
 html body.terminal-ui #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar,
 html body.terminal-ui #tableView .player-name .pw-avatar {
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px !important;
-  min-height: 44px !important;
-  flex: 0 0 44px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex: 0 0 48px !important;
   border-radius: 50% !important;
 }
 
@@ -705,3 +716,309 @@ html body.terminal-ui .terminal-quote-status::before { animation: none !importan
 .terminal-ui .access-tier p { margin: 5px 0 0; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
 .terminal-ui .home-fail-closed { margin: 8px 0 12px; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
 .terminal-ui .home-fail-closed a { color: var(--terminal-active-ink); white-space: nowrap; }
+
+/* Graphite Bloom material: gradients stop at surface boundaries. */
+html body.terminal-ui {
+  background: var(--surface-page) fixed !important;
+  --rf-accent: var(--quote);
+  --rf-accent-hi: var(--quote);
+  --pw-accent-lime: var(--quote);
+  --pw-accent-blue: var(--quote);
+  --pw-bg-card: var(--surface-1);
+}
+html body.terminal-ui :is(.home-edge-preview, .home-edge-card, .today-game-card,
+  .mobile-quant-row, .card-grid-col, .rf-method, .front-pro-bar, .skeleton-card,
+  .price-rail, .access-tier, .today-schedule-message) {
+  background: var(--surface-card) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-card) !important;
+}
+html body.terminal-ui :is(.terminal-search-dialog, .dialog-shell, .csim-panel,
+  .front-menu-dialog, .detail-dialog, .receipt-card-shell, .execution-shell,
+  .terminal-receipt code, .position-filter-menu[open] #positionChipGroup) {
+  background: var(--surface-raised) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-raised) !important;
+}
+html body.terminal-ui :is(.card-money-row, .card-money-cell, .card-ci-chip,
+  .card-grid-col .rf-dist, .rf-dist, .rf-stat, .csim-readout, #tableView,
+  #tableView td, #tableView th) {
+  background: var(--surface-1) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .rf-dist-band,
+html body.terminal-ui .mobile-quant-row:is(:hover, :focus-within) .rf-dist-band {
+  fill: rgb(143 181 234 / 8%) !important;
+}
+html body.terminal-ui :is(.row-state-actionable .card-hero-edge.positive,
+  .row-state-actionable .card-edge-badge-lime) {
+  color: var(--signal) !important;
+  text-shadow: 0 0 8px rgb(143 181 234 / 35%);
+}
+html body.terminal-ui .receipt-cell-val.is-lime { color: var(--quote) !important; text-shadow: none !important; }
+html body.terminal-ui .mobile-quant-row:not(.row-state-actionable) .card-edge-badge-lime {
+  color: var(--ink-dim) !important; text-shadow: none !important;
+}
+html body.terminal-ui .mobile-quant-row .ou-mini-box {
+  background: transparent !important; border: 0 !important;
+  color: var(--quote) !important;
+}
+html body.terminal-ui .mobile-quant-row :is(.ou-over, .ou-under) .ou-mini-arrow {
+  color: var(--quote) !important;
+}
+html body.terminal-ui .rf-dist-proj { filter: drop-shadow(0 0 4px rgb(143 181 234 / 35%)) !important; }
+html body.terminal-ui .rf-dist-fair { filter: none !important; }
+html body.terminal-ui :is(.card-odds-pill, .rf-dist-chip-fair text, a:not(.pw-brand)) { color: var(--quote); }
+html body.terminal-ui :is(.card-money-val:not(.fair), .sketch-arrow .sketch-arrow-ink) {
+  color: var(--ink) !important;
+  stroke: var(--quote) !important;
+  text-shadow: none !important;
+}
+html body.terminal-ui .pw-avatar {
+  background: #2a2d31;
+  box-shadow: 0 0 0 1px rgb(196 200 205 / 22%) !important;
+}
+html body.terminal-ui .pw-avatar::after { box-shadow: inset 0 0 0 1px rgb(196 200 205 / 26%); }
+html body.terminal-ui .pw-avatar-team-chip {
+  width: 18px; height: 18px; padding: 0; border: 0; border-radius: 0;
+  background: transparent !important; transform: translate(25%, 15%);
+}
+html body.terminal-ui .pw-avatar-team-chip:not(:has(img)) { display: none !important; }
+html body.terminal-ui .pw-avatar-team-badge,
+html body.terminal-ui .card-id-block .pw-avatar-team-badge {
+  width: 18px !important; height: 18px !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 50%));
+}
+
+/* Instrument Panel: two rows, recessed wells, quiet controls, readout chips. */
+html body.terminal-ui .pw-terminal-chrome {
+  background: rgb(18 19 22 / 96%) !important;
+  border-bottom: 1px solid rgb(169 173 178 / 8%) !important;
+}
+html body.terminal-ui .pw-topbar {
+  height: 56px !important; min-height: 56px !important; max-height: 56px;
+  gap: 16px !important; padding: 0 var(--terminal-gutter) !important;
+  align-items: center; white-space: nowrap;
+}
+html body.terminal-ui .pw-topbar-left { flex: 0 0 auto; }
+html body.terminal-ui .pw-telemetry-pod { display: none !important; }
+html body.terminal-ui .terminal-leagues { margin-right: auto; }
+html body.terminal-ui .pw-topbar-right { flex: 0 1 auto; min-width: 0; gap: 8px !important; }
+html body.terminal-ui .pw-topbar-right > :not(#headerSearchTrigger):not(#slateSelector):not(#terminalQuoteStatus):not(#frontMenuBtn):not(#mobileSearchBtn):not(#terminalHeaderSearch):not(.terminal-desktop-nav) { display: none !important; }
+html body.terminal-ui .pw-topbar-right > #terminalHeaderSearch,
+html body.terminal-ui .pw-topbar-right > .terminal-desktop-nav { display: flex !important; }
+html body.terminal-ui .terminal-desktop-nav { align-items: center; gap: 2px; border-inline: 1px solid rgb(169 173 178 / 8%); padding-inline: 8px; }
+html body.terminal-ui .terminal-desktop-nav button,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn),
+html body.terminal-ui #moreFiltersBtn,
+html body.terminal-ui .position-filter-menu > summary {
+  position: relative; display: inline-flex !important; align-items: center;
+  justify-content: center; flex: 0 0 auto; min-height: 44px !important;
+  padding: 0 8px !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; color: var(--ink-dim) !important;
+  box-shadow: none !important; font: 500 13px/1.2 var(--terminal-sans) !important;
+  white-space: nowrap; text-transform: none !important; letter-spacing: 0 !important;
+  transform: none !important;
+}
+html body.terminal-ui .terminal-desktop-nav button::after,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn)::after,
+html body.terminal-ui #moreFiltersBtn::after,
+html body.terminal-ui .position-filter-menu > summary::after {
+  content: ''; position: absolute; left: 50%; right: 50%; bottom: 5px;
+  height: 2px; background: var(--quote); transition: left .12s, right .12s;
+}
+html body.terminal-ui .terminal-desktop-nav button:is(:hover, :focus-visible)::after,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn):is(:hover, :focus-visible)::after,
+html body.terminal-ui #moreFiltersBtn:is(:hover, :focus-visible)::after,
+html body.terminal-ui .position-filter-menu > summary:is(:hover, :focus-visible)::after { left: 8px; right: 8px; }
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn):hover,
+html body.terminal-ui .terminal-desktop-nav button:hover,
+html body.terminal-ui #moreFiltersBtn:hover { color: var(--ink) !important; }
+html body.terminal-ui #frontMenuBtn { min-width: 44px; font-size: 20px !important; }
+html body.terminal-ui #slateSelector { width: 84px; max-width: 84px; font-family: var(--terminal-mono) !important; font-size: 12px !important; }
+html body.terminal-ui .terminal-search-trigger { min-width: 78px; gap: 6px; }
+html body.terminal-ui .terminal-header-search {
+  width: 0; min-width: 0; max-width: 0; opacity: 0; padding: 0; border: 0;
+  background: transparent; color: var(--ink); font: 500 13px var(--terminal-sans);
+  transition: max-width .14s ease-out, opacity .14s ease-out;
+}
+html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) #headerSearchTrigger { display: none !important; }
+html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) .terminal-header-search,
+html body.terminal-ui .terminal-header-search:not(:placeholder-shown) {
+  width: 320px; max-width: min(320px, 28vw); opacity: 1; padding: 0 8px;
+  border-bottom: 2px solid var(--quote); height: 44px;
+}
+html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+  display: inline-flex !important; flex: 0 0 88px; width: 88px; max-width: 88px;
+  overflow: visible; white-space: nowrap; text-overflow: clip;
+  font: 500 11px/1 var(--terminal-mono); color: var(--ink-dim);
+}
+html body.terminal-ui .terminal-quote-status::before { width: 4px; height: 4px; }
+html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { box-shadow: none; }
+html body.terminal-ui .terminal-snapshot-strip {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 12px; padding: 8px 12px; width: fit-content; max-width: 100%;
+  border: 1px solid var(--terminal-border); border-radius: 8px;
+  background: var(--surface-raised); box-shadow: var(--specular-raised);
+}
+html body.terminal-ui .terminal-snapshot-strip .snapshot-age-pill { margin: 0; background: transparent !important; border: 0 !important; border-radius: 0; color: var(--ink-dim) !important; padding: 0 !important; min-height: 0; }
+html body.terminal-ui .terminal-snapshot-strip .snapshot-age-pill::before { display: none !important; }
+html body.terminal-ui .terminal-snapshot-status { color: var(--warn); font: 500 11px/1.4 var(--terminal-mono); }
+html body.terminal-ui .terminal-snapshot-status:empty { display: none; }
+html body.terminal-ui .terminal-snapshot-status:not(:empty)::before { content: '·'; margin-right: 12px; color: var(--ink-faint); }
+html body.terminal-ui .pw-filterbar {
+  height: 44px; min-height: 44px; max-height: 44px; padding: 0 var(--terminal-gutter) !important;
+  align-items: center; flex-wrap: nowrap; gap: 8px !important; overflow: visible;
+  border: 0 !important; background: transparent !important;
+}
+html body.terminal-ui .pw-command-row,
+html body.terminal-ui .mobile-usage-ticker { display: none !important; }
+html body.terminal-ui .terminal-board-controls { flex: 1 1 auto; min-width: 0; gap: 24px; white-space: nowrap; }
+html body.terminal-ui #moreFiltersBtn { min-width: 64px; padding-inline: 0 !important; }
+html body.terminal-ui #moreFiltersBtn :is(svg, .chip-chevron) { display: none; }
+html body.terminal-ui #mobileFilterStrip {
+  display: flex; align-items: center; gap: 24px; min-width: 0;
+  padding: 0 !important; overflow: visible; white-space: nowrap;
+}
+html body.terminal-ui .chip-divider { display: none !important; }
+html body.terminal-ui .terminal-well {
+  position: relative; display: inline-flex; align-items: center; gap: 0;
+  padding: 3px !important; border: 0 !important; border-radius: 8px !important;
+  background: linear-gradient(180deg, #0e0f11, #16171a) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 50%) !important;
+  isolation: isolate;
+}
+html body.terminal-ui .terminal-well-thumb {
+  position: absolute; z-index: 0; top: 3px; bottom: 3px;
+  left: 0; width: var(--thumb-w, 0); transform: translateX(var(--thumb-x, 0px));
+  border-radius: 6px; background: var(--surface-raised);
+  box-shadow: var(--specular-raised); pointer-events: none;
+  transition: transform .14s ease-out, width .14s ease-out;
+}
+html body.terminal-ui .terminal-well > button,
+html body.terminal-ui .terminal-well .chip-pill,
+html body.terminal-ui .terminal-well .pw-seg-btn {
+  position: relative; z-index: 1; min-height: 38px !important;
+  padding: 0 10px !important; border: 0 !important; border-radius: 6px !important;
+  background: transparent !important; box-shadow: none !important;
+  color: var(--ink-faint) !important; font: 500 12px/1 var(--terminal-sans) !important;
+  letter-spacing: 0 !important; text-transform: none !important; transform: none !important;
+}
+html body.terminal-ui .terminal-well > button.active,
+html body.terminal-ui .terminal-well .chip-pill.active,
+html body.terminal-ui .terminal-well .pw-seg-btn.active { color: var(--ink) !important; }
+html body.terminal-ui #mobileFilterStrip .terminal-well .chip-pill.active,
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher).terminal-well .sport-switch-btn.active,
+html body.terminal-ui .pw-view-toggle.view-switch.terminal-well .pw-seg-btn.active {
+  border: 0 !important; outline: 0; background: transparent !important;
+  box-shadow: none !important; color: var(--ink) !important;
+}
+html body.terminal-ui .chip-segment-group::before,
+html body.terminal-ui .chip-segment-group::after { display: none !important; }
+html body.terminal-ui .chip-count-pill { border: 0 !important; background: transparent !important; color: inherit !important; font: 500 11px/1 var(--terminal-mono) !important; }
+html body.terminal-ui .position-filter-menu { margin: 0; border: 0; }
+html body.terminal-ui .position-filter-menu > summary { list-style: none; }
+html body.terminal-ui .position-filter-menu > summary::-webkit-details-marker { display: none; }
+html body.terminal-ui .view-switch { margin-left: auto; }
+html body.terminal-ui #mobileSniperBtn { display: none !important; }
+html body.terminal-ui .mobile-bottom-nav { display: none !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard {
+  border: 0 !important; border-radius: 8px !important;
+  background: linear-gradient(165deg, #3e5370, #2f4158) !important;
+  box-shadow: var(--specular-raised) !important; color: var(--ink) !important;
+  transform: none !important;
+}
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard:hover { background: linear-gradient(165deg, #435975, #34475f) !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard:active { background: linear-gradient(165deg, #2f4158, #3e5370) !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard span { display: none; }
+html body.terminal-ui #explorePropsBtn { background: transparent !important; border: 0 !important; color: var(--quote) !important; box-shadow: none !important; }
+
+/* Research panels use the same 4px rhythm and density padding. */
+html body.terminal-ui :is(.compare-formats, .slate-overview, .today-schedule) { margin-block: 24px; }
+html body.terminal-ui :is(.compare-formats, .slate-overview, .today-schedule) :is(.today-game-card, .format-card, .overview-card) { padding: 16px; }
+html body.terminal-ui .terminal-compact :is(.compare-formats, .slate-overview, .today-schedule) :is(.today-game-card, .format-card, .overview-card) { padding: 8px; }
+
+/* Detail controls and plot inherit the same material and single blue accent. */
+html body.terminal-ui #detailDialog {
+  --pd-card: var(--surface-card); --pd-border: var(--terminal-border);
+  --pd-border-hi: var(--quote); --pd-glow: var(--specular-raised);
+  --pd-green: var(--quote);
+}
+html body.terminal-ui #detailDialog :is(.pd-card, .pd-chart-card, .pd-break) {
+  background: var(--surface-card) !important; border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-card) !important;
+}
+html body.terminal-ui #detailDialog .pd-tile {
+  background: var(--surface-1) !important; border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui #detailDialog :is(.pd-tabs, .pd-seg) {
+  gap: 0; padding: 3px; border: 0; border-radius: 8px;
+  background: linear-gradient(180deg, #0e0f11, #16171a);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 50%);
+}
+html body.terminal-ui #detailDialog :is(.pd-tab, .pd-seg-btn) {
+  min-height: 44px; border: 0 !important; border-radius: 6px !important;
+  background: transparent !important; box-shadow: none !important;
+  color: var(--ink-faint) !important; transform: none !important;
+}
+html body.terminal-ui #detailDialog :is(.pd-tab.is-active, .pd-seg-btn.is-active) {
+  background: var(--surface-raised) !important; box-shadow: var(--specular-raised) !important;
+  color: var(--ink) !important;
+}
+html body.terminal-ui #detailDialog .pd-tile-fair .pd-tile-value { color: var(--quote) !important; text-shadow: none !important; }
+html body.terminal-ui #detailDialog .pd-badge-verified {
+  color: var(--quote) !important; background: transparent !important;
+  border-color: var(--terminal-border) !important;
+}
+html body.terminal-ui #detailDialog .pd-badge-unverified { color: var(--warn) !important; background: transparent !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui #detailDialog :is(.pd-chart, .pd-chart-svg) { background: var(--surface-1) !important; }
+html body.terminal-ui #detailDialog :is(.pd-band, .pd-area) { fill: rgb(143 181 234 / 8%) !important; }
+html body.terminal-ui #detailDialog .pd-curve { stroke: var(--quote) !important; filter: none !important; }
+html body.terminal-ui #detailDialog .pd-marker-market :is(.pd-marker-line, .pd-chip),
+html body.terminal-ui #detailDialog .pd-marker-median :is(.pd-marker-line, .pd-chip) { stroke: var(--quote) !important; }
+html body.terminal-ui #detailDialog .pd-marker-market :is(.pd-chip-label, .pd-chip-value),
+html body.terminal-ui #detailDialog .pd-marker-median :is(.pd-chip-label, .pd-chip-value) { fill: var(--quote) !important; }
+html body.terminal-ui #detailDialog .pd-marker-mean :is(.pd-marker-line, .pd-chip) {
+  stroke: var(--signal) !important; filter: drop-shadow(0 0 4px rgb(143 181 234 / 35%));
+}
+html body.terminal-ui #detailDialog .pd-marker-mean :is(.pd-chip-label, .pd-chip-value) { fill: var(--ink) !important; }
+html body.terminal-ui #detailDialog .detail-sticky-log-btn {
+  background: var(--surface-raised) !important; border: 0 !important;
+  box-shadow: var(--specular-raised) !important; color: var(--ink) !important;
+  transform: none !important;
+}
+
+@media (max-width: 1100px) {
+  html body.terminal-ui .pw-topbar-right > .terminal-desktop-nav { display: none !important; }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-avatar-team-badge,
+  html body.terminal-ui .card-id-block .pw-avatar-team-badge { display: block !important; }
+  html body.terminal-ui .pw-topbar { gap: 4px !important; }
+  html body.terminal-ui .pw-topbar-left { min-width: 104px; }
+  html body.terminal-ui .pw-topbar-right { margin-left: auto; gap: 2px !important; }
+  html body.terminal-ui .pw-topbar-center { display: none !important; }
+  html body.terminal-ui #headerSearchTrigger { min-width: 44px; }
+  html body.terminal-ui .terminal-search-trigger span { display: none; }
+  html body.terminal-ui .pw-topbar .pw-topbar-right > #slateSelector { display: none !important; }
+  html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus { width: 88px; min-width: 88px; max-width: 88px; font-size: 11px; }
+  html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) #terminalQuoteStatus { display: none !important; }
+  html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) .terminal-header-search { max-width: min(180px, 48vw); }
+  html body.terminal-ui .pw-filterbar { height: 44px; min-height: 44px; max-height: 44px; display: flex !important; flex-wrap: nowrap; }
+  html body.terminal-ui.front-board-open .pw-filterbar .mobile-league-nav { display: none !important; }
+  html body.terminal-ui .terminal-board-controls { width: 100%; height: 44px; gap: 8px; }
+  html body.terminal-ui #mobileFilterStrip { flex: 1 1 auto !important; max-width: none !important; overflow-x: auto !important; gap: 8px; }
+  html body.terminal-ui .position-filter-menu { display: none; }
+  html body.terminal-ui .view-switch { display: none !important; }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar { height: 40px !important; min-height: 40px !important; max-height: 40px; }
+  html body.terminal-ui .terminal-scrolled .mobile-league-nav { display: none !important; }
+  html body.terminal-ui.front-board-open .mobile-bottom-nav { display: flex !important; }
+  html body.terminal-ui .mobile-bottom-nav :is(#bottomNavSlate, #bottomNavAudit) { display: flex !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui .terminal-well-thumb,
+  html body.terminal-ui .terminal-header-search,
+  html body.terminal-ui .terminal-desktop-nav button::after { transition: none !important; }
+}

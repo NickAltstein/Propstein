@@ -51,15 +51,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v200">
-  <link rel="stylesheet" href="/style.css?v=2026_v258">
+  <link rel="stylesheet" href="/style.css?v=2026_v259">
   <link rel="stylesheet" href="/refresh-2026.css?v=2026_r14">
   <link rel="stylesheet" href="/design-system.css?v=2026_v229">
-  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v4">
+  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v5">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v181" defer></script>
   <script src="/js/sports/nba.js?v=2026_v221" defer></script>
   <script src="/js/quant-math.js?v=2026_v215" defer></script>
-  <script src="/app.js?v=2026_v258" defer></script>
+  <script src="/app.js?v=2026_v259" defer></script>
+  <script src="/js/instrument-panel.js?v=2026_v1" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v200" defer></script>
   <script src="/js/today-schedule.js?v=2026_v243" defer></script>
   <script src="/js/front-page.js?v=2026_v254" defer></script>
@@ -122,6 +123,7 @@
         <button type="button" id="headerSearchTrigger" class="terminal-control terminal-search-trigger" aria-haspopup="dialog" aria-controls="terminalSearchDialog">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5"/><path d="m12.3 12.3 4.2 4.2"/></svg><span>Search</span>
         </button>
+        <input id="terminalHeaderSearch" class="terminal-header-search" type="search" aria-label="Search players, teams, or props" placeholder="Player, team, or prop" autocomplete="off">
         <!-- Slate Selector -->
         <select id="slateSelector" class="pw-select pw-select-slate terminal-control" aria-label="Select Slate">
           <option value="2026_w7">NFL Board · Research Mode</option>
@@ -184,7 +186,13 @@
         <!-- Hidden compatibility mobile elements -->
         <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn" aria-label="Open Settings" style="display:none;" hidden></button>
         <button type="button" id="themeToggle" class="rf-theme-toggle" aria-pressed="false" aria-label="Dark theme on. Switch to light theme"><span data-theme-opt="dark" class="on">Dark</span><span data-theme-opt="light">Light</span></button>
-        <button type="button" id="frontMenuBtn" class="front-menu-btn" aria-haspopup="dialog" aria-controls="frontMenuDialog">Menu <span aria-hidden="true">☰</span></button>
+        <nav class="terminal-desktop-nav" aria-label="Board navigation">
+          <button type="button" data-terminal-nav="slate">Slate</button>
+          <button type="button" data-terminal-nav="saved">Saved</button>
+          <button type="button" data-terminal-nav="record">Record</button>
+          <button type="button" data-terminal-nav="audit">Audit</button>
+        </nav>
+        <button type="button" id="frontMenuBtn" class="front-menu-btn" aria-haspopup="dialog" aria-controls="frontMenuDialog" aria-label="Open menu">☰</button>
       </div>
     </div>
 
@@ -218,15 +226,15 @@
           <!-- Active vs All Mode Switcher -->
           <div class="chip-segment-group" data-eyebrow="MODE" role="radiogroup" aria-label="Dataset Mode">
             <button type="button" class="chip-pill active" data-mode="actionable" id="modeActionableBtn" role="radio" aria-checked="true" title="Show plays clearing edge gate">
-              <span>ACTIVE</span>
+              <span>Active</span>
               <span class="chip-count-pill" id="actionableCount">0</span>
             </button>
             <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
-              <span>TOP</span>
+              <span>Top</span>
               <span class="chip-count-pill" id="topCount">25</span>
             </button>
             <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
-              <span>ALL</span>
+              <span>All</span>
               <span class="chip-count-pill" id="allCount">390</span>
             </button>
           </div>
@@ -257,7 +265,7 @@
 
           <!-- Mobile market-alert chip -->
           <button type="button" class="chip-pill chip-sniper-btn" id="mobileSniperBtn" aria-label="Configure market alerts" title="Configure market alerts">
-            <span>ALERTS</span>
+            <span>Alerts</span>
             <span class="sniper-mobile-dot" id="mobileSniperDot" hidden></span>
           </button>
 
@@ -308,13 +316,13 @@
   </dialog>
 
   <main class="shell page" id="slateBoard">
-    <div class="snapshot-age-pill" id="snapshotAgePill" role="status" hidden></div>
+    <div class="terminal-snapshot-strip"><div class="snapshot-age-pill" id="snapshotAgePill" role="status" hidden></div><span class="terminal-snapshot-status" role="status"></span></div>
     <section class="home-edge-preview" id="homeEdgePreview" aria-labelledby="homeEdgeTitle" aria-live="polite">
       <div id="marketStateBanner" class="market-state-banner" hidden></div>
       <div class="home-edge-heading">
         <div><p class="today-schedule-eyebrow" id="homeEdgeEyebrow">NFL receiving props</p><h1 id="homeEdgeTitle">Fair lines you can compare with your book.</h1><p class="product-line" id="productLine">Pick a game, a player, and a line. The model shows the probability of over and under against a DFS break-even.</p></div>
         <div class="home-edge-actions">
-          <button type="button" id="homeEdgeOpenBoard">View player board <span aria-hidden="true">↗</span></button>
+          <button type="button" id="homeEdgeOpenBoard">View player board</button>
         </div>
       </div>
       <details class="research-mode-details">

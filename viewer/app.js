@@ -538,7 +538,9 @@
     const gap = Math.abs(mx - fx);
     const fairAnchor = fairLeft ? 'end' : 'start';
     const projAnchor = fairLeft ? 'start' : 'end';
-    const off = gap < 44 ? 4 : 0;
+    // Separate the 44px callouts vertically whenever their tracks would overlap.
+    const stagger = gap < 52;
+    const off = stagger ? 4 : 0;
     const ciText = `80% CI ${Math.round(low)}–${Math.round(high)}`;
     const chipLo = Math.min(fx, mx) - 52; const chipHi = Math.max(fx, mx) + 52;
     const ciLabel = chipLo >= 92 ? `<text class="rf-dist-ci" x="0" y="10" text-anchor="start">${ciText}</text>`
@@ -559,7 +561,7 @@
         <line class="rf-dist-proj" x1="${mx}" x2="${mx}" y1="${top - 4}" y2="${base}"/>
         ${bx === null ? '' : `<line class="rf-dist-book" x1="${bx}" x2="${bx}" y1="${top - 4}" y2="${base}"/>`}
         ${compact ? '' : `<g class="rf-dist-chip rf-dist-chip-fair"><rect x="${fairLabelX - (fairLeft ? 44 : 0)}" y="0" width="44" height="14" rx="4"/><text x="${fairLabelX - (fairLeft ? 22 : -22)}" y="10" text-anchor="middle">${fair.toFixed(1)}</text></g>
-        <g class="rf-dist-chip rf-dist-chip-proj"><rect x="${projLabelX - (fairLeft ? 0 : 44)}" y="0" width="44" height="14" rx="4"/><text x="${projLabelX + (fairLeft ? 22 : -22)}" y="10" text-anchor="middle">${mean.toFixed(1)}</text></g>
+        <g class="rf-dist-chip rf-dist-chip-proj"><rect x="${projLabelX - (fairLeft ? 0 : 44)}" y="${stagger ? 17 : 0}" width="44" height="14" rx="4"/><text x="${projLabelX + (fairLeft ? 22 : -22)}" y="${stagger ? 27 : 10}" text-anchor="middle">${mean.toFixed(1)}</text></g>
         <g class="rf-dist-ticks">${ticks}</g>${ciLabel}`}
       </svg>
       ${compact ? '' : '<output class="rf-dist-hover" aria-live="off"></output>'}
@@ -886,13 +888,12 @@
       ? selector.querySelector(`option[value="${state.slateKey}"]`)
       : null;
     if (activeOption && !SLATES[state.slateKey]?.historical) {
-      // Live slates label by week and carry the feed-status suffix
-      // ("W7 Unverified"). Date-keyed fixture slates keep their shortLabel
-      // untouched — it already says "Fixture", and appending the FIXTURE
-      // status would read "Oct 22 Fixture Fixture".
+      // The command header uses a compact slate value. Feed status has its
+      // own fixed-width telemetry readout and full sentence in the strip.
       const slateCfg = SLATES[state.slateKey] || {};
       if (slateCfg.week != null) {
-        activeOption.textContent = `W${slateCfg.week} ${label[0]}${label.slice(1).toLowerCase()}`;
+        activeOption.textContent = `W${slateCfg.week}`;
+        selector.title = `Week ${slateCfg.week} · ${label.toLowerCase()} odds feed`;
       }
     }
     const statusPill = $('#mobileStatusPill');
@@ -2729,7 +2730,14 @@
       }[status];
       const text = ageLabel && status !== 'FIXTURE' ? `${label} · Last update ${ageLabel} ago` : label;
       quoteStatus.dataset.state = status.toLowerCase();
-      if (quoteStatus.textContent !== text) quoteStatus.textContent = text;
+      const compact = status === 'STALE' ? `${ageLabel || '—'} stale`
+        : status === 'VERIFIED' ? 'Verified' : status === 'RECEIPT-MATCHED' ? 'Matched'
+          : status === 'OFFLINE' ? 'Offline' : status === 'FIXTURE' ? 'Demo'
+            : status === 'UNVERIFIED' ? 'Unverified' : 'Checking';
+      quoteStatus.title = text || compact;
+      if (quoteStatus.textContent !== compact) quoteStatus.textContent = compact;
+      const snapshotStatus = document.querySelector('.terminal-snapshot-status');
+      if (snapshotStatus) snapshotStatus.textContent = text || compact;
     }
     const snapshotPill = elById('snapshotAgePill');
     if (snapshotPill) {
@@ -6881,8 +6889,7 @@
   }
 
   /** v176 "3D sketched" side arrow: hand-drawn wobbly shaft + arrowhead with
-   *  an offset shadow stroke for depth. OVER points up (chartreuse), UNDER
-   *  points down (sky blue). Pure SVG geometry + class fills/strokes — CSP
+   *  an offset shadow stroke for depth. Pure SVG geometry + class fills/strokes — CSP
    *  clean, themeable, replaces the plain ↑/↓ glyphs next to book lines. */
   function sketchSideArrow(dir, size = 15) {
     const up = dir !== 'UNDER';
@@ -7137,7 +7144,7 @@
       let simCapHtml = '';
       const distTitle = dist.isTd
         ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
-        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (grey tick) · projection ${dist.proj.toFixed(1)} (chartreuse tick)${simVal !== null ? ` · simulated line ${simVal.toFixed(1)} (blue tick)` : ''}`;
+        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick)${simVal !== null ? ` · simulated line ${simVal.toFixed(1)} (blue tick)` : ''}`;
       gridColsHtml = `
         <div class="card-money-row">
           <div class="card-money-cell">
@@ -7170,7 +7177,7 @@
       const capChipHtml = '';
       const distTitle = dist.isTd
         ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
-        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (grey tick) · projection ${dist.proj.toFixed(1)} (chartreuse tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
+        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
       gridColsHtml = `
         <div class="card-grid-col col-book">
           <span class="grid-col-lbl">BOOK</span>

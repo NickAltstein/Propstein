@@ -1,13 +1,14 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v258-monetization';
+const CACHE_NAME = 'propstein-v259-graphite-bloom';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v258',
-  '/app.js?v=2026_v258',
+  '/style.css?v=2026_v259',
+  '/app.js?v=2026_v259',
   '/design-system.css?v=2026_v229',
-  '/terminal-ui.css?v=2026_v4',
+  '/terminal-ui.css?v=2026_v5',
+  '/js/instrument-panel.js?v=2026_v1',
   '/widget/line-pricer/widget.css?v=2026_v1',
   '/widget/line-pricer/widget.js?v=2026_v2',
   '/refresh-2026.css?v=2026_r14',
