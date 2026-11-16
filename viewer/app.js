@@ -355,6 +355,15 @@
       img.addEventListener('error', () => { img.style.display = 'none'; });
     }
   }
+  function applyAvatarTheme(avatar) {
+    const teamColor = avatar.dataset.teamColor;
+    if (!teamColor) return;
+    const muted = `color-mix(in srgb, ${teamColor} 75%, #11141a)`;
+    avatar.style.backgroundColor = muted;
+    const card = avatar.closest('.mobile-quant-row');
+    if (card) card.style.borderInlineStartColor = muted;
+    delete avatar.dataset.teamColor;
+  }
   // Guarded: the node:test parity sandbox runs app.js in a bare vm context
   // without MutationObserver; crest theming stays a browser-only behavior.
   const crestThemeObserver = typeof MutationObserver === 'undefined'
@@ -365,11 +374,14 @@
             if (node.nodeType !== 1) continue;
             if (node.matches && node.matches('.team-crest[data-crest-bg]')) applyCrestTheme(node);
             if (node.querySelectorAll) node.querySelectorAll('.team-crest[data-crest-bg]').forEach(applyCrestTheme);
+            if (node.matches && node.matches('[data-team-color]')) applyAvatarTheme(node);
+            if (node.querySelectorAll) node.querySelectorAll('[data-team-color]').forEach(applyAvatarTheme);
           }
         }
       });
   function initCrestTheming() {
     document.querySelectorAll('.team-crest[data-crest-bg]').forEach(applyCrestTheme);
+    document.querySelectorAll('[data-team-color]').forEach(applyAvatarTheme);
     if (crestThemeObserver) crestThemeObserver.observe(document.body, { childList: true, subtree: true });
   }
 
@@ -472,8 +484,7 @@
     </div>`;
   }
 
-  let rfDistSeq = 0;
-  function densityCurveSvg(dist, unit = '') {
+  function densityCurveSvg(dist, unit = '', opts = {}) {
     const mean = Number(dist.proj);
     const low = Number(dist.low);
     const high = Number(dist.high);
@@ -512,8 +523,6 @@
     // its chip, and the 80% CI floats above the curve on the side the chips leave free.
     const ticks = `<text x="0" y="${base + 12}" text-anchor="start">0</text><text x="${W}" y="${base + 12}" text-anchor="end">${Math.round(xMax)}</text>`;
     const label = `Approximate shape: projection ${mean.toFixed(1)}, fair line ${fair.toFixed(1)}, 80% range ${low} to ${high}${unit ? ` ${unit}` : ''}`;
-    rfDistSeq += 1;
-    const gid = `rfFill${rfDistSeq}`;
     const fullArea = `M0 ${base} ${pts.map(([x, y]) => `L${X(x)} ${Y(y)}`).join(' ')} L${W} ${base} Z`;
     const fx = Number(X(fair)); const mx = Number(X(mean));
     const fairLeft = fx <= mx;
@@ -528,21 +537,51 @@
       : `<text class="rf-dist-ci" x="${W / 2}" y="${base + 12}" text-anchor="middle">${ciText}</text>`;
     const fairLabelX = fx + (fairLeft ? -4 - off : 4 + off);
     const projLabelX = mx + (fairLeft ? 4 + off : -4 - off);
-    return `<figure class="rf-dist" role="img" aria-label="${esc(label)}">
-      <svg viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false">
-        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38BDF8" stop-opacity="0.22"/><stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/></linearGradient></defs>
+    const compact = Boolean(opts.compact);
+    const bookLine = Number.isFinite(opts.bookLine) ? opts.bookLine : Number.isFinite(opts.simLine) ? opts.simLine : null;
+    const bx = bookLine === null ? null : Number(X(bookLine));
+    return `<figure class="rf-dist${compact ? ' rf-dist-compact' : ''}" role="img" aria-label="${esc(label)}" data-proj="${mean}" data-low="${low}" data-high="${high}" data-max="${xMax}">
+      <svg viewBox="0 0 ${W} ${H}"${compact ? ' preserveAspectRatio="none"' : ''} aria-hidden="true" focusable="false">
         <path class="rf-dist-tail" d="${fullArea}"/>
-        ${bandPath ? `<path class="rf-dist-band" fill="url(#${gid})" d="${bandPath}"/>` : ''}
+        ${bandPath ? `<path class="rf-dist-band" d="${bandPath}"/>` : ''}
         <path class="rf-dist-line" pathLength="1" d="${line}"/>
         <line class="rf-dist-base" x1="0" x2="${W}" y1="${base}" y2="${base}"/>
         <line class="rf-dist-fair" x1="${fx}" x2="${fx}" y1="${top - 4}" y2="${base}"/>
         <line class="rf-dist-proj" x1="${mx}" x2="${mx}" y1="${top - 4}" y2="${base}"/>
-        <g class="rf-dist-chip rf-dist-chip-fair"><rect x="${fairLabelX - (fairLeft ? 44 : 0)}" y="0" width="44" height="14" rx="4"/><text x="${fairLabelX - (fairLeft ? 22 : -22)}" y="10" text-anchor="middle">${fair.toFixed(1)}</text></g>
+        ${bx === null ? '' : `<line class="rf-dist-book" x1="${bx}" x2="${bx}" y1="${top - 4}" y2="${base}"/>`}
+        ${compact ? '' : `<g class="rf-dist-chip rf-dist-chip-fair"><rect x="${fairLabelX - (fairLeft ? 44 : 0)}" y="0" width="44" height="14" rx="4"/><text x="${fairLabelX - (fairLeft ? 22 : -22)}" y="10" text-anchor="middle">${fair.toFixed(1)}</text></g>
         <g class="rf-dist-chip rf-dist-chip-proj"><rect x="${projLabelX - (fairLeft ? 0 : 44)}" y="0" width="44" height="14" rx="4"/><text x="${projLabelX + (fairLeft ? 22 : -22)}" y="10" text-anchor="middle">${mean.toFixed(1)}</text></g>
-        <g class="rf-dist-ticks">${ticks}</g>
-        ${ciLabel}
+        <g class="rf-dist-ticks">${ticks}</g>${ciLabel}`}
       </svg>
+      ${compact ? '' : '<output class="rf-dist-hover" aria-live="off"></output>'}
     </figure>`;
+  }
+
+  function initCurveInteractions() {
+    if (!document.body?.classList?.contains('terminal-ui')) return;
+    document.addEventListener('pointermove', (event) => {
+      const figure = event.target.closest?.('.rf-dist:not(.rf-dist-compact)');
+      if (!figure) return;
+      const output = figure.querySelector('.rf-dist-hover');
+      const svg = figure.querySelector('svg');
+      if (!output || !svg) return;
+      const bounds = svg.getBoundingClientRect();
+      const fraction = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+      const line = fraction * Number(figure.dataset.max);
+      const sd = Math.max(.25, (Number(figure.dataset.high) - Number(figure.dataset.low)) / 2.563);
+      const z = (Number(figure.dataset.proj) - line) / sd;
+      const t = 1 / (1 + .2316419 * Math.abs(z));
+      const d = .3989423 * Math.exp(-z * z / 2);
+      let probability = 1 - d * t * (.3193815 + t * (-.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+      if (z < 0) probability = 1 - probability;
+      output.textContent = `${line.toFixed(1)} · approx. P(over) ${(probability * 100).toFixed(0)}%`;
+      output.style.left = `${Math.min(bounds.width - 92, Math.max(0, event.clientX - bounds.left))}px`;
+      figure.classList.add('is-reading');
+    }, { passive: true });
+    document.addEventListener('pointerout', (event) => {
+      const figure = event.target.closest?.('.rf-dist:not(.rf-dist-compact)');
+      if (figure && !figure.contains(event.relatedTarget)) figure.classList.remove('is-reading');
+    });
   }
 
   function propBulletGraphSvg(dist, evaluation, side = 'OVER') {
@@ -561,56 +600,16 @@
         </div>`;
     }
 
-    const isRec = Boolean(dist.isRec);
-    const maxScale = SPORT_ID === 'nba' ? Math.max(1, dist.high * 1.25) : isRec ? 14 : 190;
-    const unit = marketDef().bulletUnit || (isRec ? 'rec' : 'yds');
-    const toPct = (val) => Math.min(100, Math.max(0, (val / maxScale) * 100));
-
-    const lowPct = toPct(dist.low);
-    const highPct = toPct(dist.high);
-    const widthPct = Math.max(2, highPct - lowPct);
-
-    const hasBook = evaluation && evaluation.state !== 'none' && Number.isFinite(evaluation.line);
-    const bookLine = hasBook ? evaluation.line : null;
-    const bookPct = hasBook ? toPct(bookLine) : 0;
-    const fairPct = toPct(dist.fair);
-    const projPct = toPct(dist.proj);
-
-    const fpDeltaStart = Math.min(fairPct, projPct);
-    const fpDeltaWidth = Math.abs(projPct - fairPct);
-
-    const deltaStart = hasBook ? Math.min(bookPct, fairPct) : 0;
-    const deltaWidth = hasBook ? Math.abs(fairPct - bookPct) : 0;
-    const deltaColor = side === 'OVER' ? 'rgba(132, 204, 22, 0.32)' : 'rgba(56, 189, 248, 0.4)';
-
-    return `
-      <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
-        <div class="bullet-top-readout tnum">
-          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair font-mono tnum">${dist.fair.toFixed(1)}</strong></div>
-          <span class="split-divider split-divider-tight">|</span>
-          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent font-mono tnum proj-glow">${dist.proj.toFixed(1)}</strong></div>
-        </div>
-        <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
-          <!-- Background Track (0 to maxScale) -->
-          <rect class="bullet-track" x="0" y="5" width="100" height="4" rx="1.5" fill="#2a2d35" />
-          <!-- 80% Confidence Interval Bar -->
-          <rect class="bullet-fill" x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="#465264" />
-          <!-- Model Fair-to-Projection Visual Delta Fill -->
-          ${fpDeltaWidth > 0 ? `<rect class="bullet-fp-delta" x="${fpDeltaStart.toFixed(1)}" y="4.5" width="${Math.max(1.5, fpDeltaWidth).toFixed(1)}" height="5" rx="1" fill="rgba(56, 189, 248, 0.28)" />` : ''}
-          <!-- Edge Delta Highlight -->
-          ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
-          <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
-          ${hasBook ? `<line class="bullet-book-marker" x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#d9a441" stroke-width="1.8" />` : ''}
-          <!-- Fair Line Marker (Solid White Tick) -->
-          <line class="bullet-fair-marker" x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#e2e8f0" stroke-width="1.6" />
-          <!-- Model Projection Mean (Volt Green Dot) -->
-          <circle class="bullet-proj-marker" cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#3ccf91" stroke="#0f131a" stroke-width="0.8" />
-        </svg>
-        <div class="bullet-bottom-sub">
-          <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
-          <span class="bullet-bk">${hasBook ? `${bookLogoImg(evaluation.book, 'book-logo book-logo-mini')}Bk ${bookLine.toFixed(1)}` : ''}</span>
-        </div>
-      </div>`;
+    const unit = marketDef().bulletUnit || (dist.isRec ? 'rec' : 'yds');
+    const hasBook = evaluation && evaluation.state === 'verified' && Number.isFinite(evaluation.line);
+    return `<div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${evaluation.line.toFixed(1)}` : ''}">
+      <div class="bullet-top-readout tnum">
+        <div><span class="bullet-dim">Fair</span> <strong class="bullet-bold text-fair font-mono tnum">${dist.fair.toFixed(1)}</strong></div>
+        <div><span class="bullet-dim">Projection</span> <strong class="bullet-bold font-mono tnum">${dist.proj.toFixed(1)}</strong></div>
+      </div>
+      ${densityCurveSvg(dist, unit, { compact: true, bookLine: hasBook ? evaluation.line : null })}
+      <div class="bullet-bottom-sub"><span>P10–P90 ${dist.low}–${dist.high}${unit}</span>${hasBook ? `<span>${bookLogoImg(evaluation.book, 'book-logo book-logo-mini')} ${evaluation.line.toFixed(1)}</span>` : ''}</div>
+    </div>`;
   }
 
   function distSparklineSvg(dist, bookLine, w = 68, h = 18) {
@@ -1136,20 +1135,18 @@
   function avatarFor(playerId, displayName, team) {
     const entry = photoEntryFor(playerId, displayName);
     const face = `<span class="pw-avatar-initials" aria-hidden="true">${esc(playerInitials(displayName))}</span>`;
-    // v168 composite: the team logo rides the picture's bottom-left corner as a
-    // circular chip on a solid dark surface (CSS-owned — team tints are too
-    // subtle over a photo). Dead logos self-remove through the delegated
-    // capture-phase error handler in initPlayerPhotos.
+    // The logo sits in a small chip at the edge of the photo, clear of the face.
     // v221: odds-feed quotes ship team:null — when the caller has no team code,
     // the photo entry's own team (built from ESPN search subtitle / slate rows)
     // badges the avatar so NBA market-only rows still show the player's logo.
     const code = String(team || (entry && entry.team) || '').toUpperCase();
     const meta = code ? (NFL_LOGO_MAP[code] || { slug: code.toLowerCase() }) : null;
+    const teamColor = esc((meta && meta.border) || '#384653');
     const badge = meta
-      ? `<img class="pw-avatar-team-badge" src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" title="${esc(code)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+      ? `<span class="pw-avatar-team-chip" data-team-color="${teamColor}" title="${esc(code)}"><img class="pw-avatar-team-badge" src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`
       : '';
     if (!entry || !entry.url) {
-      return `<span class="pw-avatar pw-avatar-fallback">${face}${badge}</span>`;
+      return `<span class="pw-avatar pw-avatar-fallback" data-team-color="${teamColor}">${face}</span>`;
     }
     return `<span class="pw-avatar">${face}<img class="pw-avatar-img" src="${esc(entry.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">${badge}</span>`;
   }
@@ -1184,6 +1181,7 @@
     quarantineThirdPartyInjections();
     initTheme();
     initCrestTheming();
+    initCurveInteractions();
     // Manifest merge BEFORE chrome render: the slate selector is built from
     // adapter.slates, so autopilot-registered weeks must exist before the
     // selector (and mobile twin) are populated. Fail-closed — see above.
@@ -1853,6 +1851,8 @@
           bar.classList.remove('is-visible');
         }
       }
+      const chrome = document.querySelector('.terminal-ui .pw-terminal-chrome');
+      if (chrome) chrome.classList.toggle('terminal-scrolled', window.scrollY > 200);
     }, { passive: true });
 
     // Wire edge-alert trigger buttons
@@ -2199,9 +2199,10 @@
 
   function initTheme() {
     let pref = 'dark';
+    const terminalDarkOnly = document.body.classList.contains('terminal-ui');
     try {
       const stored = localStorage.getItem(THEME_KEY);
-      pref = stored === 'light' || stored === 'glass' ? 'light' : 'dark';
+      if (!terminalDarkOnly) pref = stored === 'light' || stored === 'glass' ? 'light' : 'dark';
     } catch (_) {}
     const apply = (mode) => {
       const light = mode === 'light';
@@ -2221,7 +2222,7 @@
     };
     apply(pref);
     const btn = document.getElementById('themeToggle');
-    if (btn) {
+    if (btn && !terminalDarkOnly) {
       btn.addEventListener('click', () => {
         const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
         apply(next);
@@ -3492,6 +3493,8 @@
   const CARD_PAGE_SIZE = 25;
   let cardPageLimit = CARD_PAGE_SIZE;
   let cardPageKey = '';
+  let animatedSlateKey = '';
+  let curveBootTimer = null;
 
   function renderBoard() {
     renderHomeEdgePreview();
@@ -3501,6 +3504,12 @@
     }
     if ($('#emptyState')) $('#emptyState').classList.remove('nba-market-only', 'nba-market-view-table', 'nba-market-view-cards', 'nba-market-view-compact-grid');
     const rows = filteredRows();
+    if (rows.length && animatedSlateKey !== state.slateKey && document.body?.classList) {
+      animatedSlateKey = state.slateKey;
+      document.body.classList.remove('terminal-curves-drawn');
+      if (curveBootTimer) clearTimeout(curveBootTimer);
+      curveBootTimer = setTimeout(() => document.body.classList.add('terminal-curves-drawn'), 1000);
+    }
     $$('.front-pro-bar [data-pro-view]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.proView === state.proView)));
     const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
     const totalCount = state.slate.length;
@@ -3605,11 +3614,13 @@
         displayRows = pool.slice(0, 25);
         if ($('#resultCount')) $('#resultCount').textContent = `Top ${displayRows.length} of ${state.slate.length} modeled research projections`;
         $('#emptyState').innerHTML = `
-          <div class="anti-tout-empty-wrap anti-tout-research-strip" role="status">
-            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
-            <div class="anti-tout-title">Live qualification paused</div>
-            <p class="anti-tout-desc">Current prices cannot be verified. Model projections remain available for historical research.</p>
+          <div class="anti-tout-empty-wrap anti-tout-research-strip terminal-fail-closed" role="status">
+            <div class="anti-tout-shield" aria-hidden="true">⬡</div>
+            <div class="anti-tout-title">Fails closed · no verified price</div>
+            <span class="sr-only">Live qualification paused</span>
+            <p class="anti-tout-desc">Current prices cannot be verified, so they cannot qualify a play. Model projections remain available for historical research.</p>
             <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
+            <a class="terminal-audit-link" href="/audit/">See the settled audit ↗</a>
             <div class="research-status-pill">
               <span>Showing Top ${displayRows.length} Quantitative Benchmarks (Research Mode)</span>
             </div>
@@ -4397,6 +4408,8 @@
     if (mobileText) {
       mobileText.textContent = count > 0 ? `Filters · ${count} Active` : 'Filters';
     }
+    const terminalLabel = $('#moreFiltersLabel');
+    if (terminalLabel) terminalLabel.textContent = count > 0 ? `Filters · ${count}` : 'Filters';
     const mobileToggle = $('#mobileFilterToggle');
     if (mobileToggle) {
       mobileToggle.classList.toggle('has-active', count > 0);
@@ -4422,6 +4435,7 @@
       mobileBadge.textContent = count;
       mobileBadge.hidden = count === 0;
     }
+    updateTerminalDock();
     const mobileNavBtn = $('#bottomNavLedger');
     if (mobileNavBtn && shouldPulse) {
       mobileNavBtn.classList.remove('ledger-pulse');
@@ -4438,6 +4452,19 @@
       badge.textContent = count;
       badge.hidden = count === 0;
     }
+    updateTerminalDock();
+  }
+
+  function updateTerminalDock() {
+    const nav = document.querySelector('.terminal-ui .mobile-bottom-nav');
+    if (!nav) return;
+    const saved = (state.watchlist || []).length;
+    const recorded = (state.portfolio || []).filter((bet) => bet.sport === SPORT_ID).length;
+    nav.classList.toggle('has-items', saved + recorded > 0);
+    const savedBtn = $('#bottomNavWatchlist');
+    const recordBtn = $('#bottomNavLedger');
+    if (savedBtn) savedBtn.hidden = saved === 0;
+    if (recordBtn) recordBtn.hidden = recorded === 0;
   }
 
   function toggleWatchlist(playerId) {
@@ -6833,14 +6860,7 @@
       const probPct = Math.min(100, Math.max(0, dist.prob * 100));
       return `<svg class="card-dist-svg" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="Anytime touchdown probability ${probPct.toFixed(0)} percent"><rect class="cdist-track" x="0" y="4" width="100" height="4" rx="2"></rect><rect class="cdist-band" x="0" y="3" width="${probPct.toFixed(1)}" height="6" rx="2.5"></rect></svg>`;
     }
-    const maxScale = dist.isRec ? 14 : 190;
-    const toPct = (v) => Math.min(99, Math.max(1, (v / maxScale) * 100));
-    const lo = toPct(dist.low);
-    const hi = Math.max(toPct(dist.high), lo + 2);
-    const tick = (x, cls) => `<rect class="${cls}" x="${(Math.max(1.8, Math.min(98.2, x)) - 0.9).toFixed(2)}" y="1.5" width="1.8" height="9" rx="0.9"></rect>`;
-    const lineTick = (Number.isFinite(opts.bookLine) && opts.bookLine > 0) ? tick(toPct(opts.bookLine), 'cdist-tick-book') : '';
-    const simTick = (Number.isFinite(opts.simLine) && opts.simLine > 0 && !lineTick) ? tick(toPct(opts.simLine), 'cdist-tick-book') : '';
-    return `<svg class="card-dist-svg" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="Approximate model range ${dist.low} to ${dist.high}, fair ${dist.fair.toFixed(1)}, projection ${dist.proj.toFixed(1)}"><rect class="cdist-track" x="0" y="4" width="100" height="4" rx="2"></rect><rect class="cdist-band" x="${lo.toFixed(2)}" y="2.5" width="${(hi - lo).toFixed(2)}" height="7" rx="2.5"></rect>${tick(toPct(dist.fair), 'cdist-tick-fair')}${tick(toPct(dist.proj), 'cdist-tick-proj')}${lineTick}${simTick}</svg>`;
+    return densityCurveSvg(dist, '', { compact: true, bookLine: opts.bookLine, simLine: opts.simLine });
   }
 
   /** v176 "3D sketched" side arrow: hand-drawn wobbly shaft + arrowhead with
@@ -7140,6 +7160,7 @@
           <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
           ${listedSideBoxes(quote)}
+          ${evaluation.state === 'verified' ? terminalReceiptBadge(quote) : ''}
         </div>
         <div class="card-grid-col col-model">
           <span class="grid-col-lbl">MODEL</span>
@@ -7476,6 +7497,7 @@
       ${sparklineHtml}
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
+        ${evaluation.state === 'verified' ? terminalReceiptBadge(quote) : ''}
         ${statusPill}
         ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}
         ${discHtml}
@@ -7883,6 +7905,12 @@
       if (typeof candidate === 'string' && /^[0-9a-f]{64}$/i.test(candidate)) return candidate.toLowerCase();
     }
     return null;
+  }
+
+  function terminalReceiptBadge(quote) {
+    const hash = quoteReceiptSha(quote);
+    if (!hash) return '';
+    return `<details class="terminal-receipt"><summary title="sha256:${hash}" aria-label="Quote receipt ending ${hash.slice(-6)}">⬡ ${hash.slice(-6)}</summary><code>sha256:${hash}</code></details>`;
   }
 
   // Personal log. Grading is off until a close tape with captured_at < kickoff_at exists.

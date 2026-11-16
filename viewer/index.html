@@ -49,17 +49,17 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v200">
-  <link rel="stylesheet" href="/style.css?v=2026_v254">
+  <link rel="stylesheet" href="/style.css?v=2026_v255">
   <link rel="stylesheet" href="/refresh-2026.css?v=2026_r14">
   <link rel="stylesheet" href="/design-system.css?v=2026_v229">
-  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v1">
+  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v2">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v181" defer></script>
   <script src="/js/sports/nba.js?v=2026_v221" defer></script>
   <script src="/js/quant-math.js?v=2026_v215" defer></script>
-  <script src="/app.js?v=2026_v254" defer></script>
+  <script src="/app.js?v=2026_v255" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v200" defer></script>
   <script src="/js/today-schedule.js?v=2026_v243" defer></script>
   <script src="/js/front-page.js?v=2026_v254" defer></script>
@@ -127,6 +127,7 @@
           <option value="2026_w7">NFL Board · Research Mode</option>
           <option value="2026_w1">W1 Audit</option>
         </select>
+        <span id="terminalQuoteStatus" class="terminal-quote-status" role="status">Checking odds feed</span>
 
         <!-- Compact Injury Alert Pill (Desktop) -->
         <button type="button" class="pw-injury-header-pill pw-desktop-only" id="slimInjuryBanner" title="Click to view availability &amp; vacated volume">
@@ -209,7 +210,7 @@
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
         <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-haspopup="dialog" aria-controls="moreFiltersDialog" aria-label="More Filters">
           <svg class="prop-icon filter-funnel-icon" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1.5 2 14.5 2 9.5 8.5 9.5 13.5 6.5 15 6.5 8.5 1.5 2"/></svg>
-          <span id="moreFiltersLabel">FILTERS</span>
+          <span id="moreFiltersLabel">Filters</span>
           <span class="chip-chevron">▾</span>
         </button>
         <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
@@ -269,7 +270,6 @@
 
       </div>
 
-      <span id="terminalQuoteStatus" class="terminal-quote-status" role="status">Checking odds feed</span>
       <button type="button" class="mobile-usage-ticker" id="mobileUsageTicker" aria-expanded="false" aria-controls="availabilityDetails">
         <span class="mobile-usage-icon" aria-hidden="true">!</span>
         <span class="mobile-usage-label">Injury &amp; usage</span>

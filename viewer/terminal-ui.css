@@ -1,21 +1,31 @@
 /* Production terminal components. Legacy selectors stay scoped to this page
    while the shared viewer styles continue to serve the research pages. */
 html .terminal-ui {
-  --terminal-canvas: #090a0f;
-  --terminal-surface: #12141c;
-  --terminal-raised: #181b26;
-  --terminal-border: #272b38;
-  --terminal-text: #eef1f8;
-  --terminal-muted: #a8b2c5;
-  --terminal-blue: #3b82f6;
-  --terminal-cyan: #06b6d4;
-  --terminal-active-ink: #a5e4fc;
-  --terminal-active-fill: #16283f;
-  --terminal-positive: #10b981;
-  --terminal-alert: #e9bb78;
-  --terminal-chrome: rgb(9 10 15 / 94%);
-  --terminal-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --terminal-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --surface-0: #0a0c10;
+  --surface-1: #11141a;
+  --surface-2: #181c24;
+  --ink: #e8eaee;
+  --ink-dim: #9aa1ac;
+  --ink-faint: #858d9a;
+  --signal: #b8f53d;
+  --quote: #6fb7ff;
+  --warn: #f5b83d;
+  --fail: #ff6b5e;
+  --terminal-canvas: var(--surface-0);
+  --terminal-surface: var(--surface-1);
+  --terminal-raised: var(--surface-2);
+  --terminal-border: rgb(255 255 255 / 8%);
+  --terminal-text: var(--ink);
+  --terminal-muted: var(--ink-dim);
+  --terminal-blue: var(--quote);
+  --terminal-cyan: var(--quote);
+  --terminal-active-ink: var(--ink);
+  --terminal-active-fill: var(--surface-2);
+  --terminal-positive: var(--signal);
+  --terminal-alert: var(--warn);
+  --terminal-chrome: var(--surface-0);
+  --terminal-mono: "JetBrains Mono", ui-monospace, monospace;
+  --terminal-sans: "Inter", system-ui, sans-serif;
   --terminal-content-width: 1440px;
   --terminal-control-height: 38px;
   --terminal-gutter: clamp(12px, 2.5vw, 32px);
@@ -26,30 +36,13 @@ html .terminal-ui {
   --rf-surface-3: var(--terminal-raised);
   --rf-line: var(--terminal-border);
   --rf-line-strong: var(--terminal-border);
-  --rf-accent: var(--terminal-blue);
-  --rf-accent-hi: var(--terminal-active-ink);
+  --rf-accent: var(--ink-dim);
+  --rf-accent-hi: var(--quote);
   --rf-good: var(--terminal-positive);
   --ps-bg: var(--terminal-canvas);
   --ps-elev: var(--terminal-surface);
   --ps-elev-2: var(--terminal-raised);
   --ps-line: var(--terminal-border);
-}
-
-html[data-theme="light"] .terminal-ui {
-  --terminal-canvas: #f3f5f9;
-  --terminal-surface: #fff;
-  --terminal-raised: #eaf0f7;
-  --terminal-border: #ccd5e3;
-  --terminal-text: #162236;
-  --terminal-muted: #4c5d75;
-  --terminal-active-ink: #143e78;
-  --terminal-active-fill: #e0edff;
-  --terminal-positive: #047857;
-  --terminal-alert: #845619;
-  --terminal-chrome: rgb(243 245 249 / 95%);
-  --rf-accent: #2563eb;
-  --rf-text: var(--terminal-text);
-  --rf-dim: var(--terminal-muted);
 }
 
 html body.terminal-ui {
@@ -62,7 +55,7 @@ html body.terminal-ui {
 html body.terminal-ui .pw-terminal-chrome {
   background: var(--terminal-chrome) !important;
   border-color: var(--terminal-border) !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
 }
 .terminal-ui .pw-topbar,
 .terminal-ui .pw-filterbar,
@@ -298,3 +291,394 @@ html body.terminal-ui :is(#moreFiltersDialog, #terminalSimDialog) .dialog-shell 
 @media (prefers-reduced-motion: reduce) {
   .terminal-ui .terminal-quote-status::before { animation: none; }
 }
+
+/* Obsidian Desk: a 44px portrait and an 18px crest that never covers the face. */
+html body.terminal-ui .pw-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  flex: 0 0 44px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #26303b;
+  box-shadow: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+}
+html body.terminal-ui .pw-avatar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--terminal-surface);
+  pointer-events: none;
+}
+html body.terminal-ui .pw-avatar-img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  clip-path: circle(50%);
+  object-fit: cover !important;
+  object-position: center 20% !important;
+}
+html body.terminal-ui .pw-avatar-initials {
+  font: 600 13px/1 var(--terminal-mono) !important;
+  letter-spacing: 0 !important;
+  color: var(--terminal-text) !important;
+}
+html body.terminal-ui .pw-avatar-team-chip {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid var(--terminal-surface);
+  border-radius: 50%;
+  background: #26303b;
+  transform: translate(25%, 25%);
+}
+html body.terminal-ui .pw-avatar-team-badge,
+html body.terminal-ui .card-id-block .pw-avatar-team-badge {
+  position: static !important;
+  display: block;
+  width: 12px !important;
+  height: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui .pw-avatar-fallback .pw-avatar-team-chip { display: none; }
+html body.terminal-ui .terminal-compact #cardView .card-id-block .pw-avatar,
+html body.terminal-ui .terminal-compact #tableView .pw-avatar { display: inline-flex; }
+
+/* Surface and type scale. Legacy modules inherit the same dark material. */
+html body.terminal-ui {
+  --pw-font-sans: var(--terminal-sans);
+  --pw-font-mono: var(--terminal-mono);
+  --pw-text-primary: var(--ink);
+  --pw-text-muted: var(--ink-dim);
+  --rf-text: var(--ink);
+  --rf-dim: var(--ink-dim);
+  --brand-accent: var(--ink-dim);
+  color-scheme: dark;
+  overflow-x: clip;
+}
+html body.terminal-ui :is(.home-edge-preview, .home-edge-card, .today-game-card, .mobile-quant-row, .card-grid-col, .rf-method, .rf-m-step, .front-pro-bar, .terminal-search-dialog, .dialog-shell, .csim-panel) {
+  background: var(--surface-1) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui :is(.home-edge-preview, .today-game-card, .mobile-quant-row)::before { background: none !important; }
+html body.terminal-ui :is(.home-edge-card, .today-game-card, .mobile-quant-row):is(:hover, :focus-visible) {
+  transform: none !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .mobile-quant-row { border-inline-start: 2px solid var(--terminal-border); }
+html body.terminal-ui .home-edge-preview { border-radius: 8px; }
+html body.terminal-ui #homeEdgeTitle {
+  background: none !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  color: var(--ink) !important;
+  font: 600 31px/1.15 var(--terminal-sans);
+  letter-spacing: -.025em;
+}
+html body.terminal-ui :is(.today-schedule-eyebrow, .card-money-lbl, .grid-col-lbl, .rf-stat small, .rf-m-step small, .front-pro-bar > span) {
+  color: var(--ink-faint) !important;
+  font: 400 11px/1.3 var(--terminal-sans) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html body.terminal-ui :is(.card-player-name, .player-name-text) { color: var(--ink) !important; font-weight: 600 !important; }
+html body.terminal-ui :is(.card-money-val, .card-money-val.fair, .rf-stat b, .card-proj-fair-row, .card-odds-pill, .td-num, .receipt-hash, .terminal-quote-status, .snapshot-age-pill) {
+  font-family: var(--terminal-mono) !important;
+  font-variant-numeric: tabular-nums slashed-zero !important;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+html body.terminal-ui .card-money-val { color: var(--ink) !important; font-size: 25px !important; font-weight: 600 !important; }
+html body.terminal-ui .card-money-val.fair { color: var(--quote) !important; }
+html body.terminal-ui :is(.dens-fair-sub, .rf-stat-fair b) { color: var(--quote) !important; }
+html body.terminal-ui :is(.card-edge-badge-lime, .row-state-actionable .card-hero-edge.positive) { color: var(--signal) !important; }
+html body.terminal-ui .mobile-quant-row:not(.row-state-actionable) .card-hero-edge.positive { color: var(--ink-dim) !important; }
+html body.terminal-ui :is(.card-ci-chip, .card-context-chip, .card-research-tag) {
+  color: var(--ink-dim) !important;
+  background: var(--surface-2) !important;
+  border-color: var(--terminal-border) !important;
+  letter-spacing: 0 !important;
+}
+html body.terminal-ui :is(.card-sim-primary, .card-ghost-act, .card-btn-sim-quick, .card-btn-log, .home-edge-heading button, .dfs-mode-btn, .front-explore-btn) {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--terminal-border) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+html body.terminal-ui :is(.sport-switch-btn.active, .chip-pill.active, .pw-seg-btn.active, .dfs-mode-btn.active) {
+  background: var(--surface-2) !important;
+  border-color: rgb(255 255 255 / 19%) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui :is(button, select, input, a, summary, [role="button"]):focus-visible {
+  outline: 2px solid var(--quote) !important;
+  outline-offset: 2px !important;
+}
+html body.terminal-ui .terminal-menu-theme,
+html body.terminal-ui #themeToggle { display: none !important; }
+html body.terminal-ui #cardView:not(.compact-grid) .mobile-quant-row { padding: 16px !important; }
+html body.terminal-ui #cardView.compact-grid .mobile-quant-row,
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row { padding: 10px !important; }
+html body.terminal-ui #tableView tbody tr { height: 36px; }
+html body.terminal-ui #tableView tbody td { height: 36px; padding-block: 0 !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-filterbar,
+  html body.terminal-ui .terminal-board-controls { min-width: 0 !important; max-width: 100vw !important; }
+  html body.terminal-ui #mobileFilterStrip {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: calc(100vw - 124px) !important;
+    overflow-x: auto !important;
+  }
+  html body.terminal-ui .card-money-row { min-width: 0; }
+  html body.terminal-ui .card-money-cell { min-width: 0; }
+}
+
+/* Pinned command chrome and a dock that appears only after staging an item. */
+html body.terminal-ui .pw-terminal-chrome { background: var(--surface-0) !important; }
+html body.terminal-ui .pw-topbar { min-height: 56px !important; max-height: 56px; }
+html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+  display: inline-flex !important;
+  max-width: 205px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+html body.terminal-ui .terminal-quote-status[data-state="verified"] { color: var(--ink-faint); }
+html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { background: var(--signal); }
+html body.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"], [data-state="offline"], [data-state="time unknown"]) { color: var(--warn); }
+html body.terminal-ui .terminal-quote-status[data-state="offline"]::before { background: var(--fail); }
+html body.terminal-ui .terminal-scrolled .pw-filterbar {
+  height: 39px !important;
+  min-height: 39px !important;
+  margin-block: 0 !important;
+  overflow: hidden;
+  align-content: center;
+  padding-block: 0 !important;
+}
+html body.terminal-ui .terminal-scrolled :is(.pw-command-row, #mobileFilterStrip, .mobile-usage-ticker) { display: none !important; }
+html body.terminal-ui .terminal-scrolled .terminal-board-controls { width: auto; }
+html body.terminal-ui .terminal-scrolled #moreFiltersBtn { min-height: 36px !important; }
+html body.terminal-ui #moreFiltersLabel { text-transform: none; }
+html body.terminal-ui .pw-topbar-right > #frontMenuBtn { border-color: var(--terminal-border) !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui .terminal-scrolled .mobile-league-nav { display: none !important; }
+  html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+    width: 8px;
+    min-width: 8px;
+    max-width: 8px;
+    font-size: 0;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar { display: flex !important; }
+  html body.terminal-ui .terminal-scrolled .terminal-board-controls { display: flex !important; }
+  html body.terminal-ui .mobile-bottom-nav {
+    display: none !important;
+    position: fixed !important;
+    left: auto !important;
+    right: 12px !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    min-height: 52px;
+    padding: 4px !important;
+    border: 1px solid var(--terminal-border) !important;
+    border-radius: 999px !important;
+    background: var(--surface-2) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    grid-template-columns: none !important;
+    justify-content: flex-end !important;
+  }
+  html body.terminal-ui.front-board-open .mobile-bottom-nav.has-items { display: flex !important; animation: terminal-dock-in .24s cubic-bezier(.2,.8,.2,1) both; }
+  html body.terminal-ui .mobile-bottom-nav :is(#bottomNavSlate, #bottomNavAudit),
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item[hidden] { display: none !important; }
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item {
+    min-width: 64px;
+    min-height: 44px !important;
+    padding: 4px 8px !important;
+    color: var(--ink-dim) !important;
+  }
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item.active { color: var(--ink) !important; background: var(--surface-1) !important; border: 0 !important; box-shadow: none !important; }
+  @keyframes terminal-dock-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui.front-board-open .mobile-bottom-nav.has-items { animation: none !important; }
+}
+
+/* One distribution grammar in cards, compact rows, and the simulator. */
+html body.terminal-ui .rf-dist { position: relative; }
+html body.terminal-ui .rf-dist-tail { fill: none !important; }
+html body.terminal-ui .rf-dist-band { fill: rgb(255 255 255 / 6%) !important; opacity: 1 !important; animation: none !important; transition: fill .14s ease; }
+html body.terminal-ui .mobile-quant-row:is(:hover, :focus-within) .rf-dist-band { fill: rgb(255 255 255 / 10%) !important; }
+html body.terminal-ui .rf-dist-line {
+  stroke: var(--ink-dim) !important;
+  stroke-width: 1.5px !important;
+  filter: none !important;
+  animation: none !important;
+  stroke-dashoffset: 0;
+}
+html body.terminal-ui:not(.terminal-curves-drawn) .rf-dist-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: terminal-curve-draw .32s cubic-bezier(.23,1,.32,1) both !important;
+}
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(2) .rf-dist-line { animation-delay: 24ms !important; }
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(3) .rf-dist-line { animation-delay: 48ms !important; }
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(4) .rf-dist-line { animation-delay: 72ms !important; }
+@keyframes terminal-curve-draw { to { stroke-dashoffset: 0; } }
+html body.terminal-ui .rf-dist-fair { stroke: var(--quote) !important; stroke-width: 1.5px !important; stroke-dasharray: 4 3; opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-proj { stroke: var(--signal) !important; stroke-width: 2px !important; opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-book { stroke: var(--warn); stroke-width: 1.5px; }
+html body.terminal-ui .rf-dist-base { stroke: var(--terminal-border); }
+html body.terminal-ui .rf-dist-chip { opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-chip rect { fill: var(--surface-2) !important; stroke: var(--terminal-border) !important; }
+html body.terminal-ui .rf-dist-chip-fair text { fill: var(--quote) !important; }
+html body.terminal-ui .rf-dist-chip-proj text { fill: var(--ink) !important; }
+html body.terminal-ui .rf-dist-hover {
+  display: none;
+  position: absolute;
+  top: 2px;
+  z-index: 2;
+  padding: 4px 6px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 500 11px/1 var(--terminal-mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+html body.terminal-ui .rf-dist.is-reading .rf-dist-hover { display: block; }
+html body.terminal-ui .rf-dist-compact { width: 100%; min-width: 56px; }
+html body.terminal-ui .rf-dist-compact svg { width: 100%; height: 24px; }
+html body.terminal-ui .bullet-container .rf-dist-compact { width: 56px; }
+html body.terminal-ui .bullet-container .rf-dist-compact svg { height: 18px; }
+html body.terminal-ui .bullet-top-readout { justify-content: flex-start; gap: 12px; }
+html body.terminal-ui .bullet-dim { color: var(--ink-faint) !important; text-transform: none; letter-spacing: 0; }
+html body.terminal-ui .bullet-bold { color: var(--ink) !important; text-shadow: none !important; }
+html body.terminal-ui .bullet-top-readout .text-fair { color: var(--quote) !important; }
+html body.terminal-ui .bullet-bottom-sub { color: var(--ink-faint) !important; }
+html body.terminal-ui .card-dist-block .rf-dist-compact { margin-block: 4px; }
+html body.terminal-ui .home-edge-card[data-rf-card] { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui:not(.terminal-curves-drawn) .rf-dist-line { animation: none !important; stroke-dashoffset: 0 !important; }
+}
+
+/* Recover command controls hidden by the older shared stylesheet. */
+html body.terminal-ui .pw-topbar .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #terminalQuoteStatus) { display: inline-flex !important; }
+html body.terminal-ui .pw-topbar-right > :not(#headerSearchTrigger):not(#slateSelector):not(#terminalQuoteStatus):not(#frontMenuBtn):not(#mobileSearchBtn) { display: none !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui #slateSelector { display: none !important; }
+  html body.terminal-ui #headerSearchTrigger { display: inline-flex !important; }
+  html body.terminal-ui #mobileSearchBtn { display: none !important; }
+}
+
+/* Receipts and stale data stay legible without turning into banners. */
+html body.terminal-ui .terminal-receipt { position: relative; display: inline-flex; color: var(--ink-faint); font: 500 11px/1.2 var(--terminal-mono); }
+html body.terminal-ui .terminal-receipt summary { cursor: pointer; list-style: none; white-space: nowrap; }
+html body.terminal-ui .terminal-receipt summary::-webkit-details-marker { display: none; }
+html body.terminal-ui .terminal-receipt code {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  max-width: min(70vw, 500px);
+  overflow-wrap: anywhere;
+  padding: 8px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  white-space: normal;
+}
+html body.terminal-ui .terminal-receipt:is([open], :hover) code { display: block; }
+html body.terminal-ui:has(.terminal-quote-status[data-state="stale"]) :is(.home-edge-preview, .data-board) { border-top: 1px solid var(--warn) !important; }
+html body.terminal-ui .market-state-banner {
+  border: 0 !important;
+  border-top: 1px solid var(--warn) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .terminal-fail-closed { border-color: var(--terminal-border) !important; background: var(--surface-1) !important; box-shadow: none !important; }
+html body.terminal-ui .terminal-fail-closed .anti-tout-shield { color: var(--fail) !important; font-size: 16px; }
+html body.terminal-ui .terminal-fail-closed .anti-tout-title { color: var(--ink) !important; }
+html body.terminal-ui .terminal-audit-link { display: inline-flex; margin-top: 8px; color: var(--ink-dim); font: 500 13px/1.4 var(--terminal-sans); }
+
+/* The shared card stylesheet declares several competing avatar sizes. */
+html body.terminal-ui #cardView .card-id-block .pw-avatar,
+html body.terminal-ui #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar,
+html body.terminal-ui #tableView .player-name .pw-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  flex: 0 0 44px !important;
+  border-radius: 50% !important;
+}
+
+/* Sheets follow the same surface steps and restrained control grammar. */
+html body.terminal-ui :is(.front-menu-dialog, .detail-dialog, .dialog-shell, .receipt-card-shell, .execution-shell) {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui .detail-dialog::backdrop { background: rgb(4 6 10 / 80%); }
+html body.terminal-ui .dialog-header { background: var(--surface-2) !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui :is(.dialog-header .eyebrow, .filter-sheet-section h4, .csim-eyebrow, .csim-k, .csim-ro-k) {
+  color: var(--ink-faint) !important;
+  font: 500 11px/1.4 var(--terminal-sans) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html body.terminal-ui :is(.signal-chip-btn, .csim-step, .csim-odds-chip, .csim-close, .filter-reset-btn, .filter-apply-btn, .csim-actions button) {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--terminal-border) !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+}
+html body.terminal-ui :is(.signal-chip-btn.active, .csim-odds-chip.active) {
+  background: var(--surface-2) !important;
+  border-color: rgb(255 255 255 / 19%) !important;
+  color: var(--ink) !important;
+}
+html body.terminal-ui :is(.csim-line-val, .csim-alpha-val, .csim-ro-v) {
+  color: var(--ink) !important;
+  font-family: var(--terminal-mono) !important;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+html body.terminal-ui .csim-readout { background: var(--surface-1) !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui .csim-ro-v.pos { color: var(--ink) !important; }
+html body.terminal-ui .csim-ro-v.neg { color: var(--ink-dim) !important; }
+html body.terminal-ui #terminalSimBody .sketch-arrow .sketch-arrow-ink { stroke: var(--ink-dim) !important; }
+html body.terminal-ui .csim-panel { border-color: var(--terminal-border) !important; }
+html body.terminal-ui .front-menu-actions :is(button, a) { background: var(--surface-1) !important; color: var(--ink) !important; }
