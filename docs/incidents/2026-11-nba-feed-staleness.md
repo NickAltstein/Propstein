@@ -67,10 +67,8 @@ The ~8–9h NFL staleness is not an off-day. Week 10 still has a Monday game: `v
 
 **Confirmed.** One Odds API key, 0 of 500 credits remaining, HTTP 401 `OUT_OF_USAGE_CREDITS` on every paid NBA odds call from Nov 8 through at least Nov 16. The poller was not disabled. Responses were not empty 200s.
 
-## Repair options (not implemented)
+## Repair
 
-The cause is a paid plan limit. This change does not buy credits, raise the plan, or add another paid source.
+The paid Odds API is no longer called by scheduled jobs. NBA prices are Kalshi (`scripts/fetch_kalshi_nba.py`). NFL prices are Polymarket (`scripts/fetch_polymarket_props.py`). UFC cards refresh with `--no-odds`. Buying a larger Odds API plan was not done.
 
-1. Raise The Odds API plan, or wait for the documented 500-credit period to reset, then confirm `x-requests-remaining` on the free `/v4/sports` call. `scripts/check_data_health.py` already reads that header.
-2. Leave the Kalshi fallback in place. It is already on `main` and is why the NBA board is not blank after Nov 13. It is a different book and a thinner set of lines (24 vs 85 on the days compared above). It does not restore FanDuel.
-3. Set the existing `ALARM_WEBHOOK_URL` repository secret (Data Health, NBA daily, and Odds Feed Freshness already read it and no-op when it is empty). Set `FEED_AGE_UPTIME_URL` for the external dead-man ping added with the feed-age watch. Neither value belongs in the repo.
+`ALARM_WEBHOOK_URL` is still unset in production (Data Health run 43772551228). The feed-age watch reads that same secret, plus optional `FEED_AGE_UPTIME_URL` for an external ping. Neither value belongs in the repo.

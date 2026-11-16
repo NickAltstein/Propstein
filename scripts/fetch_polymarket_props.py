@@ -21,9 +21,8 @@ Honesty contract (fail-closed, no fabrication):
   * Local snapshot hashes are provenance, not provider verification. These
     quotes remain unverified until an independent receipt check exists.
 
-DraftKings / FanDuel: those flow through src/odds.py (The Odds API) —
-already wired end-to-end incl. de-vig consensus — and activate when the
-owner adds the ODDS_API_KEY secret (autopilot picks it up automatically).
+NFL board prices are these Polymarket quotes. The scheduled jobs do not
+call a paid odds provider.
 
 Usage:
   python scripts/fetch_polymarket_props.py                # fetch + merge
@@ -781,6 +780,7 @@ def main() -> int:
         quotes = collect_quotes(min_liquidity=args.min_liquidity)
     except (URLError, TimeoutError, OSError, ValueError) as exc:
         print(f"[polymarket] network/parse failure ({exc}) — feed untouched (fail-closed)")
+        _note_nfl(ok=False, quotes=0, error=str(exc))
         return 0
     # Receipt machinery: log pass-1 receipts, then run the independent
     # verification pass (second CLOB pull) through the frozen engine. Both
@@ -799,11 +799,29 @@ def main() -> int:
     except Exception as exc:
         print(f"[polymarket] verify pass failure ({exc}) — quotes ship unstamped (fail-closed)")
     try:
-        merge_feed(quotes, dry_run=args.dry_run)
+        published = merge_feed(quotes, dry_run=args.dry_run)
     except Exception as exc:  # never corrupt the feed on a bad merge
         print(f"[polymarket] merge failure ({exc}) — feed untouched (fail-closed)")
+        _note_nfl(ok=False, quotes=0, error=str(exc))
         return 0
+    if not args.dry_run:
+        if len(quotes) < 1:
+            _note_nfl(ok=False, quotes=0, error="empty/zero-event response: 0 Polymarket quotes")
+        elif published:
+            _note_nfl(ok=True, quotes=len(quotes))
+        else:
+            _note_nfl(ok=False, quotes=len(quotes), error="Polymarket merge was not published")
     return 0
+
+
+def _note_nfl(**kwargs) -> None:
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from scripts.feed_age import note_fetch
+        note_fetch("nfl", **kwargs)
+    except Exception as exc:
+        print(f"[polymarket] feed-age note failed: {exc}", file=sys.stderr)
 
 
 if __name__ == "__main__":

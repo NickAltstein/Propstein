@@ -6,11 +6,9 @@ name: Daily Data Autopilot
 # auto-deploys. Idempotent: when nothing changed, nothing is committed.
 #
 # Provider keys are OPTIONAL (repo secrets) and only unlock more automation:
-#   ODDS_API_KEY          The Odds API player props (PAID tier — see src/odds.py
-#                         for the credit cost model). Without it the board ships
-#                         fair lines only, exactly like the manual fallback.
 #   BALLDONTLIE_API_KEY   balldontlie NBA schedules (free tier) — adds NBA
 #                         date slates automatically via the manifest.
+# NBA prices are Kalshi. NFL prices are Polymarket. Neither needs a paid key.
 #
 # Cadence: 11:00 UTC (07:00 ET, morning rollover check) and 21:00 UTC
 # (17:00 ET, catches afternoon injury reports before the evening slates).
@@ -94,19 +92,15 @@ jobs:
       - name: Run autopilot
         if: steps.window.outputs.should_run == 'true' && inputs.nba_only != true
         env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
-          NBA_ODDS_API_KEY: ${{ secrets.NBA_ODDS_API_KEY }}
         run: python scripts/autopilot.py --run
 
       - name: Refresh today's NBA market slate
         if: steps.window.outputs.should_run == 'true' && inputs.nba_only == true
-        env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
           NBA_DATE=$(TZ=America/New_York date +%F)
-          echo "Refreshing NBA market slate for $NBA_DATE Eastern"
-          PYTHONPATH=. python scripts/fetch_nba_odds.py --dates "$NBA_DATE" --max-credits 20
+          echo "Refreshing NBA market slate for $NBA_DATE Eastern from Kalshi"
+          PYTHONPATH=. python scripts/fetch_kalshi_nba.py --date "$NBA_DATE"
           if [ -f "viewer/nba_games_$NBA_DATE.json" ]; then
             python scripts/publish_nba_market_slate.py "$NBA_DATE"
           else

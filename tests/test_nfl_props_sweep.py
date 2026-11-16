@@ -231,15 +231,11 @@ def test_parse_bulk_quotes_discards_junk_and_maps_markets():
 def test_workflow_wiring_matches_the_audit_plan():
     wf = (ROOT / ".github" / "workflows" / "odds_freshness.yml").read_text(encoding="utf-8")
     assert "cron: '7,22,37,52 * * * *'" in wf  # 15-min cadence, offset from news ticks
-    assert "ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}" in wf
-    assert 'run: python scripts/fetch_nfl_props_sweep.py --mode "$SWEEP_MODE"' in wf
-    assert "${{ inputs.sweep || 'auto' }}" in wf  # scheduled runs default to auto
-    # Order discipline: book #1 refreshes first, the optional sweep can never
-    # sit between the freshness gate and publication, and the gate runs last.
+    assert "ODDS_API_KEY" not in wf
+    assert "fetch_nfl_props_sweep.py" not in wf
     i_pm = wf.index("python scripts/fetch_polymarket_props.py")
-    i_sweep = wf.index("python scripts/fetch_nfl_props_sweep.py")
     i_check = wf.index("python scripts/check_odds_freshness.py --max-age-hours")
-    assert i_pm < i_sweep < i_check
+    assert i_pm < i_check
 
 
 def test_selftest_entrypoint_passes():

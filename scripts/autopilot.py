@@ -64,8 +64,6 @@ import os
 import re
 import subprocess
 import sys
-import urllib.error
-import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -359,41 +357,11 @@ def ensure_schedule_only_slate(season: int, week: int) -> Path:
     return dest
 
 
-#: A full-slate NFL props pull costs roughly 250-450 credits (src/odds.py), and
-#: the same key also feeds NBA (~7-10/day) and UFC. Pull NFL props only when the
-#: balance covers a pull plus a reserve for those jobs. On a small plan this
-#: pauses NFL sportsbook pulls instead of starving NBA mid-month (Nov 2026).
-NFL_ODDS_MIN_CREDITS = int(os.environ.get("NFL_ODDS_MIN_CREDITS") or 1000)
-
-
-def odds_api_credits_remaining(key: str) -> int | None:
-    """Balance from GET /v4/sports, which costs 0 credits. None if unreadable."""
-    url = "https://api.the-odds-api.com/v4/sports?" + urllib.parse.urlencode({"apiKey": key})
-    try:
-        with urllib.request.urlopen(url, timeout=20) as resp:
-            return int(float(resp.headers.get("x-requests-remaining")))
-    except urllib.error.HTTPError as exc:
-        return 0 if exc.code in (401, 429) else None
-    except (OSError, TypeError, ValueError):
-        return None
-
-
 def nfl_odds_pull_allowed(games: list[dict], now: datetime,
-                          remaining_fn=odds_api_credits_remaining) -> tuple[bool, str]:
-    """Spend NFL props credits only on a game day with enough balance (fail closed)."""
-    key = os.environ.get("ODDS_API_KEY", "").strip()
-    if not key:
-        return False, "no ODDS_API_KEY"
-    today = now.astimezone(ET).date()
-    if not any(g["kickoff"].astimezone(ET).date() == today and g["kickoff"] > now for g in games):
-        return False, "no NFL kickoff later today (ET); props pull saved for game day"
-    remaining = remaining_fn(key)
-    if remaining is None:
-        return False, "could not read the Odds API balance"
-    if remaining < NFL_ODDS_MIN_CREDITS:
-        return False, (f"only {remaining} Odds API credits left (pull needs ~250-450; "
-                       f"floor {NFL_ODDS_MIN_CREDITS} keeps NBA/UFC running)")
-    return True, f"{remaining} credits available"
+                          remaining_fn=None) -> tuple[bool, str]:
+    """NFL board prices are Polymarket. The paid odds pull stays off."""
+    del games, now, remaining_fn
+    return False, "NFL lines are Polymarket; the paid odds provider is not used"
 
 
 def fetch_espn_injuries() -> None:
@@ -510,24 +478,20 @@ def fetch_nba_days(now: datetime) -> None:
 
 
 def fetch_nba_odds_days(now: datetime) -> None:
-    """Optional: The Odds API NBA schedule + FanDuel points lines for today + next 2 ET days.
+    """Kalshi player-points lines for today and the next two ET days. Keyless.
 
-    Uses a DEDICATED NBA_ODDS_API_KEY (free plan, 500 credits/mo) so it never
-    drains the NFL ODDS_API_KEY pool. ~1 credit per game; the script refuses to
-    spend past --max-credits. Best effort: failures warn and continue.
+    Best effort: a day with no two-sided quotes yet (exit 3) or a network
+    error warns and the rest of the autopilot continues.
     """
-    if not os.environ.get("NBA_ODDS_API_KEY"):
-        print("[autopilot] NBA odds: no NBA_ODDS_API_KEY - skipped")
-        return
-    days = ",".join((now + timedelta(days=o)).strftime("%Y-%m-%d") for o in (0, 1, 2))
-    env = {**os.environ, "ODDS_API_KEY": os.environ["NBA_ODDS_API_KEY"]}
-    result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "fetch_nba_odds.py"), "--dates", days],
-        cwd=ROOT, capture_output=True, text=True, timeout=300, env=env,
-    )
-    print(f"[autopilot] NBA odds {days}: {'ok' if result.returncode == 0 else f'exit {result.returncode}'}")
-    if result.returncode not in (0, 2, 4):
-        print((result.stderr or "")[-500:], file=sys.stderr)
+    for offset in (0, 1, 2):
+        day = (now + timedelta(days=offset)).strftime("%Y-%m-%d")
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "fetch_kalshi_nba.py"), "--date", day],
+            cwd=ROOT, capture_output=True, text=True, timeout=300,
+        )
+        print(f"[autopilot] NBA Kalshi {day}: {'ok' if result.returncode == 0 else f'exit {result.returncode}'}")
+        if result.returncode not in (0, 3):
+            print((result.stderr or result.stdout or "")[-500:], file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -654,9 +618,10 @@ def ufc_default(cards: dict):
 
 
 def fetch_ufc(now: datetime) -> None:
-    """UFC card + model refresh (odds only inside 48h of the card; 2 credits/pull)."""
+    """UFC card + model refresh. Market prices are not bought from a paid feed."""
+    del now
     try:
-        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "fetch_ufc_odds.py")],
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "fetch_ufc_odds.py"), "--no-odds"],
                            capture_output=True, text=True, timeout=600)
         for line in (r.stdout or "").strip().splitlines():
             print(f"  {line}")
@@ -837,8 +802,7 @@ def main() -> int:
         print(f"[plan] refresh feeds for season {season}")
         print("[plan] capture ESPN pregame spread, total, and weather into the journal")
         if game_context_has_capture_times(now) and not args.skip_model:
-            print(f"[plan] run src/week1.py --season {season} --week {week}"
-                  f"{' [--odds on game days when credits allow]' if os.environ.get('ODDS_API_KEY') else ' (no ODDS_API_KEY: fair lines only)'}")
+            print(f"[plan] run src/week1.py --season {season} --week {week} (fair lines; NFL prices are Polymarket)")
         else:
             print("[plan] model blocked or skipped; refresh independent feeds and lock subscriber board")
         print(f"[plan] write viewer/games_{season}_w{week}.json")
@@ -883,9 +847,8 @@ def main() -> int:
     fetch_nba_days(now)
     fetch_nba_odds_days(now)
     fetch_ufc(now)
-    # v176: refresh real Polymarket player-prop quotes (public API, no key,
-    # fail-closed — network failure leaves the feed untouched). DraftKings /
-    # FanDuel still flow through the ODDS_API_KEY gate above.
+    # Refresh real Polymarket player-prop quotes (public API, no key,
+    # fail-closed — network failure leaves the feed untouched).
     try:
         _pm = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py")],

@@ -1,0 +1,26 @@
+{
+  "schema_version": "feed-status.v1",
+  "generated_at": null,
+  "sports": {
+    "nba": {
+      "level": "unknown",
+      "fail_closed": false,
+      "show_edges": true,
+      "stale_since": null,
+      "age_hours": null,
+      "last_error": null,
+      "quotes": 0,
+      "slate": "unknown"
+    },
+    "nfl": {
+      "level": "unknown",
+      "fail_closed": false,
+      "show_edges": true,
+      "stale_since": null,
+      "age_hours": null,
+      "last_error": null,
+      "quotes": 0,
+      "slate": "unknown"
+    }
+  }
+}

@@ -71,7 +71,10 @@ def test_run_writes_nothing_without_quotes_and_publishes_through_the_contract(tm
     markets = [[MARKETS[3]]]  # placeholder only
     monkeypatch.setattr(k, "get_json", fake_get)
     assert k.run(DAY, 0.10) == 3
-    assert list(tmp_path.iterdir()) == []
+    assert not (tmp_path / f"nba_odds_{DAY}.json").exists()
+    heartbeat = json.loads((tmp_path / "feeds" / "feed_heartbeat.json").read_text())
+    assert heartbeat["sports"]["nba"]["last_success_at"] is None
+    assert "empty/zero-event" in heartbeat["sports"]["nba"]["last_error"]
 
     markets[0] = MARKETS
     assert k.run(DAY, 0.10) == 0
