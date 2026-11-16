@@ -4,7 +4,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v259',
+  '/style.css?v=2026_v260',
   '/feed-status.css?v=2026_v260',
   '/app.js?v=2026_v260',
   '/design-system.css?v=2026_v229',
