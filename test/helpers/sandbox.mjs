@@ -53,6 +53,19 @@ export function makeElement(knownIds) {
   return el;
 }
 
+export function neutralFeedStatusResponse() {
+  const sport = { level: 'unknown', fail_closed: false, show_edges: true, stale_since: null };
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      schema_version: 'feed-status.v1',
+      generated_at: '2026-11-16T18:00:00Z',
+      sports: { nba: { ...sport }, nfl: { ...sport } },
+    }),
+  };
+}
+
 export function buildSandbox({ seedLocalStorage = {} } = {}) {
   const registry = new Map();
   const getEl = (selector) => {
@@ -135,6 +148,12 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
     if (clean === '/live_odds_feed.json' || clean === 'live_odds_feed.json') {
       const text = fs.readFileSync(path.join(REPO, 'test', 'fixtures', 'live_odds_feed_w7_pinned.json'), 'utf8');
       return { ok: true, status: 200, json: async () => JSON.parse(text) };
+    }
+    // The feed-age watch commits viewer/feeds/feed_status.json on main.
+    // A live fail-closed NBA row must not change fixture, homepage, or
+    // ranking tests. Tests that want the gate stub this path themselves.
+    if (clean === '/feeds/feed_status.json' || clean === 'feeds/feed_status.json') {
+      return neutralFeedStatusResponse();
     }
     if (clean.startsWith('http') || !fs.existsSync(file)) {
       return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
