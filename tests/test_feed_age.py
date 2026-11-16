@@ -124,6 +124,17 @@ def test_watcher_workflow_is_not_the_poller():
     assert "https://" not in text
 
 
+def test_nba_daily_schedule_avoids_the_top_and_bottom_of_the_hour():
+    text = (ROOT / ".github" / "workflows" / "nba_daily.yml").read_text(encoding="utf-8")
+    assert "group: nba-daily-market-slate" in text
+    assert "cancel-in-progress: false" in text
+    crons = [line.split("'", 2)[1] for line in text.splitlines() if line.strip().startswith("- cron:")]
+    assert crons == ["7 16 * * *", "23 17 * * *", "37 20 * * *", "53 22 * * *"]
+    for expr in crons:
+        minute = int(expr.split()[0])
+        assert minute % 30 != 0
+
+
 def test_scheduled_jobs_do_not_call_the_odds_api():
     workflows = Path(ROOT / ".github" / "workflows")
     for path in workflows.glob("*.yml"):
