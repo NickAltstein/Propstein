@@ -1,0 +1,9 @@
+{
+  "degraded_after_hours": 2,
+  "critical_after_hours": 12,
+  "upcoming_window_hours": 24,
+  "in_progress_hours": 4,
+  "schedule_observation_max_hours": 30,
+  "nfl_off_weekdays": [1, 2],
+  "sports": ["nba", "nfl"]
+}

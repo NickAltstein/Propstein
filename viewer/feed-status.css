@@ -1,0 +1,15 @@
+/* Critical feed age: prices stay visible and are not presented as current. */
+body.feed-fail-closed .nba-market-sides b,
+body.feed-fail-closed .today-line-box,
+body.feed-fail-closed .book-cell,
+body.feed-fail-closed .odds-val,
+body.feed-fail-closed .card-odds-pill {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+body.feed-fail-closed .card-hero-edge,
+body.feed-fail-closed .edge-line-top,
+body.feed-fail-closed [data-mode-edge-badge] {
+  opacity: 0.45;
+}

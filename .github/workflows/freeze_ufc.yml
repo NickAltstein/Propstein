@@ -60,13 +60,12 @@ jobs:
 
       - name: Run UFC pipeline
         env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           PHASE: ${{ steps.phase.outputs.phase }}
         run: |
           case "$PHASE" in
             grade) python scripts/fetch_ufc_odds.py --grade ;;
-            card)  python scripts/fetch_ufc_odds.py ;;
-            pre|post|lock) python scripts/fetch_ufc_odds.py --snapshot "$PHASE" ;;
+            card)  python scripts/fetch_ufc_odds.py --no-odds ;;
+            pre|post|lock) python scripts/fetch_ufc_odds.py --no-odds --snapshot "$PHASE" ;;
             *) echo "unknown phase $PHASE"; exit 2 ;;
           esac
 

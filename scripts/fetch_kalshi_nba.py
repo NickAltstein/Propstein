@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """fetch_kalshi_nba.py - free, keyless NBA player-points lines from Kalshi.
 
-Fallback for scripts/fetch_nba_odds.py when The Odds API key is out of
-credits. Writes the SAME two files the NBA market board already reads:
+This is the NBA odds source the daily jobs publish. Writes the two files
+the NBA market board reads:
 
   nba_games_<date>.json  schedule from ESPN's public scoreboard (tip-off times)
   nba_odds_<date>.json   one "main line" per player from Kalshi's public
@@ -245,28 +245,46 @@ def write_files(day: str, games: list[dict], quotes: list[dict], observed_at: st
     return True
 
 
+def _note_feed(**kwargs) -> None:
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from scripts.feed_age import note_fetch
+        note_fetch("nba", path=Path(VIEWER) / "feeds" / "feed_heartbeat.json", **kwargs)
+    except Exception as exc:  # recording must not change the fetch result
+        print(f"[kalshi_nba] feed-age note failed: {exc}", file=sys.stderr)
+
+
 def run(day: str, max_spread: float) -> int:
     try:
         games = normalize_espn_games(get_json(ESPN, {"dates": day.replace("-", "")}), day)
         if not games:
             print(f"[kalshi_nba] {day}: no NBA games on ESPN's schedule; nothing written")
+            _note_feed(ok=False, quotes=0, schedule_state="none", starts=[])
             return 0
         events = fetch_series("events", "events")
         markets = fetch_series("markets", "markets")
     except (urllib.error.URLError, OSError, ValueError) as exc:
         print(f"[kalshi_nba] fetch failed closed: {exc}", file=sys.stderr)
+        _note_feed(ok=False, quotes=0, error=str(exc))
         return 5
     observed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     quotes = build_quotes(day, games, events, markets, observed_at, max_spread)
     covered = len({q["game_id"] for q in quotes})
     print(f"[kalshi_nba] {day}: {len(games)} games (ESPN), {len(markets)} open Kalshi markets, "
           f"{len(quotes)} two-sided main lines across {covered} games")
+    starts = [g.get("tipoff_utc") for g in games if g.get("tipoff_utc")]
     if not quotes:
         print("[kalshi_nba] no usable two-sided quotes yet; nothing written", file=sys.stderr)
+        _note_feed(ok=False, quotes=0, error="empty/zero-event response: 0 Kalshi quotes",
+                   schedule_state="pending", starts=starts)
         return 3
     if not write_files(day, games, quotes, observed_at):
         print("[kalshi_nba] contract validation failed; existing files preserved", file=sys.stderr)
+        _note_feed(ok=False, quotes=0, error="Kalshi contract validation failed",
+                   schedule_state="pending", starts=starts)
         return 5
+    _note_feed(ok=True, quotes=len(quotes), schedule_state="pending", starts=starts)
     return 0
 
 

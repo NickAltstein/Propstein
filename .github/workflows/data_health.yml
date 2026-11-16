@@ -1,9 +1,8 @@
 name: Data Health
 
-# One daily report across every feed a user sees, plus the shared Odds API
-# key's balance. Per-job alarms only check their own output and several data
-# steps fail soft on purpose, so a dry key or a stalled NBA job can otherwise
-# go unnoticed for days (Nov 2026). Read-only: never edits or commits data.
+# One daily report across every feed a user sees. NBA prices are Kalshi and
+# NFL prices are Polymarket. Per-job alarms only check their own output, so a
+# stalled publish can otherwise go unnoticed. Read-only: never edits data.
 on:
   schedule:
     # 18:30 UTC: after the noon-Eastern NBA slate job (16:00/17:00 UTC) has had
@@ -31,11 +30,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Check feeds and Odds API credits
+      - name: Check published feeds
         id: health
-        env:
-          # Read through /v4/sports, which costs 0 credits. Never printed.
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
           set -o pipefail
           python scripts/check_data_health.py --summary "$GITHUB_STEP_SUMMARY" | tee health.md

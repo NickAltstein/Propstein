@@ -14,6 +14,7 @@ _MIGRATIONS = Path(__file__).resolve().parents[2] / "db" / "migrations"
 MIGRATIONS = (
     ("001_ledger_foundation", _MIGRATIONS / "001_ledger_foundation.sql"),
     ("002_amend001_nfl_event_key", _MIGRATIONS / "002_amend001_nfl_event_key.sql"),
+    ("003_quote_source", _MIGRATIONS / "003_quote_source.sql"),
 )
 
 

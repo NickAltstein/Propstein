@@ -1,0 +1,50 @@
+name: Feed age watch
+
+# Dead-man for the odds pollers. This workflow does not fetch Kalshi or
+# Polymarket. It reads the last non-empty success those jobs recorded and
+# pages if that timestamp is too old while a slate is still coming up.
+# Disabling the poller does not disable this job.
+#
+# ALARM_WEBHOOK_URL  optional. POST {"content","text"} when a sport is
+#                    degraded or critical. Unset means the red job is the alarm.
+# FEED_AGE_UPTIME_URL optional. GET on every run, including a healthy one.
+#                    An external monitor should page if that ping stops.
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: feed-age-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check feed age and publish fail-closed state
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          FEED_AGE_UPTIME_URL: ${{ secrets.FEED_AGE_UPTIME_URL }}
+        run: |
+          set +e
+          python3 scripts/feed_age.py --check --status-out viewer/feeds/feed_status.json
+          code=$?
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add viewer/feeds/feed_status.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(data): feed age status $(date -u +%F) [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+          exit "$code"

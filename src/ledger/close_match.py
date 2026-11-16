@@ -10,6 +10,7 @@ SELECTION_MISMATCH = "SELECTION_MISMATCH"
 SETTLEMENT_RULES_MISMATCH = "SETTLEMENT_RULES_MISMATCH"
 MISSING_SETTLEMENT_RULES = "MISSING_SETTLEMENT_RULES"
 EVENT_MISMATCH = "EVENT_MISMATCH"
+SOURCE_MISMATCH = "SOURCE_MISMATCH"
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class CloseQuote:
     settlement_rules: str | None
     over_american_odds: int | None = None
     under_american_odds: int | None = None
+    quote_source: str = "unknown"
 
 
 @dataclass(frozen=True)
@@ -34,10 +36,11 @@ def _same_line(left: float, right: float) -> bool:
 
 
 def match_close(expected: CloseQuote, observed: CloseQuote) -> MatchResult:
-    """Require the same event, market, selection, line, and settlement rules.
+    """Require the same event, market, selection, line, settlement rules, and quote source.
 
     Odds are not read unless every identity field matches. A different line
-    returns LINE_CHANGED and does not compare prices.
+    returns LINE_CHANGED and does not compare prices. A different quote source
+    returns SOURCE_MISMATCH and is not a price comparison.
     """
     if expected.event_id != observed.event_id:
         return MatchResult(False, EVENT_MISMATCH)
@@ -49,6 +52,13 @@ def match_close(expected: CloseQuote, observed: CloseQuote) -> MatchResult:
         return MatchResult(False, MISSING_SETTLEMENT_RULES)
     if expected.settlement_rules != observed.settlement_rules:
         return MatchResult(False, SETTLEMENT_RULES_MISMATCH)
+    if _source(expected.quote_source) != _source(observed.quote_source):
+        return MatchResult(False, SOURCE_MISMATCH)
     if not _same_line(expected.line, observed.line):
         return MatchResult(False, LINE_CHANGED)
     return MatchResult(True, None)
+
+
+def _source(value: str | None) -> str:
+    text = (value or "").strip().lower()
+    return text or "unknown"

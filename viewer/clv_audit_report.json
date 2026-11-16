@@ -30,7 +30,9 @@
       "actual_yards": 102.0,
       "outcome": "WIN",
       "net_pnl": 104.35,
-      "settlement_receipt": "8e038b2029e5b60d"
+      "settlement_receipt": "8e038b2029e5b60d",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "Hunter Henry",
@@ -51,7 +53,9 @@
       "actual_yards": 44.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "2339598e09fc2e66"
+      "settlement_receipt": "2339598e09fc2e66",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "DeMario Douglas",
@@ -72,7 +76,9 @@
       "actual_yards": 58.0,
       "outcome": "WIN",
       "net_pnl": 90.91,
-      "settlement_receipt": "77d9bcbe2eb01039"
+      "settlement_receipt": "77d9bcbe2eb01039",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "Jaxon Smith-Njigba",
@@ -93,7 +99,9 @@
       "actual_yards": 88.0,
       "outcome": "LOSS",
       "net_pnl": -80.0,
-      "settlement_receipt": "e589c1aef0995704"
+      "settlement_receipt": "e589c1aef0995704",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "Chris Olave",
@@ -114,7 +122,9 @@
       "actual_yards": 81.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "1e206a16627536f0"
+      "settlement_receipt": "1e206a16627536f0",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "A.J. Brown",
@@ -135,7 +145,9 @@
       "actual_yards": 65.0,
       "outcome": "WIN",
       "net_pnl": 95.24,
-      "settlement_receipt": "73a02de57412d51f"
+      "settlement_receipt": "73a02de57412d51f",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "Colston Loveland",
@@ -156,7 +168,9 @@
       "actual_yards": 51.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "3e6265abe8f5b07e"
+      "settlement_receipt": "3e6265abe8f5b07e",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     },
     {
       "player": "DK Metcalf",
@@ -177,8 +191,17 @@
       "actual_yards": 49.0,
       "outcome": "WIN",
       "net_pnl": 78.26,
-      "settlement_receipt": "f2b5fb58026cac4f"
+      "settlement_receipt": "f2b5fb58026cac4f",
+      "entry_quote_source": "unknown",
+      "close_quote_source": "unknown"
     }
   ],
-  "ledger_root_hash": "178e29974bf8748c"
+  "ledger_root_hash": "178e29974bf8748c",
+  "headline_source_class": "unknown",
+  "clv_by_source": {
+    "unknown": {
+      "n": 8,
+      "mean": 4.2924999999999995
+    }
+  }
 }

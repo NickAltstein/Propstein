@@ -509,20 +509,27 @@ def add_intended_quote(conn, *, signal_id: str, quote: CloseQuote, book: str | N
             """
             INSERT INTO intended_quotes (
               signal_id, event_id, event_start_at, market, selection, line,
-              settlement_rules, over_american_odds, under_american_odds, book, quoted_at
+              settlement_rules, over_american_odds, under_american_odds, book, quoted_at,
+              quote_source
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
             (
                 signal_id, quote.event_id, signal["event_start_at"], quote.market, quote.selection,
                 Decimal(str(quote.line)), quote.settlement_rules, quote.over_american_odds,
-                quote.under_american_odds, book, quoted_at,
+                quote.under_american_odds, book, quoted_at, _stored_quote_source(quote, book),
             ),
         )
         quote_id = str(cur.fetchone()["id"])
     conn.commit()
     return quote_id
+
+
+def _stored_quote_source(quote: CloseQuote, book: str | None) -> str:
+    from src.ledger.quote_source import tag_quote_source
+    explicit = None if not quote.quote_source or quote.quote_source == "unknown" else quote.quote_source
+    return tag_quote_source(book=book, explicit=explicit)
 
 
 def add_placement(conn, *, signal_id: str, ticket_ref: str, quote: CloseQuote, book: str | None, placed_at: datetime) -> str:
@@ -543,15 +550,16 @@ def add_placement(conn, *, signal_id: str, ticket_ref: str, quote: CloseQuote, b
             INSERT INTO placements (
               signal_id, event_id, event_start_at, ticket_ref, market, selection,
               achieved_line, settlement_rules, over_american_odds, under_american_odds,
-              book, placed_at
+              book, placed_at, quote_source
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
             (
                 signal_id, quote.event_id, signal["event_start_at"], ticket_ref.strip(),
                 quote.market, quote.selection, Decimal(str(quote.line)), quote.settlement_rules,
                 quote.over_american_odds, quote.under_american_odds, book, placed_at,
+                _stored_quote_source(quote, book),
             ),
         )
         placement_id = str(cur.fetchone()["id"])
@@ -573,6 +581,7 @@ def _quote_from_row(row: dict, *, line_key: str) -> CloseQuote:
         settlement_rules=row["settlement_rules"],
         over_american_odds=row["over_american_odds"],
         under_american_odds=row["under_american_odds"],
+        quote_source=row.get("quote_source") or "unknown",
     )
 
 
@@ -625,9 +634,9 @@ def record_closing_reference(
             INSERT INTO closing_references (
               signal_id, placement_id, event_id, event_start_at, source_id, market,
               selection, line, settlement_rules, over_american_odds, under_american_odds,
-              observed_at, match_status, reason_code
+              observed_at, match_status, reason_code, quote_source
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, match_status, reason_code
             """,
             (
@@ -636,6 +645,7 @@ def record_closing_reference(
                 source_id.strip(), observed.market, observed.selection, Decimal(str(observed.line)),
                 observed.settlement_rules, observed.over_american_odds, observed.under_american_odds,
                 observed_at, "MATCHED" if matched else "UNMATCHED", None if matched else reason,
+                observed.quote_source or "unknown",
             ),
         )
         saved = cur.fetchone()

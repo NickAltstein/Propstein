@@ -13,8 +13,7 @@ from zoneinfo import ZoneInfo
 from autopilot import VIEWER, write_manifest
 
 
-#: FanDuel via The Odds API, or Kalshi (scripts/fetch_kalshi_nba.py) when that
-#: key is out of credits.
+#: Live NBA lines are Kalshi. Older published files may still be FanDuel.
 REFERENCE_BOOKS = {"fanduel", "kalshi"}
 
 

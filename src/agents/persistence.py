@@ -382,7 +382,9 @@ class TruthStore:
                     closed_at TEXT,
                     settled_at TEXT,
                     record_type TEXT NOT NULL,
-                    population_cohort TEXT NOT NULL
+                    population_cohort TEXT NOT NULL,
+                    entry_quote_source TEXT NOT NULL DEFAULT 'unknown',
+                    close_quote_source TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS record_classifications (
@@ -549,6 +551,8 @@ class TruthStore:
             for col, col_def in [
                 ("record_type", "TEXT NOT NULL DEFAULT 'forecast'"),
                 ("population_cohort", "TEXT NOT NULL DEFAULT 'full_board'"),
+                ("entry_quote_source", "TEXT NOT NULL DEFAULT 'unknown'"),
+                ("close_quote_source", "TEXT"),
             ]:
                 try:
                     conn.execute(f"ALTER TABLE clv_ledger ADD COLUMN {col} {col_def}")
@@ -871,6 +875,8 @@ class TruthStore:
                 }
             )
             cohort = "under_only_trial" if alert.side.upper() == "UNDER" else "full_board"
+            from src.ledger.quote_source import tag_quote_source
+            entry_source = tag_quote_source(book=alert.book, venue=alert.venue_type)
             conn.execute(
                 """
                 INSERT OR IGNORE INTO clv_ledger (
@@ -878,8 +884,8 @@ class TruthStore:
                     team, market, side, venue_type, book, entry_line, entry_odds,
                     entry_implied_prob, fair_prob_at_entry, edge_pct_at_entry,
                     kelly_stake, source_hash, receipt_hash, model_version, logged_at,
-                    record_type, population_cohort
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    record_type, population_cohort, entry_quote_source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ledger_id,
@@ -905,6 +911,7 @@ class TruthStore:
                     alert.created_at.isoformat(),
                     "forecast",
                     cohort,
+                    entry_source,
                 ),
             )
             return ledger_id
@@ -915,6 +922,13 @@ class TruthStore:
         receipt_hash = compute_source_hash(entry)
         record_type = entry.get("record_type", "unclassified")
         cohort = entry.get("population_cohort", "unclassified")
+        from src.ledger.quote_source import tag_quote_source
+        entry_source = tag_quote_source(
+            book=entry.get("book"),
+            venue=entry.get("venue_type"),
+            source=entry.get("source"),
+            explicit=entry.get("entry_quote_source"),
+        )
         with self._connect_sqlite() as conn:
             conn.execute(
                 """
@@ -923,8 +937,8 @@ class TruthStore:
                     team, market, side, venue_type, book, entry_line, entry_odds,
                     entry_implied_prob, fair_prob_at_entry, edge_pct_at_entry,
                     kelly_stake, source_hash, receipt_hash, model_version, logged_at,
-                    record_type, population_cohort
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    record_type, population_cohort, entry_quote_source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ledger_id,
@@ -950,6 +964,7 @@ class TruthStore:
                     entry.get("logged_at") or datetime.now(timezone.utc).isoformat(),
                     record_type,
                     cohort,
+                    entry_source,
                 ),
             )
         return ledger_id
@@ -987,6 +1002,7 @@ class TruthStore:
         actual_stat: float | None = None,
         outcome: str | None = None,
         alert_id: str | None = None,
+        close_quote_source: str | None = None,
     ) -> dict[str, Any] | None:
         target_ledger_id = ledger_id or (f"clv-{alert_id}" if alert_id else "")
         with self._connect_sqlite() as conn:
@@ -999,26 +1015,31 @@ class TruthStore:
             actual_lid = str(row["ledger_id"])
             side = str(row["side"]).upper()
             entry_imp = float(row["entry_implied_prob"])
+            from src.ledger.quote_source import normalize_quote_source, sources_match
+            entry_source = normalize_quote_source(row["entry_quote_source"] if "entry_quote_source" in row.keys() else None)
+            close_source = normalize_quote_source(close_quote_source) if close_quote_source else entry_source
+            matched_source = sources_match(entry_source, close_source)
             clv_delta = (closing_implied_prob - entry_imp) if side in ("OVER", "YES") else (entry_imp - closing_implied_prob)
-            clv_bps = round(clv_delta * 10000.0, 1)
+            clv_bps = round(clv_delta * 10000.0, 1) if matched_source else None
             now_iso = datetime.now(timezone.utc).isoformat()
             conn.execute(
                 """
                 UPDATE clv_ledger
                 SET closing_line = ?, closing_odds = ?, closing_implied_prob = ?,
                     clv_prob_delta = ?, clv_bps = ?, actual_stat = COALESCE(?, actual_stat),
-                    outcome = COALESCE(?, outcome), closed_at = ?
+                    outcome = COALESCE(?, outcome), closed_at = ?, close_quote_source = ?
                 WHERE ledger_id = ?
                 """,
                 (
                     closing_line,
                     closing_odds,
                     closing_implied_prob,
-                    round(clv_delta, 4),
+                    round(clv_delta, 4) if matched_source else None,
                     clv_bps,
                     actual_stat,
                     outcome,
                     now_iso,
+                    close_source,
                     actual_lid,
                 ),
             )
@@ -1220,36 +1241,58 @@ class TruthStore:
         """
         import math
 
+        from src.ledger.quote_source import headline_clv, source_class
+
         entries = self.list_clv_ledger(limit=100)
-        closed = [e for e in entries if e.get("clv_bps") is not None]
-        n_closed = len(closed)
-        if n_closed > 0:
-            bps_vals = [float(e["clv_bps"]) for e in closed]
-            mean_bps = sum(bps_vals) / n_closed
-            beat_count = sum(1 for b in bps_vals if b > 0)
-            pct_beating_close = round((beat_count / n_closed) * 100.0, 1)
+        tagged = []
+        for entry in entries:
+            row = dict(entry)
+            row["entry_quote_source"] = row.get("entry_quote_source") or "unknown"
+            row["close_quote_source"] = row.get("close_quote_source") or row["entry_quote_source"]
+            row["clv"] = row.get("clv_bps")
+            tagged.append(row)
+        closed = [row for row in tagged if row.get("clv_bps") is not None]
+        report = headline_clv(closed, value_key="clv_bps")
+        by_source = {}
+        for kind, stats in report["by_source"].items():
+            values = [float(row["clv_bps"]) for row in closed if source_class(row["entry_quote_source"]) == kind]
+            beat = sum(1 for value in values if value > 0)
+            by_source[kind] = {
+                "n": stats["n"],
+                "mean_clv_bps": round(stats["mean"], 1),
+                "pct_beating_close": round((beat / stats["n"]) * 100.0, 1) if stats["n"] else 0.0,
+            }
+        headline = report["headline_source_class"]
+        if headline and by_source.get(headline, {}).get("n", 0) > 0:
+            values = [float(row["clv_bps"]) for row in closed if source_class(row["entry_quote_source"]) == headline]
+            mean_bps = by_source[headline]["mean_clv_bps"]
+            pct_beating_close = by_source[headline]["pct_beating_close"]
+            n_closed = by_source[headline]["n"]
             if n_closed > 1:
-                var = sum((b - mean_bps) ** 2 for b in bps_vals) / (n_closed - 1)
+                var = sum((value - mean_bps) ** 2 for value in values) / (n_closed - 1)
                 se = math.sqrt(var / n_closed)
             else:
                 se = 45.0
             ci_95_low_bps = round(mean_bps - 1.96 * se, 1)
             ci_95_high_bps = round(mean_bps + 1.96 * se, 1)
         else:
-            mean_bps = 0.0
-            pct_beating_close = 0.0
-            ci_95_low_bps = 0.0
-            ci_95_high_bps = 0.0
+            mean_bps = None
+            pct_beating_close = None
+            n_closed = 0
+            ci_95_low_bps = None
+            ci_95_high_bps = None
 
-        poly_fills = sum(1 for e in entries if e.get("venue_type") == "polymarket")
+        poly_fills = sum(1 for row in tagged if row.get("venue_type") == "polymarket")
         return {
-            "total_logged": len(entries),
+            "total_logged": len(tagged),
             "closed_count": n_closed,
             "polymarket_fills_count": poly_fills,
             "pct_beating_close": pct_beating_close,
-            "mean_clv_bps": round(mean_bps, 1),
+            "mean_clv_bps": mean_bps,
             "ci_95_bps": [ci_95_low_bps, ci_95_high_bps],
-            "entries": entries,
+            "headline_source_class": headline,
+            "by_source": by_source,
+            "entries": tagged,
         }
 
     def load_latest_checkpoint(self, thread_id: str) -> dict[str, Any] | None:

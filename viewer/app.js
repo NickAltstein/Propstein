@@ -215,7 +215,9 @@
     // Paid access cannot be inferred from query parameters or local storage.
     // The public research shell stays in Observer mode while signups are frozen.
     userTier: 'free',
-    slateScrollY: 0
+    slateScrollY: 0,
+    feedFailClosed: false,
+    feedStaleSince: null
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -637,9 +639,9 @@
     const unit = marketDef().naturalInsightUnit;
     if (evaluation.state === 'none') {
       if (proj >= marketDef().strongCeiling) {
-        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (${boardSourceClassLabel() ? `Waiting for ${boardSourceClassLabel()} quotes` : 'Waiting for a live quote'}).`;
       }
-      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (${boardSourceClassLabel() ? `Waiting for ${boardSourceClassLabel()} quotes` : 'Waiting for a live quote'}).`;
     }
     if (evaluation.closed) {
       return `Market closed (game started). Model fair ${fair.toFixed(1)} ${unit}.`;
@@ -821,9 +823,8 @@
     return 'UNVERIFIED';
   }
 
-  // NBA market-only reference books. FanDuel comes through The Odds API; Kalshi
-  // is the free, keyless exchange fallback when that key is out of credits
-  // (scripts/fetch_kalshi_nba.py). Labels follow whichever book the feed holds.
+  // NBA market-only reference books. Live lines are Kalshi. Older files may
+  // still be FanDuel. Labels follow whichever book the feed holds.
   const NBA_REFERENCE_BOOKS = { fanduel: 'FanDuel via The Odds API', kalshi: 'Kalshi exchange' };
   function isNbaReferenceQuote(quote) {
     return Object.prototype.hasOwnProperty.call(NBA_REFERENCE_BOOKS, String((quote && quote.book) || '').toLowerCase());
@@ -850,6 +851,39 @@
     if (polymarket) return 'Polymarket CLOB';
     if (sportsbooks) return 'Sportsbook quotes';
     return 'No current market quotes';
+  }
+
+  function quoteSourceClass(book) {
+    const slug = String(book || '').toLowerCase().replace(/[-_ ]/g, '');
+    if (slug === 'kalshi') return 'kalshi';
+    if (slug === 'polymarket') return 'polymarket';
+    if (bookMeta(book)) return 'odds_api';
+    return slug ? 'other' : 'unknown';
+  }
+
+  function quoteSourceClassLabel(book) {
+    const sourceClass = quoteSourceClass(book);
+    if (sourceClass === 'kalshi') return 'Kalshi';
+    if (sourceClass === 'polymarket') return 'Polymarket';
+    if (sourceClass === 'odds_api') return 'sportsbook';
+    return book ? String(book) : 'live quote';
+  }
+
+  function boardSourceClassLabel() {
+    if (SPORT_ID === 'nba') return 'Kalshi';
+    if (SPORT_ID === 'nfl') return 'Polymarket';
+    return null;
+  }
+
+  function awaitingLivePriceCopy() {
+    const source = boardSourceClassLabel();
+    return source ? `No verified ${source} price yet` : 'No verified live price yet';
+  }
+
+  function pricesPostCopy() {
+    const source = boardSourceClassLabel();
+    const eventWord = SPORT_ID === 'nba' ? 'tipoff' : 'kickoff';
+    return source ? `${source} prices post closer to ${eventWord}` : `Live prices post closer to ${eventWord}`;
   }
 
   function updateFeedVerificationUI() {
@@ -923,11 +957,15 @@
     try {
       const config = SLATES[state.slateKey] || SLATES['2026_w7'];
       const oddsUrl = config.odds || 'live_odds_feed.json';
-      const freshData = await fetchJson(`${oddsUrl}?t=${Date.now()}`, null);
+      const [freshData, feedStatusDoc] = await Promise.all([
+        fetchJson(`${oddsUrl}?t=${Date.now()}`, null),
+        fetchJson(`feeds/feed_status.json?t=${Date.now()}`, { sports: {} })
+      ]);
       if (freshData && freshData.quotes) {
         const quotes = freshData.quotes;
         mergeFeedBooks(freshData.books); // v152: provider-advertised books -> logo registry
         state.odds = freshData;
+        applyFeedGate(feedStatusDoc);
         if (state.feedHealth) {
           state.feedHealth.odds = 'ok';
           state.feedHealth.oddsUpdatedAt = freshData.updated_at || null;
@@ -2522,7 +2560,7 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slateRes, gamesRes, picks, livePicksRes, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg, sgpRes] = await Promise.all([
+    const [slateRes, gamesRes, picks, livePicksRes, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg, sgpRes, feedStatusRes] = await Promise.all([
       fetchJsonStatus(config.slate, []),
       fetchJsonStatus(config.games, []),
       fetchJson(config.picks, {}),
@@ -2533,7 +2571,8 @@
       config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
       fetchJsonStatus('news_watcher_state.json', null),
       fetchJson('circuit_breaker_config.json', null),
-      fetchJson('sgp_candidates.json', null)
+      fetchJson('sgp_candidates.json', null),
+      fetchJsonStatus('feeds/feed_status.json', { sports: {} })
     ]);
     const slate = slateRes.data;
     const games = gamesRes.data;
@@ -2558,6 +2597,7 @@
     const availabilityDrawer = $('#availabilityDetails') || $('#injuryDetails');
     if (availabilityDrawer) availabilityDrawer.hidden = true;
     state.odds = normalizeFeed(odds);
+    applyFeedGate(feedStatusRes && feedStatusRes.data);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
     state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
     state.sgpCandidates = Array.isArray(sgpRes?.candidates) ? sgpRes.candidates : [];
@@ -2671,9 +2711,11 @@
     // static by design (fixed updated_at), so their age is not a health
     // signal. Transport failures still surface for every data kind.
     const fixtureStatic = health.dataKind === 'fixture';
+    let resolvedOddsFreshness = fixtureStatic && oddsFreshness !== 'error' ? 'ok' : oddsFreshness;
+    if (state.feedFailClosed) resolvedOddsFreshness = 'stale';
     return {
       ...health,
-      oddsFreshness: fixtureStatic && oddsFreshness !== 'error' ? 'ok' : oddsFreshness,
+      oddsFreshness: resolvedOddsFreshness,
       newsFreshness: fixtureStatic && newsFreshness !== 'error' ? 'ok' : newsFreshness,
       newsFeedFreshness: fixtureStatic && newsFeedFreshness !== 'error' ? 'ok' : newsFeedFreshness,
       oddsAgeSeconds: oddsAge,
@@ -2696,7 +2738,7 @@
 
     if (SPORT_ID === 'nfl' && state.featureContextLocked !== false) return deny('feature_cutoff_unverified', 'Model context has no pre-pricing capture timestamps. Execution is locked.');
     if (SLATES[state.slateKey]?.historical || health.dataKind === 'fixture') return deny('historical', 'Historical and fixture slates are research-only.');
-    if (result.state === 'none') return deny('no_quote', 'No sportsbook quote is available for this projection.');
+    if (result.state === 'none') return deny('no_quote', boardSourceClassLabel() ? `No ${boardSourceClassLabel()} quote is available for this projection.` : 'No live quote is available for this projection.');
     if (result.state !== 'verified') return deny('unverified', 'Price unverified—refresh or choose another book.');
     if (!completeQuote) return deny('incomplete_quote', 'The quote is missing its book, line, odds, timestamp, or receipt.');
     if (health.odds !== 'ok' || health.oddsFreshness !== 'ok') return deny('stale_odds', 'Odds are stale or unavailable. The slate is in research mode.');
@@ -2756,7 +2798,7 @@
         snapshotPill.textContent = 'Snapshot unavailable · Odds feed offline';
       } else if (!captured) {
         snapshotPill.textContent = !hasUpcomingSlate
-          ? 'Between slates · Sportsbook prices post closer to kickoff'
+          ? `Between slates · ${pricesPostCopy()}`
           : 'Snapshot time unavailable · Prices unverified';
       } else if (ageSeconds > 1800) {
         snapshotPill.textContent = `Snapshot Mode · Captured ${captured}`;
@@ -2911,7 +2953,7 @@
     receptions: { label: 'Receptions', unit: 'rec' },
     receiving_yards: { label: 'Receiving yards', unit: 'yds' }
   };
-  const PICK_CAVEAT = 'This is the published model probability at the line you entered, not a sportsbook price, and it can be wrong.';
+  const PICK_CAVEAT = 'This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong.';
 
   function pickMarketId() {
     const selected = $('#pickMarket') && $('#pickMarket').value;
@@ -3021,7 +3063,7 @@
     const pct1 = (value) => `${(value * 100).toFixed(1)}%`;
     const bookLine = book
       ? `<p class="pick-book">Verified ${esc(book.book)} line ${Number(book.line).toFixed(1)}</p>`
-      : '<p class="pick-book">No verified sportsbook price yet</p>';
+      : `<p class="pick-book">${awaitingLivePriceCopy()}</p>`;
     result.innerHTML = `
       ${bookLine}
       <dl class="pick-metrics">
@@ -3796,7 +3838,8 @@
         <div class="nba-market-sides"><span>Over ${esc(q.line)} <b>${esc(oddsLabel(q.over_odds))}</b></span><span>Under ${esc(q.line)} <b>${esc(oddsLabel(q.under_odds))}</b></span></div>
       </article>`;
     }).join('');
-    box.innerHTML = `<div class="nba-market-head"><div><strong>${browsingLines ? `${esc(slateDateLabel)} ${refBook} player points` : '0 NBA picks today'}</strong><p>${stale ? 'STALE · ' : ''}${refSource} · ${esc(stamp)} · ${all.length} observed lines</p></div><span>UNVERIFIED</span></div>
+    const staleBanner = state.feedFailClosed ? `stale since ${esc(state.feedStaleSince || 'unknown')} · ` : (stale ? 'STALE · ' : '');
+    box.innerHTML = `<div class="nba-market-head"><div><strong>${browsingLines ? `${esc(slateDateLabel)} ${refBook} player points` : '0 NBA picks today'}</strong><p>${staleBanner}${refSource} · ${esc(stamp)} · ${all.length} observed lines</p></div><span>UNVERIFIED</span></div>
       <p class="nba-market-disclaimer">No NBA model predictions or qualified edges are available. ${refBook} prices below are reference lines, not picks; check current availability at ${refBook}.</p>
       ${!browsingLines ? `<button type="button" class="nba-market-browse" id="nbaBrowseLines">Browse ${refBook} lines</button>`
         : rows.length ? `<div class="nba-market-list">${quotesHtml}</div>`
@@ -4133,6 +4176,15 @@
     if (fallback) fallback.hidden = true;
     setShowAll(0);
     const health = feedHealthStates();
+    if (state.feedFailClosed) {
+      const title = $('#homeEdgeTitle');
+      if (title) title.textContent = 'No edges';
+      status.textContent = `Prices stale since ${state.feedStaleSince || 'unknown'}. No edges.`;
+      list.innerHTML = '<p class="home-edge-empty">No edges. These prices are stale and are not shown as current.</p>';
+      if (mountEl) mountEl.innerHTML = '';
+      if (fallback) fallback.hidden = true;
+      return;
+    }
     const asOf = health.oddsUpdatedAt && !Number.isNaN(Date.parse(health.oddsUpdatedAt))
       ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(health.oddsUpdatedAt))
       : null;
@@ -4141,7 +4193,7 @@
       const title = $('#homeEdgeTitle');
       if (title) title.textContent = '0 NBA picks today';
       const refBook = nbaReferenceBook(state.odds.quotes);
-      status.textContent = `${quotes.length} unverified ${refBook} reference lines · ${refBook.toLowerCase() === 'kalshi' ? 'Kalshi public API' : 'The Odds API'} · ${asOf || 'time unavailable'}`;
+      status.textContent = `${quotes.length} unverified ${refBook} reference lines · ${refBook.toLowerCase() === 'kalshi' ? 'Kalshi public API' : 'published lines'} · ${asOf || 'time unavailable'}`;
       if ($('#homeEdgeOpenBoard')) $('#homeEdgeOpenBoard').textContent = `Browse ${refBook} lines ↗`;
       if (mountEl) mountEl.innerHTML = '';
       list.innerHTML = '<p class="home-edge-empty">No NBA model prediction or verified edge is available for this slate. No over or under is being recommended.</p>';
@@ -4190,7 +4242,7 @@
         : 'independent quote receipt';
       status.textContent = research.length
         ? `Showing ${homeEdgeExpanded ? research.length : Math.min(HOME_EDGE_LIMIT, research.length)} of ${research.length} model-ranked research lines. ${verifiedQuotes} receipt-verified in snapshot. Qualification paused: waiting on ${waitingOn}.`
-        : `No verified plays · ${asOf ? `last odds update ${asOf}` : 'sportsbook prices not posted yet'} · model fair lines for research`;
+        : `No verified plays · ${asOf ? `last odds update ${asOf}` : pricesPostCopy()} · model fair lines for research`;
       const failClosedShare = $('#homeFailClosedShare');
       if (failClosedShare) failClosedShare.hidden = false;
 
@@ -4205,7 +4257,7 @@
           return `<article class="home-edge-card home-research-card" data-prop-card data-win-prob="${winProb}" data-default-ev="${defaultEv}">
             <div class="home-edge-player"><strong>${esc(pick.player || 'Unknown player')}</strong><span>${esc(previewMarketLabel(pick.market))}</span></div>
             <div class="home-edge-line"><span class="home-research-label">OBSERVED · UNVERIFIED</span><strong>${Number.isFinite(line) ? line.toFixed(1) : '—'} <small>${Number.isFinite(odds) ? (odds > 0 ? '+' : '') + odds : '—'}</small></strong><span>${previewBookPill(pick.book)}</span></div>
-            <p class="home-research-note" data-mode-edge-badge>Research only · price and availability must be checked at the book.</p>
+            <p class="home-research-note" data-mode-edge-badge>Research only · price and availability must be checked ${quoteSourceClass(pick.book) === 'kalshi' ? 'on Kalshi' : quoteSourceClass(pick.book) === 'polymarket' ? 'on Polymarket' : 'at the sportsbook'}.</p>
           </article>`;
         }).join('')
         : modelRows.length
@@ -4231,7 +4283,7 @@
             </div>
             ${dist.isTd ? '' : densityCurveSvg(dist, unit)}
             ${rfMethodStrip(row, state.filters.market)}
-            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · NO LIVE PRICE</span> No verified sportsbook price yet. Research only · no current edge or stake is available.</p>
+            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · NO LIVE PRICE</span> ${awaitingLivePriceCopy()}. Research only · no current edge or stake is available.</p>
           </article>`;
           }).join('')
           : '<p class="home-edge-empty">Prices or news are unavailable. No model slate is loaded; no picks are being recommended.</p>';
@@ -7054,7 +7106,10 @@
     let heroEdgeHtml = '';
     let heroSubHtml = '';
 
-    if (SLATES[state.slateKey]?.historical) {
+    if (state.feedFailClosed && !SLATES[state.slateKey]?.historical) {
+      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
+      heroSubHtml = `<span class="card-edge-sub status-no-line">stale since ${esc(state.feedStaleSince || '')}</span>`;
+    } else if (SLATES[state.slateKey]?.historical) {
       const settled = evaluateSettledRow(row);
       const isPos = settled.delta > 0;
       heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
@@ -7167,7 +7222,7 @@
           <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'CLOSE SIM' : simVal !== null ? `SIM ${simVal.toFixed(1)} · EDIT` : 'SIM LINE'}</button>
           <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">COPY FAIR</button>
           <span class="card-research-tag${simVal !== null ? ' sim-active' : ''}">${simVal !== null ? 'SIMULATED · NOT A BOOK QUOTE' : 'NO LIVE QUOTE'}</span>
-          ${simVal !== null ? '' : '<span class="card-book-absent">No verified sportsbook price yet</span>'}
+          ${simVal !== null ? '' : `<span class="card-book-absent">${awaitingLivePriceCopy()}</span>`}
         </div>
         ${inlineSimPanelHtml(row, dist)}`;
     } else {
@@ -7180,7 +7235,7 @@
         : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
       gridColsHtml = `
         <div class="card-grid-col col-book">
-          <span class="grid-col-lbl">BOOK</span>
+          <span class="grid-col-lbl">${quoteSourceClass(evaluation.book) === 'kalshi' ? 'KALSHI' : quoteSourceClass(evaluation.book) === 'polymarket' ? 'POLY' : 'BOOK'}</span>
           <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
           ${listedSideBoxes(quote)}
@@ -7544,7 +7599,7 @@
         ${glyph}
       </span>
       ${listedSideBoxes(quote)}
-      ${implied > 0 ? `<span class="book-implied" title="Raw implied probability from listed ${esc(evaluation.side)} odds; includes bookmaker margin">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
+      ${implied > 0 ? `<span class="book-implied" title="${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? `Raw implied probability from the listed ${quoteSourceClassLabel(evaluation.book)} ${evaluation.side} price` : `Raw implied probability from listed ${evaluation.side} odds; includes bookmaker margin`)}">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
       ${sparklineHtml}
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
@@ -7556,7 +7611,35 @@
     </div>`;
   }
 
+  function applyFeedGate(statusDoc) {
+    try {
+      const sport = SPORT_ID;
+      const row = statusDoc && statusDoc.sports ? statusDoc.sports[sport] : null;
+      state.feedFailClosed = Boolean(row && row.fail_closed);
+      state.feedStaleSince = state.feedFailClosed ? String(row.stale_since || '') : null;
+      if (state.feedFailClosed && state.odds && Array.isArray(state.odds.quotes)) {
+        state.odds.quotes = state.odds.quotes.map((quote) => {
+          if (!quote || typeof quote !== 'object') return quote;
+          const copy = { ...quote };
+          delete copy.evaluation;
+          return copy;
+        });
+      }
+      const helper = typeof window !== 'undefined' ? window.PropsteinFeedStatus : null;
+      if (helper && typeof helper.apply === 'function' && typeof document !== 'undefined') {
+        helper.apply(document, statusDoc || { sports: {} }, sport);
+      } else if (typeof document !== 'undefined' && document.body && document.body.classList) {
+        document.body.classList.toggle('feed-fail-closed', state.feedFailClosed);
+        const banner = document.querySelector ? document.querySelector('#boardPageStatus') : null;
+        if (banner) banner.textContent = state.feedFailClosed ? `${String(sport).toUpperCase()} prices stale since ${state.feedStaleSince}` : '';
+      }
+    } catch (_) { /* a missing status file leaves the board as published */ }
+  }
+
   function priceCheckCell(evaluation, row = null, isLogged = false) {
+    if (state.feedFailClosed && !SLATES[state.slateKey]?.historical) {
+      return `<div class="edge-cell-wrap"><div class="edge-cell edge-cell-none"><span class="text-muted edge-cell-muted">—</span><span class="unverified-state-micro">stale since ${esc(state.feedStaleSince || '')}</span></div></div>`;
+    }
     if (SLATES[state.slateKey]?.historical && row) {
       const settled = evaluateSettledRow(row);
       return `<div class="edge-cell-wrap">
@@ -8085,7 +8168,7 @@
         <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
       </section>
       <section class="execution-summary" aria-label="Execution terms">
-        <div><span>Book</span><strong>${bookLogoImg(evaluation.book, 'book-logo')}${esc(evaluation.book || '—')}</strong></div>
+        <div><span>${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? quoteSourceClassLabel(evaluation.book) : 'Book')}</span><strong>${bookLogoImg(evaluation.book, 'book-logo')}${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? quoteSourceClassLabel(evaluation.book) : (evaluation.book || '—'))}</strong></div>
         <div><span>Timestamp</span><strong class="execution-time">${esc(timestamp)}</strong></div>
         <div><span>Price</span><strong>${esc(evaluation.side || '—')} ${Number(evaluation.line).toFixed(1)} · ${oddsText(evaluation.odds)}</strong></div>
         <div><span>Model fair</span><strong>${Number(fairValue(row)).toFixed(1)}</strong></div>
@@ -8110,11 +8193,11 @@
                 ? bestUnder > -Infinity && Number(offer.under_odds) === bestUnder
                 : bestOver > -Infinity && Number(offer.over_odds) === bestOver);
               return `<div class="cross-book-row ${offer === evaluation.quote ? 'is-selected' : ''} ${isBest && offer !== evaluation.quote ? 'is-best' : ''}">
-              <span><span class="cross-book-book">${bookLogoImg(offer.book_id || offer.book)}${esc(offer.book || 'Book')}</span><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
+              <span><span class="cross-book-book">${bookLogoImg(offer.book_id || offer.book)}${esc(quoteSourceClass(offer.book) === 'kalshi' || quoteSourceClass(offer.book) === 'polymarket' ? quoteSourceClassLabel(offer.book) : (offer.book || 'Book'))}</span><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
               <strong>${side} ${Number(offer.line).toFixed(1)}</strong><strong class="${isBest ? 'best-price' : ''}">${oddsText(price)}</strong>
               <span class="cross-book-status">${offer === evaluation.quote ? 'Selected' : isBest ? 'Best price' : verified ? 'Available' : 'Locked'}</span>
             </div>`;
-            }).join('') || '<p class="execution-empty">No sportsbook offers are present in this snapshot.</p>';
+            }).join('') || `<p class="execution-empty">No ${esc(boardSourceClassLabel() || 'live')} offers are present in this snapshot.</p>`;
           })()}
         </div>
         ${offers.length < 2 ? '<p class="execution-note">No alternative verified offers are available in this snapshot.</p>' : ''}
@@ -8630,7 +8713,7 @@
       : `${hurdlePct === null ? '' : label('HURDLE', hurdle, hurdlePct, 'bottom')}${label('FAIR', fair, fairPct, 'bottom')}`;
     const delta = fair - offer;
     const gateText = hurdle === null ? 'Gate hurdle unavailable for this market.'
-      : evaluation.state !== 'verified' ? 'Quote unverified; confirm price and availability at the book.'
+      : evaluation.state !== 'verified' ? (quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? `Quote unverified; confirm price and availability on ${quoteSourceClassLabel(evaluation.book)}.` : 'Quote unverified; confirm price and availability at the book.')
         : `Model gate threshold: ${side === 'UNDER' ? 'down to' : 'up to'} ${hurdle.toFixed(1)} ${unit}. Check execution status before logging.`;
     return `<div class="quant-ruler-card">
       <div class="quant-ruler-header"><span class="quant-ruler-title">Price discovery</span><span class="quant-ruler-delta">${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${unit} vs offer (${side})</span></div>

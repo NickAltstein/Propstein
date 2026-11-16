@@ -1,4 +1,4 @@
-# PropWire Edge Gate — Preregistered Statistical Specification
+# PropStein Edge Gate — Preregistered Statistical Specification
 
 Status: **Preregistered governance document.** The parameters below are fixed
 before any new prospective observations are collected for any sport. Any
@@ -29,7 +29,7 @@ compliance approval (fail-closed, see §9).
 
 ## 2. CLV estimand (exact definition)
 
-PropWire distinguishes two quantities that must never be blended:
+PropStein distinguishes two quantities that must never be blended:
 
 1. **Price CLV (primary estimand — the gate statistic).** For a qualifying
    signal taken at side `s` of a market:
@@ -67,12 +67,15 @@ A signal qualifies when ALL of the following hold at registration time:
    captured timestamp and an integrity hash.
 3. The market is one of the sport's registered markets at registration.
 
-A registered signal is **evaluable** only if an independent closing reference
-exists for the same market/line basis:
+A registered signal is **evaluable** only if a matching closing reference
+exists for the same market, line, and quote source (§13):
 
-- **Closing-source independence (mandatory):** the closing reference is
-  captured from a source separate from the model's input feed — a later
-  observation from the same input feed is NOT verification.
+- **Closing-source rule:** Until 2026-11-16 the registered text required a
+  source separate from the model's input feed. That cell was never filled, so
+  the gate stayed inactive and no signal was admitted under it. Effective
+  2026-11-16 the close is a later observation with the same `quote_source`
+  tag as the entry (§13). A different tag is unmatched. It is not independent
+  verification, and it is not averaged into the entry's CLV.
 - Missing, stale (beyond the per-sport staleness threshold), or mutually
   disagreeing closes (beyond the prespecified disagreement tolerance) make
   the signal **unevaluable**. Unevaluable signals are excluded from N with a
@@ -87,14 +90,29 @@ make the gate inactive for that sport):**
 
 | Field | NFL | NBA | UFC |
 |---|---|---|---|
-| Closing reference provider | _TBD_ | _TBD_ | _TBD_ |
-| Approved entry books | _TBD_ | _TBD_ | _TBD_ |
-| Capture timestamps (entry / close) | _TBD_ | _TBD_ | _TBD_ |
-| Line-change normalization rule | _TBD_ | _TBD_ | _TBD_ |
-| Close-staleness threshold | _TBD_ | _TBD_ | _TBD_ |
-| Source-disagreement tolerance | _TBD_ | _TBD_ | _TBD_ |
+| Closing reference provider | `polymarket`. The close must carry that same tag (§13). | `kalshi`. The close must carry that same tag (§13). | None. This sport's gate stays inactive until an amendment names a source. |
+| Approved entry books | `polymarket` only, for signals registered on or after 2026-11-16. | `kalshi` only, for signals registered on or after 2026-11-16. | None. |
+| Capture timestamps (entry / close) | Entry: `intended_quotes.quoted_at`. Close: `closing_references.observed_at`. Both are UTC `timestamptz`. The entry must precede the close, and the close must precede `event_start_at`. | Same timestamps and order as NFL. | Not applicable while the UFC gate is inactive. |
+| Line-change normalization rule | Exact line, rounded to 4 decimal places (`src/ledger/close_match.py`). A different line is `LINE_CHANGED` and unevaluable. The §4 translation is not applied to this sample. | Same rule as NFL. | Not applicable while the UFC gate is inactive. |
+| Close-staleness threshold | verification.v1 quote age (`src/contracts/verification.py`): 90 minutes when the event is more than 30 minutes away or the start time is unknown; 15 minutes inside that 30-minute window; 2 minutes after the event has started. A quote older than the limit in force, or a close at or after `event_start_at`, is unevaluable. | Same limits as NFL. | Not applicable while the UFC gate is inactive. |
+| Source-disagreement tolerance | 5.0 percentage points of de-vigged probability, and only between two closes that share the `polymarket` tag. A different tag is unmatched (§13), not a disagreement and not an average. One Polymarket close is not unevaluable for lack of a second publisher. | 5.0 percentage points of de-vigged probability, and only between two closes that share the `kalshi` tag. A different tag is unmatched (§13). One Kalshi close is not unevaluable for lack of a second publisher. | Not applicable while the UFC gate is inactive. |
+
+A cell that names a source or a number is filled. A cell that says None or
+Not applicable is also filled: it records that the UFC gate is inactive. An
+empty cell would have the same effect, and this table no longer has one.
+
+These values are registered on 2026-11-16 with the source switch, before any
+prospective signal under them is admitted to N. Filling the table does not
+requalify rows already stored. The thresholds in §1 are unchanged. Historical
+`odds_api:<book>` rows stay in that source class (§13) and are not folded
+into the Polymarket or Kalshi sample.
 
 ## 4. Line-change normalization
+
+The sample registered in §3 does not use the translation below. A different
+line is `LINE_CHANGED` and unevaluable. This section is the method a later
+amendment would have to adopt before any translated close could enter N. It
+is not in force for signals registered on or after 2026-11-16.
 
 When the closing line differs from the entry line, the comparison uses the
 closing line's market on the SAME side the signal took, evaluated at the
@@ -253,3 +271,19 @@ together by hand. Tuning one without the other is a protocol amendment and
 must be committed as such. (The external auditor's reading of `--hurdle` as
 "CLV in points" was incorrect: CLV is aggregated separately and is not
 gated by this parameter.)
+
+## 13. Quote source on the close (effective 2026-11-16)
+
+Scheduled odds after this date are Kalshi for NBA and Polymarket for NFL.
+UFC has no registered quote source (§3), so this section does not give UFC a
+provider. A closing row matches an entry only when `quote_source` is the same
+tag, in addition to the same market, selection, line, and settlement rules. A
+different tag is unmatched and is not a price comparison.
+
+Tags are `odds_api:<book>`, `kalshi`, `polymarket`, or `unknown`. Rows already
+in the ledger are tagged from the stored book name when that name identifies
+one of those sources. Rows with no readable source stay `unknown`.
+
+Headline CLV is computed inside one source class only. `odds_api`, `kalshi`,
+`polymarket`, and `unknown` are not averaged together. The thresholds in §1
+are unchanged. The operating parameters this section fills are in §3.
