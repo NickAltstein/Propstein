@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v253-terminal';
+const CACHE_NAME = 'propstein-v254-terminal';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -32,8 +32,6 @@ const STATIC_ASSETS = [
   '/propstein-logo-dark.webp?v=2026_v249',
   '/propstein-logo.svg?v=2026_v179',
   '/propstein-logo-dark.svg?v=2026_v179',
-  '/propwire-logo.svg?v=2026_v179',
-  '/propwire-logo-dark.svg?v=2026_v179',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
   '/books/draftkings.svg?v=v152',
   '/books/fanduel.svg?v=v152',

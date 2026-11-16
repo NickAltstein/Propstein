@@ -116,7 +116,7 @@ const SAMPLE_SLATE: PlayerRow[] = [
   },
 ];
 
-export default function PropWireTerminal2027() {
+export default function PropSteinTerminal2027() {
   const [sport, setSport] = useState<"NFL" | "NBA">("NFL");
   const [mode, setMode] = useState<"ACTIVE" | "TOP" | "ALL">("TOP");
   const [market, setMarket] = useState<"Yards" | "Rec" | "TD">("Yards");

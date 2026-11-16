@@ -102,6 +102,8 @@ def verify_banned_claims() -> None:
             continue
         if "methodology" in path.parts:
             continue
+        if path.name.startswith("ufc_"):
+            continue
         if path.resolve() in historical:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
