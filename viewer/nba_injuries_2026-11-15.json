@@ -1,16 +1,16 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-15",
-  "as_of": "2026-11-15T21:36:08Z",
+  "as_of": "2026-11-16T00:07:08Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
     {
       "player_name": "Jock Landale",
       "team": "ATL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T17:55Z",
-      "comment": "Landale (hip) is listed as questionable for Sunday's game against Milwakee."
+      "report_status": "Out",
+      "reported_at": "2026-11-15T23:22Z",
+      "comment": "Landale (hip) is out for Sunday's game against Bucks, Brad Rowland of the Locked On Podcast Network reports."
     },
     {
       "player_name": "Kingston Flemings",
@@ -62,6 +62,13 @@
       "comment": "Schroder has been diagnosed with a left hamstring strain and will be reevaluated in two weeks, Michael Scotto of HoopsHype.com reports."
     },
     {
+      "player_name": "Santi Aldama",
+      "team": "DAL",
+      "report_status": "Out",
+      "reported_at": "2026-11-15T22:27Z",
+      "comment": "Aldama (ankle) is out for Sunday's game against the Celtics."
+    },
+    {
       "player_name": "Max Christie",
       "team": "DAL",
       "report_status": "Out",
@@ -74,20 +81,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-15T21:20Z",
       "comment": "Irving (knee) has been ruled out for Sunday's game against the Celtics."
-    },
-    {
-      "player_name": "Santi Aldama",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T18:19Z",
-      "comment": "Aldama (ankle) is listed as questionable for Sunday's game in Boston."
-    },
-    {
-      "player_name": "Daniel Gafford",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T18:09Z",
-      "comment": "Gafford (shoulder) is probable to play in Sunday's game against the Celtics."
     },
     {
       "player_name": "Dereck Lively II",
@@ -198,15 +191,15 @@
       "player_name": "Ousmane Dieng",
       "team": "MIL",
       "report_status": "Out",
-      "reported_at": "2026-11-15T20:13Z",
-      "comment": "Dieng (finger) is listed as out for Sunday's game versus the Hawks."
+      "reported_at": "2026-11-15T23:46Z",
+      "comment": "Dieng will undergo a procedure to repair a fractured left finger Monday, Justin Garcia of the Milwaukee Bucks Radio Network reports."
     },
     {
       "player_name": "Ryan Rollins",
       "team": "MIL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T17:23Z",
-      "comment": "Rollins (illness) is questionable to play in Sunday's game against the Hawks."
+      "report_status": "Out",
+      "reported_at": "2026-11-15T23:19Z",
+      "comment": "Rollins (illness) is out for Sunday's game against the Hawks."
     },
     {
       "player_name": "Jaylin Williams",
@@ -342,13 +335,6 @@
       "comment": "Bittle (foot) has been ruled out for Sunday's game against the Knicks, Zulfi Sheikh of Sportsnet.ca reports."
     },
     {
-      "player_name": "Scottie Barnes",
-      "team": "TOR",
-      "report_status": "Out",
-      "reported_at": "2026-11-14T17:33Z",
-      "comment": "Barnes (groin) is listed as questionable for Sunday's game against the Knicks, Michael Grange of Sportsnet.ca reports."
-    },
-    {
       "player_name": "Kevin McCullar Jr.",
       "team": "TOR",
       "report_status": "Day-To-Day",
@@ -400,9 +386,9 @@
     {
       "player_name": "Tre Johnson",
       "team": "WAS",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-14T21:09Z",
-      "comment": "Johnson is listed as questionable for Sunday's game against the Rockets due to lower-back soreness."
+      "report_status": "Out",
+      "reported_at": "2026-11-15T22:31Z",
+      "comment": "Johnson (back) won't play in Sunday's game against Houston, Josh Robbins of The Athletic reports."
     },
     {
       "player_name": "Tristan Vukcevic",
