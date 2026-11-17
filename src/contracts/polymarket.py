@@ -36,6 +36,9 @@ class PolymarketQuote(BaseModel):
     liquidity_usd: float = Field(gt=0)
     source_url: str = Field(min_length=1)
     content_hash: str = Field(min_length=64, max_length=64)
+    scheduled_start: str | None = None
+    offset_to_scheduled_start_sec: float | None = None
+    pre_start: bool | str | None = None
 
     @model_validator(mode="after")
     def check_book(self):
