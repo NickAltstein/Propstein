@@ -1,0 +1,262 @@
+{
+  "description": "Pre-restyle golden outputs for Price-a-Line panel",
+  "slate": "2026_w7",
+  "cases": [
+    {
+      "name": "Featured default load",
+      "inputs": {},
+      "expectedOutputs": {
+        "line": "113",
+        "fairLine": "113.0 yds",
+        "projectedVolume": "121.4 yds",
+        "overProb": "49.9%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "50.1%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Default player receptions market default line",
+      "inputs": {
+        "market": "receptions",
+        "lineTouched": false
+      },
+      "expectedOutputs": {
+        "line": "9.5",
+        "fairLine": "9.5 rec",
+        "projectedVolume": "9.9 rec",
+        "overProb": "48.6%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "51.4%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Default player receptions custom line 8.5 @ 57.7%",
+      "inputs": {
+        "market": "receptions",
+        "line": "8.5",
+        "lineTouched": true,
+        "breakEven": "0.577"
+      },
+      "expectedOutputs": {
+        "line": "8.5",
+        "fairLine": "9.5 rec",
+        "projectedVolume": "9.9 rec",
+        "overProb": "57.8%",
+        "overVsBreakEven": "in line with this break-even",
+        "underProb": "42.2%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "57.7",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Default player yards custom line 65.5 @ 55.0%",
+      "inputs": {
+        "market": "receiving_yards",
+        "line": "65.5",
+        "lineTouched": true,
+        "breakEven": "0.550"
+      },
+      "expectedOutputs": {
+        "line": "65.5",
+        "fairLine": "113.0 yds",
+        "projectedVolume": "121.4 yds",
+        "overProb": "80.5%",
+        "overVsBreakEven": "above this break-even",
+        "underProb": "19.5%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "55.0",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Justin Jefferson yards default line @ 54.2%",
+      "inputs": {
+        "game": "2026_07_IND_MIN",
+        "player": "00-0036322",
+        "market": "receiving_yards",
+        "lineTouched": false,
+        "breakEven": "0.542"
+      },
+      "expectedOutputs": {
+        "line": "90.5",
+        "fairLine": "90.5 yds",
+        "projectedVolume": "98.7 yds",
+        "overProb": "50.0%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "50.0%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Justin Jefferson yards custom line 85.5 @ 54.2%",
+      "inputs": {
+        "game": "2026_07_IND_MIN",
+        "player": "00-0036322",
+        "market": "receiving_yards",
+        "line": "85.5",
+        "lineTouched": true,
+        "breakEven": "0.542"
+      },
+      "expectedOutputs": {
+        "line": "85.5",
+        "fairLine": "90.5 yds",
+        "projectedVolume": "98.7 yds",
+        "overProb": "53.7%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "46.3%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Justin Jefferson yards custom line 105.5 @ 57.7%",
+      "inputs": {
+        "game": "2026_07_IND_MIN",
+        "player": "00-0036322",
+        "market": "receiving_yards",
+        "line": "105.5",
+        "lineTouched": true,
+        "breakEven": "0.577"
+      },
+      "expectedOutputs": {
+        "line": "105.5",
+        "fairLine": "90.5 yds",
+        "projectedVolume": "98.7 yds",
+        "overProb": "39.7%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "60.3%",
+        "underVsBreakEven": "above this break-even",
+        "breakEven": "57.7",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Justin Jefferson receptions default line @ 54.2%",
+      "inputs": {
+        "game": "2026_07_IND_MIN",
+        "player": "00-0036322",
+        "market": "receptions",
+        "lineTouched": false,
+        "breakEven": "0.542"
+      },
+      "expectedOutputs": {
+        "line": "7.5",
+        "fairLine": "7.5 rec",
+        "projectedVolume": "7.5 rec",
+        "overProb": "45.5%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "54.5%",
+        "underVsBreakEven": "in line with this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Justin Jefferson receptions custom line 6.5 @ 55.0%",
+      "inputs": {
+        "game": "2026_07_IND_MIN",
+        "player": "00-0036322",
+        "market": "receptions",
+        "line": "6.5",
+        "lineTouched": true,
+        "breakEven": "0.550"
+      },
+      "expectedOutputs": {
+        "line": "6.5",
+        "fairLine": "7.5 rec",
+        "projectedVolume": "7.5 rec",
+        "overProb": "56.6%",
+        "overVsBreakEven": "above this break-even",
+        "underProb": "43.4%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "55.0",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Travis Kelce yards default line @ 54.2%",
+      "inputs": {
+        "game": "2026_07_KC_SEA",
+        "player": "00-0030506",
+        "market": "receiving_yards",
+        "lineTouched": false,
+        "breakEven": "0.542"
+      },
+      "expectedOutputs": {
+        "line": "41",
+        "fairLine": "41.0 yds",
+        "projectedVolume": "46.9 yds",
+        "overProb": "50.2%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "49.8%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "54.2",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Travis Kelce receptions custom line 4.5 @ 57.7%",
+      "inputs": {
+        "game": "2026_07_KC_SEA",
+        "player": "00-0030506",
+        "market": "receptions",
+        "line": "4.5",
+        "lineTouched": true,
+        "breakEven": "0.577"
+      },
+      "expectedOutputs": {
+        "line": "4.5",
+        "fairLine": "3.5 rec",
+        "projectedVolume": "4.3 rec",
+        "overProb": "41.6%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "58.4%",
+        "underVsBreakEven": "above this break-even",
+        "breakEven": "57.7",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    },
+    {
+      "name": "Player without distribution inputs caveat",
+      "inputs": {
+        "game": "2026_07_KC_SEA",
+        "player": "00-0039064",
+        "market": "receiving_yards",
+        "lineTouched": false
+      },
+      "expectedOutputs": {
+        "line": "100.5",
+        "fairLine": "100.5 yds",
+        "projectedVolume": "109.3 yds",
+        "overProb": "50.1%",
+        "overVsBreakEven": "below this break-even",
+        "underProb": "49.9%",
+        "underVsBreakEven": "below this break-even",
+        "breakEven": "57.7",
+        "bookLine": "No verified Polymarket price yet",
+        "caveat": "This is the published model probability at the line you entered, not a Kalshi, Polymarket, or sportsbook price, and it can be wrong."
+      }
+    }
+  ]
+}

@@ -4170,6 +4170,21 @@
   });
 
   const previewMarketLabel = (market) => String(market || 'Player Prop').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const isMixedMarketView = () => !state.filters.market || state.filters.market === 'all' || state.filters.market === 'mixed' || Boolean(state.filters.mixedMarkets);
+
+  function cardSubtitleMatchup(row, market = state.filters.market) {
+    if (!row) return '';
+    const pos = row.position ? `${esc(row.position)} · ` : '';
+    const match = `${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}`;
+    const base = `${pos}${match}`;
+    if (isMixedMarketView()) {
+      const rowMarket = (market && market !== 'all' && market !== 'mixed') ? market : (row.market || adapter.defaultMarket);
+      const label = previewMarketLabel(rowMarket);
+      return `${base} · ${esc(label)}`;
+    }
+    return base;
+  }
+
   const previewBookPill = (book) => {
     const meta = bookMeta(book);
     const knownFallback = resolveBookId(book) === 'betonline' ? { name: 'BetOnline', short: 'BOL', color: '#ed7b36' } : null;
@@ -4303,7 +4318,7 @@
             return `<article class="home-edge-card home-research-card" data-rf-card>
             <div class="rf-prop-top">
               ${avatarFor(row.player_id, row.player_display_name, row.team)}
-              <div class="home-edge-player"><strong>${esc(row.player_display_name)}</strong><span>${esc(row.position || '')}${row.position ? ' · ' : ''}${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)} · ${esc(previewMarketLabel(state.filters.market))}</span></div>
+              <div class="home-edge-player"><strong>${esc(row.player_display_name)}</strong><span>${cardSubtitleMatchup(row, state.filters.market)}</span></div>
               <span class="rf-badge">No live price</span>
             </div>
             <div class="rf-prop-stats">
@@ -4374,7 +4389,7 @@
       const odds = evaluation.odds > 0 ? `+${evaluation.odds}` : String(evaluation.odds);
       const defaultEv = `+${(evaluation.ev * 100).toFixed(1)}%`;
       return `<article class="home-edge-card" data-prop-card data-win-prob="${winProb}" data-default-ev="${defaultEv}">
-        <div class="home-edge-player"><strong>${esc(row.player_display_name)}</strong><span>${esc(row.team)} · ${esc(row.opponent_team)} · ${esc(previewMarketLabel(market))}</span></div>
+        <div class="home-edge-player"><strong>${esc(row.player_display_name)}</strong><span>${cardSubtitleMatchup(row, market)}</span></div>
         <div class="home-edge-line"><span class="home-edge-direction ${evaluation.side === 'UNDER' ? 'under' : 'over'}">${evaluation.side === 'UNDER' ? '↓ UNDER' : '↑ OVER'}</span><strong>${evaluation.line.toFixed(1)} <small>${esc(odds)}</small></strong><span>${previewBookPill(evaluation.book)}</span></div>
         <div class="home-edge-metrics"><span><small>MODEL WIN</small><strong>${(winProb * 100).toFixed(1)}%</strong></span><span><small>EDGE</small><strong>+${(evaluation.edge * 100).toFixed(1)}%</strong></span><span><small>EV</small><strong data-mode-edge-badge>+${(evaluation.ev * 100).toFixed(1)}%</strong></span></div>
       </article>`;
@@ -7048,7 +7063,7 @@
       const delta = (defIdx - 1) * 100;
       if (Math.abs(delta) >= 8) {
         const soft = delta > 0;
-        chips.push(`<span class="card-context-chip ${soft ? 'pos' : 'neg'}" title="Opponent pass defense allows ${soft ? '+' : ''}${delta.toFixed(0)}% vs league average (allowed index ${defIdx.toFixed(2)}, 1.00 = average).">${soft ? 'SOFT' : 'TOUGH'} MATCHUP</span>`);
+        chips.push(`<span class="card-context-chip ${soft ? 'pos' : 'neg'}" title="Opponent pass defense allows ${soft ? '+' : ''}${delta.toFixed(0)}% vs league average (allowed index ${defIdx.toFixed(2)}, 1.00 = average).">${soft ? 'Soft' : 'Tough'} matchup</span>`);
       }
     }
     const spread = num(row.team_spread, NaN);
@@ -7077,7 +7092,7 @@
       if (!button || button.dataset.copied === 'true') return;
       const label = button.textContent;
       button.dataset.copied = 'true';
-      button.textContent = 'COPIED';
+      button.textContent = 'Copied';
       setTimeout(() => {
         button.textContent = label;
         delete button.dataset.copied;
@@ -7234,12 +7249,12 @@
       gridColsHtml = `
         <div class="card-money-row">
           <div class="card-money-cell">
-            <span class="card-money-lbl">PROJ</span>
+            <span class="card-money-lbl">Projection</span>
             <span class="card-money-val font-mono">${dist.proj.toFixed(1)}</span>
           </div>
           <div class="card-money-div" aria-hidden="true"></div>
           <div class="card-money-cell">
-            <span class="card-money-lbl">FAIR</span>
+            <span class="card-money-lbl">Fair</span>
             <span class="card-money-val fair font-mono">${fairVal.toFixed(1)}</span>
           </div>
           ${simCapHtml}
@@ -7250,8 +7265,8 @@
         </div>
         ${cardSignalRowHtml(row, beneficiary)}
         <div class="card-action-bar">
-          <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'CLOSE SIM' : simVal !== null ? `SIM ${simVal.toFixed(1)} · EDIT` : 'SIM LINE'}</button>
-          <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">COPY FAIR</button>
+          <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)} · edit` : 'Sim line'}</button>
+          <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">Copy fair</button>
           <span class="card-research-tag${simVal !== null ? ' sim-active' : ''}">${simVal !== null ? 'SIMULATED · NOT A BOOK QUOTE' : 'NO LIVE QUOTE'}</span>
           ${simVal !== null ? '' : `<span class="card-book-absent">${awaitingLivePriceCopy()}</span>`}
         </div>
@@ -7307,7 +7322,7 @@
             ${avatarFor(row.player_id, row.player_display_name, row.team)}
             <div class="card-name-group">
               <span class="card-player-name" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
-              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
+              <span class="card-team-matchup">${cardSubtitleMatchup(row, state.filters.market)}</span>${sportCalibrationBadge()}
             </div>
           </div>
           <div class="card-hero-edge-block">
@@ -8150,7 +8165,7 @@
     updatePortfolioBadge(true);
     renderBoard();
     if ($('#detailDialog').open && state.selectedPlayerId === playerId) renderDetailModal(row);
-    toast(`Logged 1u ${entry.side} ${Number(entry.line).toFixed(1)} ${entry.player_name}`, () => {
+    toast('Ticket staged', () => {
       const idx = state.portfolio.findIndex((bet) => bet.id === entry.id);
       if (idx >= 0) {
         state.portfolio.splice(idx, 1);

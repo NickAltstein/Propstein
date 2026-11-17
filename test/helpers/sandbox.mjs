@@ -26,12 +26,26 @@ export function normalizeTokens(text) {
 }
 
 export function makeElement(knownIds) {
+  const listeners = new Map();
   const el = {
     textContent: '', value: '', hidden: false, disabled: false,
     open: false, offsetWidth: 0, scrollTop: 0, dataset: {}, style: { cssText: '' },
     title: '', id: '',
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
+    addEventListener(event, fn) {
+      if (!listeners.has(event)) listeners.set(event, []);
+      listeners.get(event).push(fn);
+    },
+    removeEventListener(event, fn) {
+      if (listeners.has(event)) {
+        listeners.set(event, listeners.get(event).filter((f) => f !== fn));
+      }
+    },
+    dispatchEvent(event) {
+      const type = typeof event === 'string' ? event : event?.type;
+      for (const fn of (listeners.get(type) || [])) fn(event);
+      return true;
+    },
     appendChild() {}, insertBefore() {}, remove() {}, focus() {}, blur() {},
     scrollIntoView() {}, setAttribute() {}, getAttribute() { return null; },
     querySelector() { return makeElement(knownIds); }, querySelectorAll() { return []; },
@@ -278,7 +292,7 @@ export function loadApp(sandbox) {
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate, initSlateIndex,
     feedHealthStates, updateFeedHealthUI, feedVerificationLabel, updateFeedVerificationUI, marketFeedSourceLabel, detectBookDiscrepancy, executionDecision, stampProvenance,
-    priceLine, quoteIsSynthetic, resolveDataKind,
+    renderPickFlow, priceLine, quoteIsSynthetic, resolveDataKind,
     renderSportChrome, renderDetailModal,
     quantMath: { americanToDecimal, impliedProbability, devig, pRecOver, pYardsOver, compoundYardsCdf, regularizedGammaP, logGamma },
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
