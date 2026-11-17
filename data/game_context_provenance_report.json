@@ -3,7 +3,7 @@
   "games_in_pricing_window": 13,
   "games_ingested": 13,
   "games_ready": 11,
-  "generated_at": "2026-11-17T15:25:26.108240+00:00",
+  "generated_at": "2026-11-17T19:40:18.881798+00:00",
   "missing_timestamps": [
     {
       "game_id": "2026_11_MIA_BUF",
@@ -20,7 +20,7 @@
       ]
     }
   ],
-  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-17T15-25-24-503282+00-00_48f3b3bd.json",
+  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-17T19-40-16-820531+00-00_fe7415d1.json",
   "ready_for_pricing": false,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,
