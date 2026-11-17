@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-17T19:40:08Z",
+  "generated_at": "2026-11-17T23:27:47Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -41,18 +41,18 @@
         "2026_w11": {
           "season": 2026,
           "week": 11,
-          "shortLabel": "W11 Research",
-          "state": "Model refresh blocked: untimestamped game context",
+          "shortLabel": "W11 Live",
+          "state": "Upcoming slate \u00b7 Nov 19-23",
           "slate": "slate_2026_w11.json",
           "games": "games_2026_w11.json",
-          "picks": null,
+          "picks": "current_picks_2026_w11.json",
           "livePicks": null,
           "injuries": "injuries_2026_w11.json",
-          "odds": null,
+          "odds": "live_odds_feed.json",
           "snapshots": "snapshots_2026_w11.json",
           "historical": false,
-          "modelContextStatus": "BLOCKED_UNTIMESTAMPED",
-          "actionLocked": true
+          "modelContextStatus": "AVAILABLE",
+          "actionLocked": false
         },
         "2026_w7": {
           "season": 2026,
@@ -105,7 +105,7 @@
       }
     },
     "nba": {
-      "default_slate": null,
+      "default_slate": "2026-11-17",
       "slates": {
         "2026-10-22": {
           "season": 2026,
@@ -314,6 +314,21 @@
           "odds": "nba_odds_2026-11-16.json",
           "snapshots": null,
           "historical": true,
+          "timezone": "America/New_York",
+          "marketOnly": true
+        },
+        "2026-11-17": {
+          "season": 2026,
+          "date": "2026-11-17",
+          "shortLabel": "Nov 17 Slate",
+          "state": "Slate \u00b7 2026-11-17",
+          "slate": "nba_slate_2026-11-17.json",
+          "games": "nba_games_2026-11-17.json",
+          "picks": null,
+          "injuries": "nba_injuries_2026-11-17.json",
+          "odds": "nba_odds_2026-11-17.json",
+          "snapshots": null,
+          "historical": false,
           "timezone": "America/New_York",
           "marketOnly": true
         }
