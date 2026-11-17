@@ -485,8 +485,12 @@ def test_close_match_populations_and_separate_clv(app_conn):
         )
         signal_id = cur.fetchone()["id"]
     intended = CloseQuote("evt-prices", "player_receptions", "over", 4.5, "nfl_player_prop_v1", -110, -110)
-    moved = CloseQuote("evt-prices", "player_receptions", "over", 5.5, "nfl_player_prop_v1", -180, 150)
-    same = CloseQuote("evt-prices", "player_receptions", "over", 4.5, "nfl_player_prop_v1", -150, 130)
+    close_timing = {
+        "quoted_at": "2026-11-08T17:00:00+00:00",
+        "scheduled_start": row["event_start_at"],
+    }
+    moved = CloseQuote("evt-prices", "player_receptions", "over", 5.5, "nfl_player_prop_v1", -180, 150, **close_timing)
+    same = CloseQuote("evt-prices", "player_receptions", "over", 4.5, "nfl_player_prop_v1", -150, 130, **close_timing)
     quoted_at = datetime(2026, 11, 8, 12, tzinfo=timezone.utc)
     add_intended_quote(app_conn, signal_id=signal_id, quote=intended, book="example", quoted_at=quoted_at)
     changed = record_closing_reference(
