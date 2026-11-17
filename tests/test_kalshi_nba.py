@@ -121,6 +121,19 @@ def test_post_tip_preserves_prior_pre_start_quote(tmp_path):
     assert merged_empty[0]["pre_start"] is True
 
 
+def test_unknown_time_update_cannot_replace_prior_pre_start_quote(tmp_path):
+    games = k.normalize_espn_games(ESPN, DAY)
+    pre = k.build_quotes(DAY, games, EVENTS, MARKETS, "2026-11-14T00:45:00Z")[0]
+    (tmp_path / f"nba_odds_{DAY}.json").write_text(json.dumps({"quotes": [pre]}))
+    unknown = {**pre, "line": 9.5, "quoted_at": None, "pre_start": True}
+    merged = k.merge_quotes_with_guard(
+        DAY, games, [unknown], "2026-11-14T00:50:00Z", viewer_dir=tmp_path)
+    assert len(merged) == 1
+    assert merged[0]["line"] == 14.5
+    assert merged[0]["quoted_at"] == "2026-11-14T00:45:00Z"
+    assert merged[0]["pre_start"] is True
+
+
 def test_slate_fixture_produces_capture_plan_with_every_game_covered_before_start():
     from src.scheduler.capture_scheduler import generate_capture_plan, parse_utc_dt
 

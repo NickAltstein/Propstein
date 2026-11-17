@@ -50,7 +50,7 @@ function stripWhitelisted(value) {
   if (Array.isArray(value)) return value.map(stripWhitelisted);
   const out = {};
   for (const [k, v] of Object.entries(value)) {
-    if (k === 'exemption_audit' || k === 'sport' || k === 'quoted_at' || k === 'verification_status') continue; // announced additions
+    if (k === 'exemption_audit' || k === 'sport' || k === 'quoted_at' || k === 'scheduled_start' || k === 'pre_start' || k === 'verification_status') continue; // announced additions
     out[k] = stripWhitelisted(v);
   }
   return out;

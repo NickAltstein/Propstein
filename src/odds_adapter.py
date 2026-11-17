@@ -1231,17 +1231,11 @@ class OddsIngestionAdapter:
             elif chosen_edge >= (EDGE_HURDLE * 0.5) and chosen_ev > 0:
                 status = "LEAN"
 
-        # Pre-start qualification requirement: A post-start quote cannot qualify for entry.
-        is_pre_start = getattr(quote, "pre_start", None)
-        if is_pre_start is None:
-            quoted_at = getattr(quote, "quoted_at", None)
-            sched_start = getattr(quote, "scheduled_start", None)
-            if quoted_at and sched_start:
-                from src.scheduler.capture_scheduler import compute_pre_start_attribute
-                ps, _ = compute_pre_start_attribute(quoted_at, sched_start)
-                is_pre_start = (ps is True)
-            else:
-                is_pre_start = True
+        # The flag alone is not evidence: both timestamps must prove pre-start.
+        from src.scheduler.capture_scheduler import compute_pre_start_attribute
+        is_pre_start, _ = compute_pre_start_attribute(quote.quoted_at, quote.scheduled_start)
+        if quote.pre_start is False:
+            is_pre_start = False
 
         if is_pre_start is not True:
             is_qualified = False

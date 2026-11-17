@@ -66,6 +66,8 @@ def make_quote(verified: bool, line: float = 1.5, over_odds: int = -110,
         over_odds=over_odds,
         under_odds=under_odds,
         observed_at="2026-10-20T06:00:00+00:00",
+        quoted_at="2026-10-20T06:00:00+00:00",
+        scheduled_start="2026-10-20T20:00:00Z",
         source="Synthetic Book A Manual Entry (UNVERIFIED - test fixture)",
         verified=verified,
     )

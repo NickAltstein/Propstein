@@ -51,6 +51,6 @@ test('homepage status line reads the shared derived state', async () => {
 test('viewer derived state never renders post-start quote as actionable', async () => {
   const app = await read('../viewer/app.js');
   assert.match(app, /const postStart = quote\.pre_start === false/);
-  assert.match(app, /actionable = .* && !postStart/);
+  assert.match(app, /actionable = .* && preStart/);
   assert.match(app, /closed \|\| Boolean\(postStart\)/);
 });

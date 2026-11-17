@@ -14,7 +14,17 @@ from src.ledger.close_match import (
     match_close,
 )
 from src.odds_adapter import OddsIngestionAdapter, PropQuote
-from src.scheduler.capture_scheduler import compute_pre_start_attribute
+from src.scheduler.capture_scheduler import compute_pre_start_attribute, timing_diagnostics
+
+
+def test_timing_diagnostics_distinguish_missing_and_after_start():
+    start = "2026-11-17T01:15:00Z"
+    assert timing_diagnostics(None, None) == (
+        "QUOTE_TIME_MISSING_OR_INVALID", "START_TIME_MISSING_OR_INVALID")
+    assert timing_diagnostics("bad", start) == ("QUOTE_TIME_MISSING_OR_INVALID",)
+    assert timing_diagnostics(start, "bad") == ("START_TIME_MISSING_OR_INVALID",)
+    assert timing_diagnostics(start, start) == ("AFTER_START",)
+    assert timing_diagnostics("2026-11-17T01:14:00Z", start) == ()
 
 
 def test_timing_calculation_start_minus_one_min_and_plus_one_min_and_missing():
@@ -108,6 +118,19 @@ def test_post_start_entry_does_not_qualify():
     assert ev_pre.actionable_stake > 0.0
     assert ev_pre.status == "QUALIFIED"
 
+    for quoted_at, scheduled_start in [
+        (None, None), (None, "2026-11-17T01:15:00Z"),
+        ("2026-11-17T01:14:00Z", None),
+        ("not-a-time", "2026-11-17T01:15:00Z"),
+        ("2026-11-17T01:14:00Z", "not-a-time"),
+        ("2026-11-17T01:15:00Z", "2026-11-17T01:15:00Z"),
+    ]:
+        unknown = PropQuote(**{**base_dict, "quoted_at": quoted_at,
+                               "scheduled_start": scheduled_start, "pre_start": True})
+        verdict = adapter.evaluate_quote(unknown)
+        assert verdict.is_qualified is False
+        assert verdict.actionable_stake == 0.0
+
 
 def test_post_start_close_unevaluable():
     """Test 2b: Post-start close returns CLOSE_AFTER_START (or CLOSE_UNKNOWN_START)."""
@@ -172,7 +195,20 @@ def test_post_start_close_unevaluable():
         settlement_rules="standard",
         quote_source="kalshi",
         pre_start=True,
+        quoted_at="2026-11-14T00:45:00Z",
+        scheduled_start="2026-11-14T01:00:00Z",
     )
     res_pre = match_close(expected, observed_pre)
     assert res_pre.matched is True
     assert res_pre.reason_code is None
+
+    for quoted_at, scheduled_start in [(None, None), (None, "2026-11-14T01:00:00Z"),
+                                       ("2026-11-14T00:45:00Z", None),
+                                       ("bad", "2026-11-14T01:00:00Z")]:
+        result = match_close(expected, CloseQuote(
+            event_id=expected.event_id, market=expected.market, selection=expected.selection,
+            line=expected.line, settlement_rules=expected.settlement_rules,
+            quote_source=expected.quote_source, quoted_at=quoted_at,
+            scheduled_start=scheduled_start, pre_start=True))
+        assert result.matched is False
+        assert result.reason_code == CLOSE_UNKNOWN_START

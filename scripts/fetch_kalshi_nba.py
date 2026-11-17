@@ -249,20 +249,27 @@ def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
             data = json.loads(existing_file.read_text(encoding="utf-8"))
             for q in data.get("quotes", []):
                 key = (q.get("game_id"), q.get("player_id"), q.get("market"))
-                if q.get("pre_start") is None:
-                    g_tip = next((g.get("tipoff_utc") for g in games if g.get("game_id") == q.get("game_id")), None)
-                    sched = q.get("scheduled_start") or g_tip
-                    ps, off = compute_pre_start_attribute(q.get("quoted_at"), sched)
-                    q["pre_start"] = ps
-                    q["scheduled_start"] = sched
-                    q["offset_to_scheduled_start_sec"] = off
+                g_tip = next((g.get("tipoff_utc") for g in games if g.get("game_id") == q.get("game_id")), None)
+                sched = q.get("scheduled_start") or g_tip
+                ps, off = compute_pre_start_attribute(q.get("quoted_at"), sched)
+                q["pre_start"] = ps
+                q["scheduled_start"] = sched
+                q["offset_to_scheduled_start_sec"] = off
                 existing_quotes[key] = q
         except Exception as exc:
             print(f"[kalshi_nba] warning reading existing odds: {exc}", file=sys.stderr)
 
     now_dt = parse_utc_dt(now_iso)
     game_by_id = {g["game_id"]: g for g in games}
-    new_by_key = {(q.get("game_id"), q.get("player_id"), q.get("market")): q for q in new_quotes}
+    new_by_key = {}
+    for q in new_quotes:
+        game = game_by_id.get(q.get("game_id"))
+        sched = q.get("scheduled_start") or (game.get("tipoff_utc") if game else None)
+        ps, off = compute_pre_start_attribute(q.get("quoted_at"), sched)
+        q["pre_start"] = ps
+        q["scheduled_start"] = sched
+        q["offset_to_scheduled_start_sec"] = off
+        new_by_key[(q.get("game_id"), q.get("player_id"), q.get("market"))] = q
 
     all_keys = set(existing_quotes.keys()) | set(new_by_key.keys())
     merged = []
@@ -286,7 +293,7 @@ def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
             elif existing_q:
                 merged.append(existing_q)
         else:
-            if new_q:
+            if new_q and (new_q.get("pre_start") is True or not (existing_q and existing_q.get("pre_start") is True)):
                 merged.append(new_q)
             elif existing_q and existing_q.get("pre_start") is True:
                 merged.append(existing_q)

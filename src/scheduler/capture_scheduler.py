@@ -16,7 +16,7 @@ def parse_utc_dt(value: Any) -> datetime | None:
         return None
     if isinstance(value, datetime):
         if value.tzinfo is None:
-            return value.replace(tzinfo=timezone.utc)
+            return None
         return value.astimezone(timezone.utc)
     text = str(value).strip()
     if not text:
@@ -24,7 +24,7 @@ def parse_utc_dt(value: Any) -> datetime | None:
     try:
         dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
         if dt.tzinfo is None:
-            return dt.replace(tzinfo=timezone.utc)
+            return None
         return dt.astimezone(timezone.utc)
     except (ValueError, TypeError):
         return None
@@ -51,6 +51,20 @@ def compute_pre_start_attribute(
     if offset_sec < 0:
         return True, offset_sec
     return False, offset_sec
+
+
+def timing_diagnostics(quoted_at: Any, scheduled_start: Any) -> tuple[str, ...]:
+    """Explain timing evidence without changing ledger reason codes."""
+    quote_time = parse_utc_dt(quoted_at)
+    start_time = parse_utc_dt(scheduled_start)
+    reasons = []
+    if quote_time is None:
+        reasons.append("QUOTE_TIME_MISSING_OR_INVALID")
+    if start_time is None:
+        reasons.append("START_TIME_MISSING_OR_INVALID")
+    if not reasons and quote_time >= start_time:
+        reasons.append("AFTER_START")
+    return tuple(reasons)
 
 
 def generate_capture_plan(

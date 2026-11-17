@@ -63,10 +63,10 @@ def match_close(expected: CloseQuote, observed: CloseQuote) -> MatchResult:
         return MatchResult(False, LINE_CHANGED)
 
     # Pre-start gate: a close quote must be captured prior to event start
-    obs_pre = observed.pre_start
-    if obs_pre is None and (observed.quoted_at is not None or observed.scheduled_start is not None):
-        from src.scheduler.capture_scheduler import compute_pre_start_attribute
-        obs_pre, _ = compute_pre_start_attribute(observed.quoted_at, observed.scheduled_start)
+    from src.scheduler.capture_scheduler import compute_pre_start_attribute
+    obs_pre, _ = compute_pre_start_attribute(observed.quoted_at, observed.scheduled_start)
+    if observed.pre_start is False:
+        obs_pre = False
 
     if obs_pre is False:
         return MatchResult(False, CLOSE_AFTER_START)

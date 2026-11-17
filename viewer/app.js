@@ -7501,9 +7501,14 @@
     const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
     const health = feedHealthStates();
     const liveFeedsFresh = health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok' && health.news === 'ok' && health.newsFreshness === 'ok';
-    const postStart = quote.pre_start === false ||
-      (quote.quoted_at && quote.scheduled_start && new Date(quote.quoted_at).getTime() >= new Date(quote.scheduled_start).getTime());
-    const actionable = qState === 'verified' && qualified && !closed && !postStart && !volatilityHalt && !dataCheck && liveFeedsFresh;
+    const timed = (value) => typeof value === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+      ? Date.parse(value) : NaN;
+    const quoteTime = timed(quote.quoted_at);
+    const startTime = timed(quote.scheduled_start);
+    const timingKnown = Number.isFinite(quoteTime) && Number.isFinite(startTime);
+    const postStart = quote.pre_start === false || (timingKnown && quoteTime >= startTime);
+    const preStart = timingKnown && quoteTime < startTime && quote.pre_start !== false;
+    const actionable = qState === 'verified' && qualified && !closed && preStart && !volatilityHalt && !dataCheck && liveFeedsFresh;
 
     let stake = 0;
     if (actionable) {
@@ -7521,7 +7526,7 @@
       edge,
       ev,
       stake,
-      qualified: qualified && !postStart,
+      qualified: qualified && preStart,
       dataCheck,
       volatilityHalt,
       haltReason,

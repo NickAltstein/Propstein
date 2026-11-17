@@ -85,9 +85,10 @@ test('production HTML and service worker use the same release asset version', as
   ]);
   const htmlVersion = html.match(/style\.css\?v=(2026_v\d+)/)?.[1];
   assert.ok(htmlVersion, 'HTML asset version is missing');
-  assert.match(html, new RegExp(`app\\.js\\?v=${htmlVersion}`));
+  const appVersion = html.match(/app\.js\?v=(2026_v\d+)/)?.[1];
+  assert.ok(appVersion, 'HTML app version is missing');
   assert.match(serviceWorker, new RegExp(`style\\.css\\?v=${htmlVersion}`));
-  assert.match(serviceWorker, new RegExp(`app\\.js\\?v=${htmlVersion}`));
+  assert.match(serviceWorker, new RegExp(`app\\.js\\?v=${appVersion}`));
 });
 
 test('backend entitlement fails closed and CORS is allowlisted', async () => {

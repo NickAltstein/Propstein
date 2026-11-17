@@ -124,6 +124,8 @@ class TestOddsAdapter(unittest.TestCase):
             over_odds=-110,
             under_odds=-110,
             observed_at="2026-10-20T02:00:00Z",
+            quoted_at="2026-10-20T02:00:00Z",
+            scheduled_start="2026-10-20T20:00:00Z",
             source="test"
         )
         ev = adapter.evaluate_quote(quote)
