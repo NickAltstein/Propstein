@@ -1,13 +1,13 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-17T13:54:09Z",
+  "generated_at": "2026-11-17T22:28:32Z",
   "sports": {
     "nba": {
       "level": "critical",
       "fail_closed": true,
       "show_edges": false,
       "stale_since": "2026-11-17T00:43:14Z",
-      "age_hours": 13.18,
+      "age_hours": 21.76,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
       "quotes": 110,
       "slate": "pending"
@@ -17,7 +17,7 @@
       "fail_closed": false,
       "show_edges": true,
       "stale_since": "2026-11-17T03:40:47Z",
-      "age_hours": 10.22,
+      "age_hours": 18.8,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "quotes": 11,
       "slate": "none"
