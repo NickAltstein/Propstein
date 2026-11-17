@@ -15,7 +15,7 @@ test('settings distinguish CLOB quotes from the Odds API research scan', async (
 
   assert.equal(registry.get('#settingsFeedProvider').textContent, 'Polymarket CLOB');
   assert.equal(registry.get('#settingsResearchSource').textContent, 'The Odds API');
-  assert.match(registry.get('#settingsReceiptsStatus').textContent, /0 feed-verified quotes/);
+  assert.match(registry.get('#settingsReceiptsStatus').textContent, /0 receipt matches · 0 verified opportunities/);
   assert.match(registry.get('#settingsQualificationStatus').textContent, /independent quote audit/);
 });
 

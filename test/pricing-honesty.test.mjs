@@ -41,9 +41,9 @@ test('paid CTAs respect the public signup freeze', async () => {
   }
 });
 
-test('homepage status line keeps receipt evidence distinct from freshness', async () => {
+test('homepage status line reads the shared derived state', async () => {
   const app = await read('../viewer/app.js');
-  assert.match(app, /model-ranked research lines\. \$\{verifiedQuotes\} receipt-verified in snapshot\. Qualification paused: waiting on \$\{waitingOn\}/);
-  assert.match(app, /fresh timestamped odds \(\$\{feedVerificationLabel\(\)\.toLowerCase\(\)\}\)/);
+  assert.match(app, /status\.textContent = derived\.label/);
+  assert.match(app, /const derived = marketStatus\(\)/);
   assert.doesNotMatch(app, /source-unspecified\} research lines ·/, 'long detail line must stay out of the homepage status');
 });

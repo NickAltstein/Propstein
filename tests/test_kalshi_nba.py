@@ -56,6 +56,7 @@ def test_one_two_sided_main_line_per_player_and_nothing_invented():
     assert (q["over_odds"], q["under_odds"]) == (-108, -108)
     assert q["book"] == "Kalshi" and q["verified"] is False and q["_fixture"] is False
     assert q["provider_quote_id"] == "KXNBAPTS-26NOV13ATLCHI-CHIJSMITH25-15"
+    assert q["quoted_at"] == q["observed_at"] == "2026-11-13T16:00:00Z"
 
 
 def test_run_writes_nothing_without_quotes_and_publishes_through_the_contract(tmp_path, monkeypatch):

@@ -51,20 +51,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v200">
-  <link rel="stylesheet" href="/style.css?v=2026_v261">
+  <link rel="stylesheet" href="/style.css?v=2026_v262">
   <link rel="stylesheet" href="/feed-status.css?v=2026_v260">
   <link rel="stylesheet" href="/refresh-2026.css?v=2026_r14">
   <link rel="stylesheet" href="/design-system.css?v=2026_v229">
-  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v5">
+  <link rel="stylesheet" href="/terminal-ui.css?v=2026_v6">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v181" defer></script>
   <script src="/js/sports/nba.js?v=2026_v221" defer></script>
   <script src="/js/quant-math.js?v=2026_v215" defer></script>
   <script src="/js/feed-status.js?v=2026_v260" defer></script>
-  <script src="/app.js?v=2026_v261" defer></script>
+  <script src="/js/market-status.js?v=2026_v1" defer></script>
+  <script src="/app.js?v=2026_v262" defer></script>
   <script src="/js/instrument-panel.js?v=2026_v1" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v200" defer></script>
-  <script src="/js/today-schedule.js?v=2026_v261" defer></script>
+  <script src="/js/today-schedule.js?v=2026_v262" defer></script>
   <script src="/js/front-page.js?v=2026_v254" defer></script>
   <script src="/js/refresh-2026.js?v=2026_r2" defer></script>
 </head>
@@ -233,11 +234,11 @@
             </button>
             <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
               <span>Top</span>
-              <span class="chip-count-pill" id="topCount">25</span>
+              <span class="chip-count-pill" id="topCount">0</span>
             </button>
             <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
               <span>All</span>
-              <span class="chip-count-pill" id="allCount">390</span>
+              <span class="chip-count-pill" id="allCount">0</span>
             </button>
           </div>
 
@@ -319,6 +320,7 @@
 
   <main class="shell page" id="slateBoard">
     <div class="terminal-snapshot-strip"><div class="snapshot-age-pill" id="snapshotAgePill" role="status" hidden></div><span class="terminal-snapshot-status" role="status"></span></div>
+    <details class="terminal-feed-details" id="terminalFeedDetails"><summary>Feed details</summary><div id="terminalFeedDetailsContent"></div></details>
     <section class="home-edge-preview" id="homeEdgePreview" aria-labelledby="homeEdgeTitle" aria-live="polite">
       <div id="marketStateBanner" class="market-state-banner" hidden></div>
       <div class="home-edge-heading">

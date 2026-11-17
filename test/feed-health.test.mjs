@@ -128,21 +128,21 @@ test('stale odds and unverified model context keep the banner in error state (NF
   assert.ok(banner.className.includes('error'));
   const snapshot = els.get('snapshotAgePill');
   assert.equal(snapshot.hidden, false);
-  assert.match(snapshot.textContent, /Snapshot Mode · Captured Oct 21, 11:32 PM EDT/);
+  assert.match(snapshot.textContent, /Snapshot only · Oct 21, 11:32 PM ET/);
 });
 
-test('snapshot pill appears after 30 minutes without changing the execution staleness threshold', async () => {
+test('status strip always shows the derived state without changing execution staleness', async () => {
   const { sandbox } = buildSandbox();
   const els = attachLocalDom(sandbox);
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
   P.state.feedHealth.oddsUpdatedAt = new Date(FROZEN_MS - 20 * 60_000).toISOString();
   P.updateFeedHealthUI();
-  assert.equal(els.get('snapshotAgePill').hidden, true);
+  assert.equal(els.get('snapshotAgePill').hidden, false);
   P.state.feedHealth.oddsUpdatedAt = new Date(FROZEN_MS - 31 * 60_000).toISOString();
   P.updateFeedHealthUI();
   assert.equal(els.get('snapshotAgePill').hidden, false);
-  assert.match(els.get('snapshotAgePill').textContent, /Snapshot Mode · Captured/);
+  assert.match(els.get('snapshotAgePill').textContent, /Snapshot only/);
   assert.equal(P.feedHealthStates().oddsFreshness, 'ok');
 });
 
@@ -152,7 +152,7 @@ test('stale NFL feed leads with STALE even when its receipt status is unverified
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
   assert.equal(P.state.odds.feed_status, 'UNVERIFIED_MANUAL_ONLY');
-  assert.equal(P.feedVerificationLabel(), 'STALE');
+  assert.match(P.feedVerificationLabel(), /Snapshot only/);
 });
 
 test('missing odds update timestamp is TIME UNKNOWN and never shown as fresh', async () => {
@@ -163,7 +163,7 @@ test('missing odds update timestamp is TIME UNKNOWN and never shown as fresh', a
   P.state.feedHealth.oddsUpdatedAt = null;
   P.updateFeedHealthUI();
   assert.equal(P.feedHealthStates().oddsFreshness, 'unknown');
-  assert.equal(P.feedVerificationLabel(), 'TIME UNKNOWN');
+  assert.match(P.feedVerificationLabel(), /Snapshot only/);
   assert.match(els.get('dataQualityBanner').innerHTML, /no usable update timestamp/i);
 });
 
@@ -299,7 +299,7 @@ test('stale live feed renders LIVE QUALIFICATION PAUSED, never the efficiency cl
   assert.ok(!/market is efficient/i.test(empty.innerHTML), 'no efficiency claim under staleness');
 });
 
-test('fresh verified feed with zero qualified rows keeps the anti-tout efficiency message', async () => {
+test('fresh verified feed with zero qualified rows does not imply an efficient market', async () => {
   const { sandbox, registry } = buildSandbox();
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
@@ -312,9 +312,8 @@ test('fresh verified feed with zero qualified rows keeps the anti-tout efficienc
     evaluation: { best_side: 'OVER', prob_edge: 0, expected_return: 0 },
   });
   const empty = registry.get('#emptyState');
-  assert.ok(empty.innerHTML.includes('0 Qualified Plays Today'), 'anti-tout state intact when feeds verified');
-  assert.ok(/market is efficient/i.test(empty.innerHTML), 'efficiency claim only when prices are verifiable');
-  assert.ok(!empty.innerHTML.includes('Live qualification paused'), 'paused copy not shown on a fresh feed');
+  assert.match(empty.innerHTML, /No qualifying prices right now|Snapshot only/);
+  assert.doesNotMatch(empty.innerHTML, /market is efficient/i);
 });
 
 test('fresh transport with zero verified quotes remains paused', async () => {

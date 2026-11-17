@@ -150,6 +150,8 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
     assert data["feed_status"] == "LIVE_POLYMARKET_CLOB_UNVERIFIED"
     assert data["verified_books_count"] == 0
     assert data["verified_quotes_count"] == 0
+    live = next(q for q in data["quotes"] if q["book"] == "Polymarket")
+    assert live["quoted_at"] == live["observed_at"]
     assert (tmp_path / "live_odds_feed.manifest.json").exists()
     assert "Polymarket" in data["monitored_books"]
     # Re-merge replaces Polymarket quotes; fresh real rows from other books
@@ -158,6 +160,7 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
     data2 = json.loads(feed_path.read_text())
     pm_n = [q for q in data2["quotes"] if q["book"] == "Polymarket"]
     assert len(pm_n) == 1
+    assert pm_n[0]["quoted_at"] == pm_n[0]["observed_at"]
     assert [q["quote_id"] for q in data2["quotes"] if q["book"] != "Polymarket"] == ["dk_fresh"]
     assert data2["total_quotes"] == 2
 

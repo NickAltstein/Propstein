@@ -1022,3 +1022,28 @@ html body.terminal-ui #detailDialog .detail-sticky-log-btn {
   html body.terminal-ui .terminal-header-search,
   html body.terminal-ui .terminal-desktop-nav button::after { transition: none !important; }
 }
+
+/* Status placement repairs; the instrument panel's visual grammar stays intact. */
+html body.terminal-ui .terminal-feed-details { margin: 4px 12px 12px; color: var(--ink-dim); font: 500 11px/1.5 var(--terminal-sans); }
+html body.terminal-ui .terminal-feed-details summary { width: fit-content; min-height: 28px; cursor: pointer; color: var(--quote); }
+html body.terminal-ui #terminalFeedDetailsContent { display: grid; gap: 4px; max-width: 90ch; }
+html body.terminal-ui #terminalFeedDetailsContent ul { margin: 4px 0 0; padding-left: 20px; }
+html body.terminal-ui .rf-status-strip { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto; align-items: start; }
+html body.terminal-ui .rf-status-strip .home-edge-status { grid-column: 1; }
+html body.terminal-ui .rf-status-strip .home-fail-closed { grid-column: 2; margin: 0; min-width: 0; }
+html body.terminal-ui .rf-status-strip .how-math-works-btn { grid-column: 3; }
+@media (min-width: 769px) and (max-width: 1000px) {
+  html body.terminal-ui .terminal-board-controls { gap: 8px; }
+  html body.terminal-ui #mobileFilterStrip { gap: 8px; flex-wrap: nowrap; }
+  html body.terminal-ui .pw-filterbar { overflow: hidden; }
+  html body.terminal-ui .terminal-snapshot-strip { margin-top: 28px; }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui .rf-status-strip { grid-template-columns: minmax(0, 1fr) auto; }
+  html body.terminal-ui .rf-status-strip .home-edge-status { grid-column: 1; grid-row: 1; }
+  html body.terminal-ui .rf-status-strip .how-math-works-btn { grid-column: 2; grid-row: 1; }
+  html body.terminal-ui .rf-status-strip .home-fail-closed { grid-column: 1 / -1; grid-row: 2; }
+  html body.terminal-ui .shell.page { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  html body.terminal-ui.toast-visible .shell.page { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+  html body.terminal-ui .toast { bottom: calc(76px + env(safe-area-inset-bottom)) !important; }
+}

@@ -76,14 +76,13 @@ test('NBA boot integration: default slate loads, renders, evaluates without thro
   assert.equal(breaker.calibrated, false);
   assert.equal(breaker.driftHurdle, 3.0);
 
-  // Every fixture quote evaluates honestly: ingested (never verified), and
-  // never actionable (verified:false → qState 'ingested').
+  // A fixture without quoted_at remains inspectable but cannot be actionable.
   for (const row of P.state.slate) {
     const evaluation = P.evaluateRow(row);
     assert.equal(evaluation.actionable, false, `${row.player_id} must not be actionable on fixture data`);
   }
   const quotedRow = P.state.slate.find((r) => r.player_id === 'fx-nba-jaylen-brown');
-  assert.equal(P.evaluateRow(quotedRow).state, 'ingested');
+  assert.equal(P.evaluateRow(quotedRow).state, 'unquoted');
 
   // Rendering pipeline must complete without throwing for table + cards.
   P.setView('table');

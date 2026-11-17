@@ -50,18 +50,14 @@ test('anti-tout empty state renders with the active gate (no riskPolicy crash)',
   P.renderBoard();
 
   const empty = registry.get('#emptyState');
-  assert.ok(empty.innerHTML.includes('0 Qualified Plays Today'), 'anti-tout empty state rendered');
-  const gateMatch = empty.innerHTML.match(/statistical edge \(>(\d+)%\)/);
-  assert.ok(gateMatch, 'gate percentage present in the copy');
-  const expectedGate = Math.round((P.state.picks && Number.isFinite(Number(P.state.picks.gate_edge))
-    ? Number(P.state.picks.gate_edge) : 0.10) * 100);
-  assert.equal(Number(gateMatch[1]), expectedGate, 'copy shows the ACTIVE gate, not a hardcoded constant');
+  assert.match(empty.innerHTML, /No qualifying prices right now|Snapshot only/);
+  assert.doesNotMatch(empty.innerHTML, /market is efficient/i);
 
   // The phantom object must stay absent — no code path may recreate it.
   assert.equal(P.state.riskPolicy, undefined, 'state.riskPolicy must not exist (fix removes the reference)');
 });
 
-test('anti-tout gate falls back to 10% when no picks policy exists', async () => {
+test('empty state stays fail-closed when no picks policy exists', async () => {
   const { sandbox, registry } = buildSandbox();
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
@@ -77,5 +73,6 @@ test('anti-tout gate falls back to 10% when no picks policy exists', async () =>
   P.state.filters.playMode = 'actionable';
   P.renderBoard();
   const empty = registry.get('#emptyState');
-  assert.ok(empty.innerHTML.includes('statistical edge (>10%)'), 'default 10% gate shown without a picks policy');
+  assert.match(empty.innerHTML, /No qualifying prices right now|Snapshot only/);
+  assert.doesNotMatch(empty.innerHTML, /market is efficient/i);
 });

@@ -198,6 +198,7 @@ def build_quotes(day: str, games: list[dict], events: list[dict], markets: list[
                 "over_ask_price": price(m, "yes_ask"),
                 "under_ask_price": price(m, "no_ask"),
                 "observed_at": observed_at,
+                "quoted_at": observed_at,
                 "source": SOURCE,
                 "verified": False,
                 "_fixture": False,

@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "id": "status-pr1-lac-bal",
+      "date": "2026-11-17T01:15:00Z",
+      "status": { "type": { "state": "pre", "name": "STATUS_SCHEDULED", "detail": "Scheduled" } },
+      "competitions": [
+        {
+          "date": "2026-11-17T01:15:00Z",
+          "competitors": [
+            { "homeAway": "away", "team": { "abbreviation": "LAC" } },
+            { "homeAway": "home", "team": { "abbreviation": "BAL" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

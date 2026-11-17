@@ -43,3 +43,8 @@ requirements for the fix, not fields available to the original renderer.
 The 390px capture shows `Matched`, `Active 2`, `Top 25`, `All 21`, the
 3:55 PM ET snapshot, and the squeezed fail-closed explainer. The 880px
 capture shows the snapshot strip under the density switcher.
+
+The production bug clock is after the LAC–BAL scheduled start. Its correct
+presentation is **Event started · pregame research archived**. A second
+fixture clock at 6:30 PM ET, before kickoff, tests the distinct **Snapshot
+only · 3:55 PM ET** state. Both clocks use the same captured payload.
