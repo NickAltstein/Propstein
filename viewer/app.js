@@ -2922,7 +2922,7 @@
       + (state.featureContextLocked ? '' : '<button type="button" id="dqDismissBtn" class="dq-dismiss-btn" title="Dismiss banner" aria-label="Dismiss banner">×</button>')
       + '</div>';
     const retry = document.getElementById('dqRetryBtn');
-    if (retry) retry.addEventListener('click', () => window.location.reload());
+    if (retry) retry.addEventListener('click', () => triggerOddsPoll(false));
   }
 
   /**
@@ -8082,18 +8082,6 @@
   // ── §18. Ledger mutations & data import/export ────────────────────────
 
 
-  function canonicalJson(value) {
-    if (value === null || typeof value !== 'object') return JSON.stringify(value);
-    if (Array.isArray(value)) return `[${value.map((item) => canonicalJson(item)).join(',')}]`;
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
-  }
-
-  async function sha256Hex(textValue) {
-    if (!globalThis.crypto || !crypto.subtle) throw new Error('SHA-256 unavailable');
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(textValue));
-    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
   function quoteReceiptSha(quote) {
     const candidates = [quote && quote.raw_payload_sha256, quote && quote.receipt_sha256, quote && quote.content_hash];
     for (const candidate of candidates) {
@@ -8106,75 +8094,6 @@
     const hash = quoteReceiptSha(quote);
     if (!hash) return '';
     return `<details class="terminal-receipt"><summary title="sha256:${hash}" aria-label="Quote receipt ending ${hash.slice(-6)}">⬡ ${hash.slice(-6)}</summary><code>sha256:${hash}</code></details>`;
-  }
-
-  // Personal log. Grading is off until a close tape with captured_at < kickoff_at exists.
-  // Do not write these rows into clv_audit_report.json. Stake is 1u. Undo is the toast.
-  async function logOneUnit(playerId) {
-    const row = state.slate.find((item) => item.player_id === playerId);
-    if (!row) return;
-    const evaluation = evaluateRow(row);
-    if (!evaluation || !Number.isFinite(Number(evaluation.line)) || !Number.isFinite(Number(evaluation.odds))) {
-      toast('No quote on this row');
-      return;
-    }
-    const frozen = {
-      schema: 'personal_clv.v1',
-      id: `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      sport: SPORT_ID,
-      player_id: row.player_id,
-      player_name: row.player_display_name,
-      team: row.team,
-      opponent: row.opponent_team,
-      market: state.filters.market,
-      side: evaluation.side || 'OVER',
-      line: Number(evaluation.line),
-      odds: Number(evaluation.odds),
-      book: evaluation.book || '',
-      stake_units: 1,
-      logged_at: new Date().toISOString(),
-      quote_state: evaluation.state === 'verified' ? 'verified' : 'unverified',
-      quote_receipt_sha256: quoteReceiptSha(evaluation.quote)
-    };
-    let entryHash;
-    try {
-      entryHash = await sha256Hex(canonicalJson(frozen));
-    } catch (_) {
-      toast('Could not hash this log entry');
-      return;
-    }
-    const entry = {
-      ...frozen,
-      entry_hash: entryHash,
-      grade: {
-        status: 'UNGRADED',
-        close_line: null,
-        close_odds: null,
-        close_captured_at: null,
-        close_receipt_sha256: null,
-        line_delta: null,
-        price_clv_pp: null,
-        graded_at: null,
-        source: null
-      }
-    };
-    stampProvenance(entry, row);
-    if (!Array.isArray(state.portfolio)) state.portfolio = [];
-    state.portfolio.unshift(entry);
-    savePortfolio(state.portfolio);
-    updatePortfolioBadge(true);
-    renderBoard();
-    if ($('#detailDialog').open && state.selectedPlayerId === playerId) renderDetailModal(row);
-    toast('Ticket staged', () => {
-      const idx = state.portfolio.findIndex((bet) => bet.id === entry.id);
-      if (idx >= 0) {
-        state.portfolio.splice(idx, 1);
-        savePortfolio(state.portfolio);
-        updatePortfolioBadge(true);
-        renderBoard();
-        if ($('#detailDialog').open && state.selectedPlayerId === playerId) renderDetailModal(row);
-      }
-    });
   }
 
   function logBet(playerId) {
