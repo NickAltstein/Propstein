@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v266-ice-header';
+const CACHE_NAME = 'propstein-v267-ice-icons';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -53,11 +53,13 @@ const STATIC_ASSETS = [
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
-  '/site.webmanifest?v=2027_icon2',
-  '/favicon.svg?v=2027_icon2',
-  '/icon-192.png?v=2027_icon2',
-  '/icon-512.png?v=2027_icon2',
-  '/apple-touch-icon.png?v=2027_icon2'
+  '/site.webmanifest?v=2027_icon3',
+  '/favicon.svg?v=2027_icon3',
+  '/icon-192.png?v=2027_icon3',
+  '/icon-512.png?v=2027_icon3',
+  '/icon-maskable-192.png?v=2027_icon3',
+  '/icon-maskable-512.png?v=2027_icon3',
+  '/apple-touch-icon.png?v=2027_icon3'
 ];
 
 self.addEventListener('install', (event) => {

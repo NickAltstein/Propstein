@@ -26,10 +26,10 @@ export const metadata: Metadata = {
   applicationName: "PropStein",
   icons: {
     icon: [
-      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/icon-192.png?v=2027_icon3", sizes: "192x192", type: "image/png" },
+      { url: "/brand/icon-32.png?v=2027_icon3", sizes: "32x32", type: "image/png" },
     ],
-    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/brand/apple-touch-icon.png?v=2027_icon3", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "PropStein — Research Terminal",
