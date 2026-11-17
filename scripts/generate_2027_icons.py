@@ -54,9 +54,9 @@ def save_svg(favicon: Image.Image) -> None:
 
 
 def main() -> None:
-    app = load_master("app-icon-master.png")
-    maskable = load_master("maskable-icon-master.png")
-    favicon = load_master("favicon-master.png")
+    app = load_master("app-icon-master.webp")
+    maskable = load_master("maskable-icon-master.webp")
+    favicon = load_master("favicon-master.webp")
 
     for size in (192, 512):
         save(app, size, (f"icon-{size}.png",), (VIEWER, PUBLIC, ROOT))
