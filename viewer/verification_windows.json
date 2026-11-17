@@ -1,0 +1,7 @@
+{
+  "contract": "verification.v1",
+  "staleness_pregame_minutes": 90.0,
+  "staleness_near_kickoff_minutes": 15.0,
+  "staleness_in_game_minutes": 2.0,
+  "near_kickoff_window_minutes": 30.0
+}

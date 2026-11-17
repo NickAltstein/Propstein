@@ -633,6 +633,9 @@ def merge_feed(quotes: list[dict], dry_run: bool = False) -> bool:
         # stamps remain the true fetch window, microseconds apart.
         q = dict(q)
         q["observed_at"] = (base + timedelta(microseconds=i)).isoformat()
+        # A successful live CLOB read observes the standing price at this
+        # instant. Re-serving the stored feed leaves quoted_at unchanged.
+        q["quoted_at"] = q["observed_at"]
         # internal capture envelope never ships to the public feed
         q.pop("_receipt_capture", None)
         merged.append(q)

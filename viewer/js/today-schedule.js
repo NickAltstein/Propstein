@@ -142,8 +142,8 @@
     return `<span class="today-prop-photo"><span>${escapeHtml(initials)}</span>${safeUrl ? `<img src="${escapeHtml(safeUrl)}" alt="" loading="lazy">` : ''}</span>`;
   }
 
-  // NBA reference books: FanDuel (The Odds API) or the free Kalshi fallback.
-  const NBA_BOOKS = ['fanduel', 'kalshi'];
+  // NBA public quote source.
+  const NBA_BOOKS = ['kalshi'];
   const isNbaBook = (quote) => NBA_BOOKS.includes(String(quote.book || '').toLowerCase());
 
   function matchingLine(row, game, sport, dateKey, quotes) {
@@ -342,6 +342,9 @@
         return !Number.isNaN(date.getTime()) && easternDate(date) === dateKey;
       }).sort((a, b) => new Date(a.date) - new Date(b.date));
       currentEvents = games;
+      // The board joins these same schedule/scores events to its game ids.
+      window.PropSteinScheduleEvents = games;
+      window.dispatchEvent(new Event('propstein:schedule'));
       gamesEl.innerHTML = games.length ? games.map(gameCard).join('') : `<p class="today-schedule-message">No ${leagueNames[sport]} games today.</p>`;
       if (!games.length) renderNextUp(sport, dateKey, currentRequest);
       document.getElementById('todayScheduleSource').textContent = `Schedule and scores: ESPN · Times shown in ${timeZoneSelect?.value === 'et' ? 'Eastern' : 'your local'} time · ${games.length} game${games.length === 1 ? '' : 's'}`;

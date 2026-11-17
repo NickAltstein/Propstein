@@ -191,6 +191,8 @@
     playerPhotos: { photos: {}, byName: {} },
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
+    verificationWindows: null,
+    lastRefreshAttemptAt: null,
     sgpCandidates: [],
     lineHistoryCache: {},
     filters: { search: '', market: adapter.defaultMarket, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
@@ -805,33 +807,18 @@
   }
 
   function feedVerificationLabel(feed = state.odds) {
-    const status = String((feed && feed.feed_status) || '').toUpperCase();
-    const health = feed === state.odds ? feedHealthStates() : null;
-    const verifiedQuotes = Array.isArray(feed && feed.quotes)
-      ? feed.quotes.filter((quote) => quoteState(quote) === 'verified').length
-      : 0;
-    if (status === 'FIXTURE' || adapter.fixturesOnly === true) return 'FIXTURE';
-    if (health && health.odds === 'error') return 'OFFLINE';
-    if (health && health.oddsFreshness === 'stale') return 'STALE';
-    if (health && health.oddsFreshness !== 'ok') return 'TIME UNKNOWN';
-    if (verifiedQuotes > 0 && !status.includes('UNVERIFIED')) return 'VERIFIED';
-    // Engine-graded middle state: every stamped quote passed the receipt
-    // clause (two independent CLOB pulls hash-matched against the receipt
-    // log) but the cross-book conflict clause stays uncheckable on a
-    // single-publisher feed. Honest evidence — never rendered as VERIFIED.
-    if (status.includes('RECEIPTED')) return 'RECEIPT-MATCHED';
-    return 'UNVERIFIED';
+    if (feed === state.odds && (state.feedHealth?.dataKind === 'fixture' || adapter.fixturesOnly === true)) return 'FIXTURE';
+    return marketStatus().label;
   }
 
-  // NBA market-only reference books. Live lines are Kalshi. Older files may
-  // still be FanDuel. Labels follow whichever book the feed holds.
-  const NBA_REFERENCE_BOOKS = { fanduel: 'FanDuel via The Odds API', kalshi: 'Kalshi exchange' };
+  // NBA market-only quotes come from Kalshi and carry no model prediction.
+  const NBA_REFERENCE_BOOKS = { kalshi: 'Kalshi exchange' };
   function isNbaReferenceQuote(quote) {
     return Object.prototype.hasOwnProperty.call(NBA_REFERENCE_BOOKS, String((quote && quote.book) || '').toLowerCase());
   }
   function nbaReferenceBook(quotes) {
     const quote = (quotes || []).find(isNbaReferenceQuote);
-    return quote ? String(quote.book) : 'FanDuel';
+    return quote ? String(quote.book) : 'Kalshi';
   }
   function nbaReferenceSource(book) {
     return NBA_REFERENCE_BOOKS[String(book).toLowerCase()] || String(book);
@@ -889,29 +876,25 @@
   function updateFeedVerificationUI() {
     const label = feedVerificationLabel();
     const health = feedHealthStates();
-    const verified = (state.odds?.quotes || []).filter((quote) => quoteState(quote) === 'verified').length;
+    const verified = marketStatus().verifiedCount;
+    const verifiedQuotes = (state.odds?.quotes || []).filter((quote) => quote.verified === true && quote.verification_status === 'VERIFIED').length;
     const researchCount = Array.isArray(state.livePicks?.picks) ? state.livePicks.picks.length : 0;
     const researchSource = researchCount ? String(state.livePicks.source || 'Source unspecified') : 'No current research scan';
     if (health.dataKind !== 'fixture' && (health.odds !== 'ok' || health.oddsFreshness !== 'ok')) {
-      const ingested = (state.odds?.quotes || []).length;
-      if ($('#marketState')) $('#marketState').textContent = `${ingested} observed quotes · feed ${label.toLowerCase()} · qualification paused.`;
-      if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified · feed ${label.toLowerCase()}.`;
+      if ($('#marketState')) $('#marketState').textContent = label;
+      if ($('#priceCheckText')) $('#priceCheckText').textContent = label;
     }
     if ($('#settingsFeedProvider')) $('#settingsFeedProvider').textContent = marketFeedSourceLabel();
     if ($('#settingsResearchSource')) $('#settingsResearchSource').textContent = researchSource;
     const receiptMatched = (state.odds?.quotes || []).filter((q) => q && q.verification_status === 'OBSERVED' && q.verification_receipt_id).length;
     if ($('#settingsReceiptsStatus')) $('#settingsReceiptsStatus').textContent =
-      health.odds !== 'ok' || health.oddsFreshness !== 'ok'
-        ? `${verified} receipt-verified quotes in current feed · feed ${label.toLowerCase()} · qualification paused`
-        : verified > 0 ? `${verified} feed-verified quotes`
-        : receiptMatched > 0 ? `${receiptMatched} receipt-matched quotes · single-book feed — cross-book audit unlocks with a second sharp book`
-        : '0 feed-verified quotes · independent audit pending';
+      `${receiptMatched} receipt matches · ${verified} verified opportunities · ${label}`;
     const blockers = [];
     if (SLATES[state.slateKey]?.historical || health.dataKind === 'fixture') {
       blockers.push('historical/fixture slate');
     } else {
       if (health.odds !== 'ok' || health.oddsFreshness !== 'ok') blockers.push('fresh market quotes');
-      if (!verified) blockers.push('independent quote audit');
+      if (!verifiedQuotes) blockers.push('independent quote audit');
       if (health.news !== 'ok' || health.newsFreshness !== 'ok') blockers.push('fresh news');
       if (breakerFor(state.filters.market).calibrated === false) blockers.push('calibrated model');
     }
@@ -939,6 +922,7 @@
   // ── §8. Odds polling pipeline — live quotes, never cached ─────────────
 
   async function triggerOddsPoll(isAuto = false) {
+    state.lastRefreshAttemptAt = new Date().toISOString();
     const refreshBtn = $('#manualPollBtn');
     if (refreshBtn) refreshBtn.classList.add('is-spinning');
     state.lastPolledAt = Date.now();
@@ -1029,9 +1013,9 @@
           triggerHaptic('light');
         }
 
-        const verifiedCount = quotes.filter((quote) => quoteState(quote) === 'verified').length;
-        const refreshSummary = `${quotes.length} ingested · ${verifiedCount} receipt-verified`;
-        toast(isAuto ? `Odds checked: ${refreshSummary} (${upMoves + downMoves} provider moves)` : `Refresh complete: ${refreshSummary}`);
+        const priorKeys = new Set(Object.keys(prevQuoteMap));
+        const newQuotes = quotes.filter((quote) => !priorKeys.has(`${quote.player_id}::${quote.market}`)).length;
+        toast(`${isAuto ? 'Checked' : 'Refreshed'} · ${newQuotes ? `${newQuotes} new ${newQuotes === 1 ? 'quote' : 'quotes'}` : 'no new quotes'} · ${marketStatus().label}`);
       }
     } catch (e) {
       console.warn('Live odds polling error:', e);
@@ -2560,7 +2544,7 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slateRes, gamesRes, picks, livePicksRes, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg, sgpRes, feedStatusRes] = await Promise.all([
+    const [slateRes, gamesRes, picks, livePicksRes, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg, sgpRes, feedStatusRes, verificationWindows] = await Promise.all([
       fetchJsonStatus(config.slate, []),
       fetchJsonStatus(config.games, []),
       fetchJson(config.picks, {}),
@@ -2572,7 +2556,8 @@
       fetchJsonStatus('news_watcher_state.json', null),
       fetchJson('circuit_breaker_config.json', null),
       fetchJson('sgp_candidates.json', null),
-      fetchJsonStatus('feeds/feed_status.json', { sports: {} })
+      fetchJsonStatus('feeds/feed_status.json', { sports: {} }),
+      fetchJson('verification_windows.json', null)
     ]);
     const slate = slateRes.data;
     const games = gamesRes.data;
@@ -2600,6 +2585,7 @@
     applyFeedGate(feedStatusRes && feedStatusRes.data);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
     state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
+    state.verificationWindows = verificationWindows?.contract === 'verification.v1' ? verificationWindows : null;
     state.sgpCandidates = Array.isArray(sgpRes?.candidates) ? sgpRes.candidates : [];
 
     // Feed health (Phase 2 failure-mode UI): transport status per critical
@@ -2723,12 +2709,80 @@
     };
   }
 
+  function scheduledStart(game) {
+    if (!game?.gameday || !game?.gametime) return null;
+    const wall = Date.parse(`${game.gameday}T${game.gametime}:00Z`);
+    if (!Number.isFinite(wall)) return null;
+    const zone = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York',
+      timeZoneName: 'shortOffset' }).formatToParts(new Date(wall))
+      .find((part) => part.type === 'timeZoneName')?.value || '';
+    const offset = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(zone);
+    if (!offset) return null;
+    const minutes = (Number(offset[2]) * 60 + Number(offset[3] || 0)) * (offset[1] === '+' ? 1 : -1);
+    return new Date(wall - minutes * 60000).toISOString();
+  }
+
+  function marketGameStates() {
+    const events = Array.isArray(window.PropSteinScheduleEvents) ? window.PropSteinScheduleEvents : [];
+    const dateInEt = (value) => new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date(value));
+    const alias = (value) => ({ LA: 'LAR', WSH: 'WAS', NY: 'NYK', GS: 'GSW', SA: 'SAS', NO: 'NOP' }[value] || value);
+    return Object.fromEntries((state.games || []).map((game) => {
+      const startAt = scheduledStart(game);
+      const event = events.find((candidate) => {
+        const competitors = candidate.competitions?.[0]?.competitors || [];
+        const away = alias(competitors.find((team) => team.homeAway === 'away')?.team?.abbreviation);
+        const home = alias(competitors.find((team) => team.homeAway === 'home')?.team?.abbreviation);
+        return away === game.away_team && home === game.home_team &&
+          candidate.date && dateInEt(candidate.date) === game.gameday;
+      });
+      const status = event?.competitions?.[0]?.status || event?.status || {};
+      const detail = `${status.type?.name || ''} ${status.type?.detail || ''}`.toLowerCase();
+      const phase = status.type?.state;
+      let lifecycle = /postponed/.test(detail) ? 'postponed'
+        : phase === 'post' ? 'final' : phase === 'in' ? 'started' : 'unknown';
+      const scheduled = event?.date || startAt;
+      if (lifecycle === 'unknown' && scheduled && Date.parse(scheduled) <= Date.now()) lifecycle = 'started';
+      else if (lifecycle === 'unknown' && phase === 'pre' && scheduled && Date.parse(scheduled) > Date.now()) lifecycle = 'upcoming';
+      return [game.game_id, { lifecycle, startAt: scheduled || null }];
+    }));
+  }
+
+  function marketStatus(market = state.filters.market) {
+    const qualifications = {};
+    const topList = new Set((state.picks?.top_projections || [])
+      .map((pick) => String(pick.player || '').toLowerCase()));
+    const topCount = adapter.topPlays?.source === 'ev_ranked'
+      ? state.slate.filter((row) => findQuote(row, market) &&
+        (!adapter.hasCompleteInputs || adapter.hasCompleteInputs(row, market))).length
+      : state.slate.filter((row) => topList.has(String(row.player_display_name || '').toLowerCase())).length;
+    if (SPORT_ID !== 'nba') {
+      for (const row of state.slate || []) {
+        const quote = findQuote(row, market);
+        if (!quote) continue;
+        const assessment = evaluateRow(row);
+        qualifications[`${quote.player_id || quote.player_name || ''}::${quote.market || ''}`] =
+          policy() ? assessment.qualified && !assessment.closed && !assessment.volatilityHalt &&
+            !assessment.dataCheck && feedHealthStates().newsFreshness === 'ok' : null;
+      }
+    }
+    return window.PropSteinMarketStatus.deriveMarketStatus(state.odds, Date.now(), {
+      market, verificationWindows: state.verificationWindows,
+      gameStates: marketGameStates(), qualifications,
+      allCount: state.slate.length, topCount, topLimit: CARD_PAGE_SIZE,
+      feedUnavailable: state.feedHealth?.odds === 'error' || !state.verificationWindows,
+      checking: state.feedHealth?.odds === 'checking',
+      lastRefreshAttemptAt: state.lastRefreshAttemptAt
+    });
+  }
+
   function executionDecision(row, evaluation = null) {
     const result = evaluation || evaluateRow(row);
     const health = feedHealthStates();
     const quote = result.quote || null;
     const receipt = quote && (quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash));
-    const observedAt = quote && Date.parse(quote.observed_at || '');
+    const observedAt = quote && Date.parse(quote.quoted_at || '');
     const completeQuote = Boolean(
       quote && receipt && Number.isFinite(observedAt) && result.book &&
       Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds)) &&
@@ -2754,58 +2808,40 @@
     const banner = elById('dataQualityBanner');
     if (!banner) return;
     const health = feedHealthStates();
+    const derived = marketStatus();
     const quoteStatus = elById('terminalQuoteStatus');
     if (quoteStatus) {
-      const status = feedVerificationLabel();
-      const age = health.oddsAgeSeconds;
-      const ageLabel = age === null ? '' : age >= 86400 ? `${Math.floor(age / 86400)}d`
-        : age >= 3600 ? `${Math.floor(age / 3600)}h`
-          : age >= 60 ? `${Math.floor(age / 60)}m` : 'under 1m';
-      const label = {
-        FIXTURE: 'Demo odds · synthetic',
-        OFFLINE: 'Odds feed offline',
-        STALE: 'Odds stale',
-        'TIME UNKNOWN': 'Odds timestamp unavailable',
-        VERIFIED: 'Receipt-verified quotes',
-        'RECEIPT-MATCHED': 'Receipt-matched quotes',
-        UNVERIFIED: 'Odds unverified',
-      }[status];
-      const text = ageLabel && status !== 'FIXTURE' ? `${label} · Last update ${ageLabel} ago` : label;
-      quoteStatus.dataset.state = status.toLowerCase();
-      const compact = status === 'STALE' ? `${ageLabel || '—'} stale`
-        : status === 'VERIFIED' ? 'Verified' : status === 'RECEIPT-MATCHED' ? 'Matched'
-          : status === 'OFFLINE' ? 'Offline' : status === 'FIXTURE' ? 'Demo'
-            : status === 'UNVERIFIED' ? 'Unverified' : 'Checking';
-      quoteStatus.title = text || compact;
+      const compact = {
+        started: 'Event started', unavailable: 'Unavailable', checking: 'Checking',
+        snapshot: 'Snapshot only', opportunities: `${derived.verifiedCount} verified`,
+        none: 'No qualifying'
+      }[derived.presentation];
+      quoteStatus.dataset.state = derived.presentation;
+      quoteStatus.title = derived.label;
       if (quoteStatus.textContent !== compact) quoteStatus.textContent = compact;
       const snapshotStatus = document.querySelector('.terminal-snapshot-status');
-      if (snapshotStatus) snapshotStatus.textContent = text || compact;
+      if (snapshotStatus) snapshotStatus.textContent = '';
     }
     const snapshotPill = elById('snapshotAgePill');
     if (snapshotPill) {
-      const feedTime = [health.oddsUpdatedAt, state.odds.generated_at,
-        ...(state.odds.quotes || []).map((quote) => quote.observed_at)]
-        .map((value) => Date.parse(String(value || '')))
-        .find((value) => Number.isFinite(value));
-      const ageSeconds = Number.isFinite(feedTime) ? Math.max(0, (Date.now() - feedTime) / 1000) : null;
-      const captured = Number.isFinite(feedTime)
-        ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(feedTime))
-        : null;
-      const hasUpcomingSlate = Array.isArray(state.slate) && state.slate.length > 0 && !SLATES[state.slateKey]?.historical;
-      if (health.dataKind === 'fixture') {
-        snapshotPill.textContent = 'Demo fixture · Synthetic sample data';
-      } else if (health.odds === 'error') {
-        snapshotPill.textContent = 'Snapshot unavailable · Odds feed offline';
-      } else if (!captured) {
-        snapshotPill.textContent = !hasUpcomingSlate
-          ? `Between slates · ${pricesPostCopy()}`
-          : 'Snapshot time unavailable · Prices unverified';
-      } else if (ageSeconds > 1800) {
-        snapshotPill.textContent = `Snapshot Mode · Captured ${captured}`;
-      } else {
-        snapshotPill.textContent = '';
-      }
-      snapshotPill.hidden = !snapshotPill.textContent;
+      snapshotPill.textContent = health.dataKind === 'fixture'
+        ? 'Demo fixture · Synthetic sample data' : derived.label;
+      snapshotPill.hidden = false;
+    }
+    const details = elById('terminalFeedDetailsContent');
+    if (details) {
+      const allQuotes = state.odds.quotes || [];
+      const receipts = allQuotes.filter((quote) => quote.verification_receipt_id).length;
+      const rejected = allQuotes.filter((quote) => quote.verification_status === 'REJECTED').length;
+      const latestValidation = allQuotes.map((quote) => quote.verification_checked_at).filter(Boolean).sort().at(-1);
+      const reasons = allQuotes.flatMap((quote) => (quote.verification_clauses || [])
+        .filter((clause) => clause.passed === false).map((clause) => clause.clause_id || 'unspecified'));
+      const offerRows = derived.offers.map((offer) => `<li>${esc(offer.quote.player_name || offer.quote.player_id || 'Quote')} · ${esc(offer.freshness)} · ${esc(offer.verification)} · ${esc(offer.qualification)} · ${esc(offer.lifecycle)}</li>`).join('');
+      details.innerHTML = `<span>${allQuotes.length} ingested quotes · ${receipts} receipt matches · ${rejected} rejected · ${derived.verifiedCount} verified opportunities in this market.</span>
+        <span>Provider quote: ${esc(allQuotes.map((quote) => quote.quoted_at).filter(Boolean).sort().at(-1) || 'unknown')} · Ingested: ${esc(state.odds.updated_at || 'unknown')} · Validated: ${esc(latestValidation || 'unknown')} · Refresh attempted: ${esc(derived.lastRefreshAttemptAt || 'not yet')}.</span>
+        ${reasons.length ? `<span>Rejection reasons: ${esc([...new Set(reasons)].join(', '))}.</span>` : ''}
+        <span>Verified means provenance and freshness checks passed; it does not guarantee execution, availability, model quality, or a winning outcome.</span>
+        ${offerRows ? `<span>Current market offers:</span><ul>${offerRows}</ul>` : ''}`;
     }
     const items = [];
     let tone = 'ok';
@@ -3090,9 +3126,7 @@
   function renderHeader() {
     const config = SLATES[state.slateKey];
     const activePolicy = policy();
-    const health = feedHealthStates();
-    const ingested = state.odds.quotes.length;
-    const verified = state.odds.quotes.filter((quote) => quoteState(quote) === 'verified').length;
+    const derived = marketStatus();
     const teams = new Set(state.slate.flatMap((row) => [row.team, row.opponent_team]).filter(Boolean));
     if ($('#gateChip')) $('#gateChip').textContent = activePolicy ? `Gate ${pct(activePolicy.gate, 0)}` : 'Gate missing';
     if ($('#gateVal')) $('#gateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
@@ -3103,24 +3137,18 @@
         adapter.labels.ticker.games(state.games.length),
         adapter.labels.ticker.teams(teams.size),
         adapter.labels.ticker.records(state.slate.length),
-        adapter.labels.ticker.ingestedTail(ingested, verified)
-      ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span class="${item.includes('verified') && verified ? 'ticker-verified' : item.includes('verified') && ingested ? 'ticker-caution' : ''}">${esc(item)}</span>`).join('');
+        derived.label
+      ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span>${esc(item)}</span>`).join('');
     }
 
     if (!activePolicy) {
       if ($('#marketState')) $('#marketState').textContent = 'Qualification policy is missing from JSON. Action fields are disabled.';
     } else if (config.historical) {
       if ($('#marketState')) $('#marketState').textContent = 'Historical slate. Games are closed and cannot be presented as actionable.';
-    } else if (ingested === 0) {
-      if ($('#marketState')) $('#marketState').textContent = 'No odds feed connected / 0 quotes ingested. Showing model projections and scoped fair lines only.';
-    } else if (health.odds !== 'ok' || health.oddsFreshness !== 'ok') {
-      if ($('#marketState')) $('#marketState').textContent = `${ingested} observed quotes · feed ${feedVerificationLabel().toLowerCase()} · qualification paused.`;
-    } else if (verified === 0) {
-      if ($('#marketState')) $('#marketState').textContent = `No verified price receipts / ${ingested} quotes ingested. Offers are visible, but action fields remain locked.`;
     } else {
-      if ($('#marketState')) $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
+      if ($('#marketState')) $('#marketState').textContent = derived.label;
     }
-    if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
+    if ($('#priceCheckText')) $('#priceCheckText').textContent = derived.label;
 
     const mobileHeaderSport = $('#mobileHeaderSport');
     const mobileHeaderSlate = $('#mobileHeaderSlate');
@@ -3465,10 +3493,14 @@
 
   function filteredRows() {
     const { search, position, team, gameId, playMode, intent } = state.filters;
+    const eligible = playMode === 'actionable' && SPORT_ID === 'nfl'
+      ? new Set(marketStatus().offers.filter((offer) => offer.opportunity).map((offer) => offer.key))
+      : null;
     let rows = state.slate.filter((row) => {
       if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
       const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
-      if (state.bottomTab !== 'watchlist' && !isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      if (state.bottomTab !== 'watchlist' && !isHistorical && playMode === 'actionable' && SPORT_ID === 'nfl' && state.filters.market !== 'anytime_td'
+        && !eligible.has(`${row.player_id}::${state.filters.market}`)) return false;
       if (playMode === 'top') {
         if (adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
           // Ranked priority board (adapter-driven, e.g. NBA): hide rows without
@@ -3575,17 +3607,18 @@
     }
     $$('.front-pro-bar [data-pro-view]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.proView === state.proView)));
     const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
-    const totalCount = state.slate.length;
-    const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
+    const derived = marketStatus();
+    const totalCount = derived.allCount;
+    const quotedCount = derived.verifiedCount;
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
-    // Top chip counter reflects the actual ranked list (top mode only).
+    // A ranking limit is not a count. Both labels use the same slate scope.
     const topCountEl = elById('topCount');
-    if (topCountEl && state.filters.playMode === 'top') topCountEl.textContent = String(rows.length);
+    if (topCountEl) topCountEl.textContent = String(derived.topCount);
 
     const chipActive = $('#mobileChipActive');
     const chipAll = $('#mobileChipAll');
-    if (chipActive) chipActive.textContent = `ACTIVE ${quotedCount}`;
+    if (chipActive) chipActive.textContent = `Active ${quotedCount}`;
     if (chipAll) chipAll.textContent = `All ${totalCount}`;
     syncFilterChipsUI();
 
@@ -3679,7 +3712,7 @@
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap anti-tout-research-strip terminal-fail-closed" role="status">
             <div class="anti-tout-shield" aria-hidden="true">⬡</div>
-            <div class="anti-tout-title">Fails closed · no verified price</div>
+            <div class="anti-tout-title">${esc(derived.label)}</div>
             <span class="sr-only">Live qualification paused</span>
             <p class="anti-tout-desc">Current prices cannot be verified, so they cannot qualify a play. Model projections remain available for historical research.</p>
             <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
@@ -3692,13 +3725,12 @@
             </div>
           </div>`;
       } else {
-        if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
+        if ($('#resultCount')) $('#resultCount').textContent = `${derived.verifiedCount} verified opportunities · ${state.slate.length} research rows`;
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap">
             <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
-            <div class="anti-tout-title">0 Qualified Plays Today</div>
-            <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
-            <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
+            <div class="anti-tout-title">${esc(derived.label)}</div>
+            <p class="anti-tout-desc">No current quote clears verification and qualification for an upcoming event. Research rows remain available for review.</p>
             <div class="anti-tout-actions">
               <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">View ${state.slate.length} Research Projections</button>
             </div>
@@ -4176,10 +4208,11 @@
     if (fallback) fallback.hidden = true;
     setShowAll(0);
     const health = feedHealthStates();
+    const derived = marketStatus();
     if (state.feedFailClosed) {
       const title = $('#homeEdgeTitle');
       if (title) title.textContent = 'No edges';
-      status.textContent = `Prices stale since ${state.feedStaleSince || 'unknown'}. No edges.`;
+      status.textContent = derived.label;
       list.innerHTML = '<p class="home-edge-empty">No edges. These prices are stale and are not shown as current.</p>';
       if (mountEl) mountEl.innerHTML = '';
       if (fallback) fallback.hidden = true;
@@ -4199,9 +4232,8 @@
       list.innerHTML = '<p class="home-edge-empty">No NBA model prediction or verified edge is available for this slate. No over or under is being recommended.</p>';
       return;
     }
-    const fresh = !SLATES[state.slateKey]?.historical && health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok'
-      && health.news === 'ok' && health.newsFreshness === 'ok'
-      && state.odds.quotes.some((quote) => quoteState(quote) === 'verified');
+    const fresh = !SLATES[state.slateKey]?.historical && health.dataKind !== 'fixture'
+      && derived.verifiedCount > 0;
     if (!fresh) {
       const research = (Array.isArray(state.livePicks?.picks) ? state.livePicks.picks : [])
         .filter((pick) => matches(pick.player, pick.team, pick.market, pick.book))
@@ -4240,9 +4272,7 @@
       const waitingOn = health.odds !== 'ok' || health.oddsFreshness !== 'ok'
         ? `fresh timestamped odds (${feedVerificationLabel().toLowerCase()})`
         : 'independent quote receipt';
-      status.textContent = research.length
-        ? `Showing ${homeEdgeExpanded ? research.length : Math.min(HOME_EDGE_LIMIT, research.length)} of ${research.length} model-ranked research lines. ${verifiedQuotes} receipt-verified in snapshot. Qualification paused: waiting on ${waitingOn}.`
-        : `No verified plays · ${asOf ? `last odds update ${asOf}` : pricesPostCopy()} · model fair lines for research`;
+      status.textContent = derived.label;
       const failClosedShare = $('#homeFailClosedShare');
       if (failClosedShare) failClosedShare.hidden = false;
 
@@ -4294,10 +4324,11 @@
     if (title) title.textContent = 'Verified player props';
     const market = state.filters.market;
     const plays = state.slate.map((row) => ({ row, evaluation: evaluateRow(row) }))
-      .filter(({ row, evaluation }) => evaluation.actionable && evaluation.state === 'verified' && matches(row.player_display_name, row.team, market, evaluation.book))
+      .filter(({ row, evaluation }) => derived.offers.some((offer) => offer.key === `${row.player_id}::${market}` && offer.opportunity)
+        && evaluation.actionable && evaluation.state === 'verified' && matches(row.player_display_name, row.team, market, evaluation.book))
       .sort((a, b) => b.evaluation.ev - a.evaluation.ev)
       .slice(0, HOME_EDGE_LIMIT);
-    status.textContent = `${plays.length ? `Top ${plays.length} verified ${plays.length === 1 ? 'edge' : 'edges'}` : 'No qualified edges'} · odds as of ${asOf || 'time unavailable'}`;
+    status.textContent = derived.label;
     const failClosedShare = $('#homeFailClosedShare');
     if (failClosedShare) failClosedShare.hidden = plays.length > 0;
 
@@ -7261,7 +7292,7 @@
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
           <button type="button" class="card-btn-sim-quick${state.inlineSim && state.inlineSim.pid === row.player_id ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
-          <button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Log 1u'}" title="${isLogged ? 'Remove from Ledger' : 'Log 1u'}">${isLogged ? 'Logged' : 'Log 1u'}</button>
+          <button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}" title="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}">${isLogged ? 'Logged' : 'Stage ticket'}</button>
         </div>
         ${inlineSimPanelHtml(row, dist)}
       `;
@@ -7309,11 +7340,18 @@
       .sort((a, b) => b.price - a.price || String(a.quote.book).localeCompare(String(b.quote.book)));
     if (!offers.length) return '';
     const now = Date.now();
+    const offerStates = marketStatus(state.filters.market).offers;
     const rows = offers.map(({ quote, price }) => {
-      const timestamp = Date.parse(String(quote.observed_at || ''));
+      const timestamp = Date.parse(String(quote.quoted_at || ''));
       const age = Number.isFinite(timestamp) && timestamp <= now ? Math.ceil((now - timestamp) / 60000) : null;
-      const fresh = age !== null && age < 15 && quoteState(quote) === 'verified';
-      return `<tr><th scope="row">${esc(quote.book)}</th><td>${oddsText(price)}</td><td>${age === null ? 'Unknown' : `${age}m ago`}</td><td>${fresh ? 'Receipt verified' : 'Historical / research only'}</td></tr>`;
+      const offer = offerStates.find((item) => item.quote === quote);
+      const status = offer?.opportunity ? 'Verified opportunity'
+        : offer?.lifecycle === 'started' || offer?.lifecycle === 'final' ? 'Event started · research only'
+          : offer?.freshness === 'stale' ? 'Stale · research only'
+            : offer?.freshness === 'unknown' ? 'Time unknown · research only'
+              : offer?.verification === 'rejected' ? 'Rejected · research only'
+                : 'Unverified · research only';
+      return `<tr><th scope="row">${esc(quote.book)}</th><td>${oddsText(price)}</td><td>${age === null ? 'Unknown' : `${age}m ago`}</td><td>${status}</td></tr>`;
     }).join('');
     return `<details class="price-rail" aria-label="Compare prices for ${esc(row.player_display_name)}">
       <summary>Compare ${offers.length} price${offers.length === 1 ? '' : 's'} · ${side} ${line.toFixed(1)}</summary>
@@ -7345,12 +7383,13 @@
     const hasPrice = (quote.over_odds && quote.over_odds !== 0) || (quote.under_odds && quote.under_odds !== 0) || (quote.odds && quote.odds !== 0);
     const hasLine = quote.line !== null && quote.line !== undefined && !Number.isNaN(Number(quote.line));
     const hasBook = Boolean(quote.book);
-    const hasObservedAt = Boolean(quote.observed_at);
+    const hasObservedAt = Number.isFinite(Date.parse(quote.quoted_at || ''));
     if (!hasPrice || !hasLine || !hasBook || !hasObservedAt) {
       return 'unquoted';
     }
     const receipt = quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash);
-    return quote.verified === true && Boolean(receipt) ? 'verified' : 'ingested';
+    return quote.verified === true && quote.verification_status === 'VERIFIED' && Boolean(receipt)
+      ? 'verified' : 'ingested';
   }
 
   function evaluateRow(row) {
@@ -7651,7 +7690,7 @@
     }
 
     const logBtn = row
-      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Log 1u'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Log 1u'}">${isLogged ? 'Logged' : 'Log 1u'}</button>`
+      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}">${isLogged ? 'Logged' : 'Stage ticket'}</button>`
       : '';
 
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
@@ -7964,6 +8003,8 @@
       el = document.createElement('div');
       el.id = 'appToast';
       el.className = 'toast';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
       document.body.appendChild(el);
     }
     const undoBtnHtml = undoAction
@@ -7985,18 +8026,21 @@
           triggerHaptic('medium');
           if (typeof undoAction === 'function') undoAction();
           el.classList.remove('visible');
+          document.body.classList.remove('toast-visible');
           setTimeout(() => { if (el) el.style.display = 'none'; }, 220);
         });
       }
     }
 
     el.style.display = 'block';
+    document.body.classList.add('toast-visible');
     void el.offsetWidth; // force reflow for CSS animation
     el.classList.add('visible');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       if (el) {
         el.classList.remove('visible');
+        document.body.classList.remove('toast-visible');
         setTimeout(() => {
           if (el && !el.classList.contains('visible')) el.style.display = 'none';
         }, 220);
@@ -8158,7 +8202,7 @@
   }
 
   function executionSlipMarkup(row, evaluation, decision) {
-    const observed = evaluation.quote?.observed_at ? new Date(evaluation.quote.observed_at) : null;
+    const observed = evaluation.quote?.quoted_at ? new Date(evaluation.quote.quoted_at) : null;
     const timestamp = observed && Number.isFinite(observed.getTime()) ? observed.toLocaleString() : 'Missing';
     const offers = executionOffers(row);
     const reasons = decision.allowed ? ['Verified receipt', 'Fresh odds and news', `Clears ${pct(policy()?.gate || 0, 0)} gate`] : [decision.message];
@@ -8528,7 +8572,7 @@
         <div class="portfolio-summary-stat"><span>Lose</span><strong>${loseN}</strong></div>
         <div class="portfolio-summary-stat"><span>No close</span><strong>${noCloseN}</strong></div>
       </div>
-      <p class="cell-sub">Grading off. Log 1u rows stay UNGRADED until a proved close tape exists.</p>
+      <p class="cell-sub">Grading off. Staged tickets stay UNGRADED until a proved close tape exists.</p>
       <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0 10px;">
         <div style="display:flex; gap:6px;">
           <button type="button" class="view-chip ${state.ledgerFilter === 'all' ? 'active' : ''}" data-ledger-filter="all" style="font-size:11px; padding:3px 8px;">All (${portfolio.length})</button>
@@ -8539,7 +8583,7 @@
       </div>
       ${portfolio.length === 0 ? `
         <div class="portfolio-empty">
-          <p>No bets logged yet. Log 1u on a quoted row. Grading stays off until a close tape exists.</p>
+          <p>No tickets recorded yet. Stage a ticket on a quoted row. Grading stays off until a close tape exists.</p>
           <div style="margin-top:16px; display:flex; justify-content:center;">
             <button type="button" class="portfolio-action-btn" id="emptyImportLedgerBtn">
               <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 2.5v8M5 5.5l3-3 3 3"/></svg>
@@ -9833,6 +9877,13 @@
       }
     });
   }
+
+  window.addEventListener('propstein:schedule', () => {
+    if (!window.__PROP_WIRE_READY__) return;
+    renderHeader();
+    renderBoard();
+    updateFeedHealthUI();
+  });
 
   window.PropSteinTest = window.PropWireTest = Object.freeze({
     setOddsFeed(feed) {

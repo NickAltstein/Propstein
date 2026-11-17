@@ -33,14 +33,14 @@ test('NBA market-only date separates empty picks from browsable unverified lines
   app.state.games = [{ game_id: 'nba-20261031-PHI-CHA', away_team: 'PHI', home_team: 'CHA' }];
   app.state.odds = {
     feed_status: 'live-unverified', updated_at: '2026-10-31T15:00:00Z',
-    quotes: [{ player_name: 'Test Player', game_id: 'nba-20261031-PHI-CHA', book: 'FanDuel',
+    quotes: [{ player_name: 'Test Player', game_id: 'nba-20261031-PHI-CHA', book: 'Kalshi',
       market: 'points', line: 24.5, over_odds: -110, under_odds: 100, _fixture: false, verified: false }]
   };
   app.renderBoard();
   assert.equal(registry.get('#topCount').textContent, '0');
   assert.equal(registry.get('#homeEdgeTitle').textContent, '0 NBA picks today');
   assert.doesNotMatch(registry.get('#emptyState').innerHTML, /Test Player/);
-  assert.match(registry.get('#emptyState').innerHTML, /Browse FanDuel lines/);
+  assert.match(registry.get('#emptyState').innerHTML, /Browse Kalshi lines/);
   app.setPlayMode('top');
   assert.doesNotMatch(registry.get('#emptyState').innerHTML, /Test Player/);
   app.setPlayMode('all');

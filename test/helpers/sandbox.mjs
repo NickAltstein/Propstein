@@ -216,6 +216,7 @@ export function attachSyntheticQuote(P, { market = 'receiving_yards' } = {}) {
     over_odds: -110,
     under_odds: -110,
     observed_at: '2026-10-20T06:23:35.000137+00:00',
+    quoted_at: '2026-10-20T06:23:35.000137+00:00',
     source: 'Synthetic Book A Manual Entry (UNVERIFIED - harness fixture)',
     source_url: '',
     receipt_id: '',
@@ -244,9 +245,11 @@ export function authorizeSyntheticExecution(P, quote) {
   P.state.featureContextLocked = false;
   P.state.userTier = 'sharp';
   quote.verified = true;
+  quote.verification_status = 'VERIFIED';
   quote.source_url = 'https://example.test/quotes/harness';
   quote.receipt_id = 'receipt_harness_verified';
   quote.observed_at = '2026-10-22T11:59:30Z';
+  quote.quoted_at = quote.observed_at;
   quote.evaluation.prob_edge = 0.11;
   quote.evaluation.expected_return = 0.05;
   quote.evaluation.status = 'QUALIFIED';
@@ -265,6 +268,7 @@ export function loadApp(sandbox) {
     ['viewer/js/sports/nfl.js', path.join(VIEWER, 'js', 'sports', 'nfl.js')],
     ['viewer/js/sports/nba.js', path.join(VIEWER, 'js', 'sports', 'nba.js')],
     ['viewer/js/quant-math.js', path.join(VIEWER, 'js', 'quant-math.js')],
+    ['viewer/js/market-status.js', path.join(VIEWER, 'js', 'market-status.js')],
   ];
   const source = fs.readFileSync(path.join(VIEWER, 'app.js'), 'utf8');
   const hook = `
