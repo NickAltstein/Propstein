@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-16",
-  "as_of": "2026-11-16T23:52:30Z",
+  "as_of": "2026-11-17T00:43:15Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -62,13 +62,6 @@
       "comment": "Strawther (knee) was diagnosed with a left knee sprain Friday and will be re-evaluated in six weeks, Vinny Benedetto of The Denver Gazette reports."
     },
     {
-      "player_name": "Gui Santos",
-      "team": "GSW",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-15T23:03Z",
-      "comment": "Santos is questionable for Monday's game against New Orleans due to right ankle inflammation."
-    },
-    {
       "player_name": "Stephen Curry",
       "team": "GSW",
       "report_status": "Out",
@@ -106,9 +99,9 @@
     {
       "player_name": "Amen Thompson",
       "team": "HOU",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-16T18:13Z",
-      "comment": "Thompson (knee) is listed as questionable for Monday's game against the Heat."
+      "report_status": "Out",
+      "reported_at": "2026-11-16T23:48Z",
+      "comment": "Thompson (knee) is out for Monday's game against the Heat."
     },
     {
       "player_name": "Clint Capela",
@@ -272,11 +265,11 @@
       "comment": "Team president Jeff Weltman said Monday that Nelson (ankle) remains about a month away from returning to the court after offseason surgery, per Philip Rossman-Reich of OrlandoMagicDaily.com."
     },
     {
-      "player_name": "Joel Embiid",
+      "player_name": "Dominick Barlow",
       "team": "PHI",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-16T18:09Z",
-      "comment": "Embiid (foot) is questionable for Monday's game against the Nets."
+      "report_status": "Out",
+      "reported_at": "2026-11-16T23:45Z",
+      "comment": "Barlow (back) will be re-evaluated later in the week and is thought to be nearing his 2026-27 season debut, Tony Jones of The Athletic reports."
     },
     {
       "player_name": "LeBron James",
@@ -284,13 +277,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-16T18:07Z",
       "comment": "James (back) has been ruled out for Monday's game against the Nets."
-    },
-    {
-      "player_name": "Dominick Barlow",
-      "team": "PHI",
-      "report_status": "Out",
-      "reported_at": "2026-11-12T16:37Z",
-      "comment": "Barlow (back) participated in Thursday's shootaround but doesn't have a timeline to return to game action, Ky Carlin of USA Today reports."
     },
     {
       "player_name": "Adem Bona",
