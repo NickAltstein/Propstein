@@ -1,26 +1,26 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-17T04:35:10Z",
+  "generated_at": "2026-11-17T13:54:09Z",
   "sports": {
     "nba": {
-      "level": "degraded",
-      "fail_closed": false,
-      "show_edges": true,
+      "level": "critical",
+      "fail_closed": true,
+      "show_edges": false,
       "stale_since": "2026-11-17T00:43:14Z",
-      "age_hours": 3.87,
+      "age_hours": 13.18,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
       "quotes": 110,
       "slate": "pending"
     },
     "nfl": {
-      "level": "ok",
+      "level": "suppressed",
       "fail_closed": false,
       "show_edges": true,
       "stale_since": "2026-11-17T03:40:47Z",
-      "age_hours": 0.91,
-      "last_error": "No module named 'pydantic'",
+      "age_hours": 10.22,
+      "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "quotes": 11,
-      "slate": "pending"
+      "slate": "none"
     }
   }
 }
