@@ -1,10 +1,10 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-17T03:19:14Z",
+  "generated_at": "2026-11-17T05:12:04Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
-      "default_slate": "2026_w10",
+      "default_slate": null,
       "slates": {
         "2026_w1": {
           "season": 2026,
@@ -25,16 +25,16 @@
         "2026_w10": {
           "season": 2026,
           "week": 10,
-          "shortLabel": "W10 Research",
+          "shortLabel": "W10 Audit",
           "state": "Model refresh blocked: untimestamped game context",
           "slate": "slate_2026_w10.json",
           "games": "games_2026_w10.json",
           "picks": null,
           "livePicks": null,
-          "injuries": "injuries_2026_w10.json",
+          "injuries": null,
           "odds": null,
           "snapshots": "snapshots_2026_w10.json",
-          "historical": false,
+          "historical": true,
           "modelContextStatus": "BLOCKED_UNTIMESTAMPED",
           "actionLocked": true
         },
@@ -89,7 +89,7 @@
       }
     },
     "nba": {
-      "default_slate": "2026-11-16",
+      "default_slate": null,
       "slates": {
         "2026-10-22": {
           "season": 2026,
@@ -289,15 +289,15 @@
         "2026-11-16": {
           "season": 2026,
           "date": "2026-11-16",
-          "shortLabel": "Nov 16 Slate",
-          "state": "Slate \u00b7 2026-11-16",
+          "shortLabel": "Nov 16 Audit",
+          "state": "Historical audit \u00b7 2026-11-16",
           "slate": "nba_slate_2026-11-16.json",
           "games": "nba_games_2026-11-16.json",
           "picks": null,
           "injuries": "nba_injuries_2026-11-16.json",
           "odds": "nba_odds_2026-11-16.json",
           "snapshots": null,
-          "historical": false,
+          "historical": true,
           "timezone": "America/New_York",
           "marketOnly": true
         }
