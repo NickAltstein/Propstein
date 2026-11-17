@@ -51,9 +51,11 @@
       const verdict = qualifications[quoteKey(quote)];
       const qualification = verdict === true ? 'qualifies' : verdict === false
         ? 'does_not_qualify' : 'not_evaluable';
+      const isPostStart = quote.pre_start === false ||
+        (quotedAt !== null && gameStart !== null && quotedAt >= gameStart);
       const opportunity = feed === 'available' && lifecycle === 'upcoming'
         && freshness === 'current' && verification === 'verified'
-        && qualification === 'qualifies';
+        && qualification === 'qualifies' && !isPostStart;
       return { quote, key: quoteKey(quote), lifecycle, freshness, verification,
         qualification, opportunity, quotedAt: quote.quoted_at || null,
         ingestedAt: quote.observed_at || null,

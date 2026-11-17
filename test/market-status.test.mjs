@@ -110,3 +110,34 @@ test('started, unavailable, checking, snapshot, verified, none precedence is sin
   assert.equal(deriveMarketStatus(base, now, policy({ ...common, gameStates: upcoming })).presentation, 'opportunities');
   assert.equal(deriveMarketStatus(base, now, policy({ gameStates: upcoming })).presentation, 'none');
 });
+
+test('viewer derived state never renders post-start quote as actionable opportunity', () => {
+  // 1. Explicit pre_start: false
+  const qPost = quote({ player_id: 'p1', pre_start: false });
+  const payload1 = { updated_at: '2026-11-17T00:00:00Z', quotes: [qPost] };
+  const p1 = policy({
+    gameStates: { g1: { lifecycle: 'upcoming', startAt: '2026-11-17T03:15:00Z' } },
+    qualifications: { 'p1::receiving_yards': true },
+    allCount: 1
+  });
+  const res1 = deriveMarketStatus(payload1, Date.parse('2026-11-17T00:10:00Z'), p1);
+  assert.equal(res1.verifiedCount, 0);
+  assert.equal(res1.offers[0].opportunity, false);
+  assert.equal(res1.presentation, 'none');
+
+  // 2. Quote timestamp after game start timestamp
+  const qLate = quote({
+    player_id: 'p2',
+    quoted_at: '2026-11-17T03:30:00Z',
+    observed_at: '2026-11-17T03:30:00Z',
+  });
+  const payload2 = { updated_at: '2026-11-17T03:30:00Z', quotes: [qLate] };
+  const p2 = policy({
+    gameStates: { g1: { lifecycle: 'upcoming', startAt: '2026-11-17T03:15:00Z' } },
+    qualifications: { 'p2::receiving_yards': true },
+    allCount: 1
+  });
+  const res2 = deriveMarketStatus(payload2, Date.parse('2026-11-17T03:31:00Z'), p2);
+  assert.equal(res2.verifiedCount, 0);
+  assert.equal(res2.offers[0].opportunity, false);
+});

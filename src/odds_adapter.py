@@ -87,6 +87,10 @@ class PropQuote:
     source_url: Optional[str] = None
     book_id: Optional[str] = None      # canonical slug: "draftkings" — matches viewer/books/<id>.svg
     book_short: Optional[str] = None   # "DK" — compact chip label
+    quoted_at: Optional[str] = None
+    scheduled_start: Optional[str] = None
+    offset_to_scheduled_start_sec: Optional[float] = None
+    pre_start: Optional[Any] = None
 
 
 # ---
@@ -1226,6 +1230,23 @@ class OddsIngestionAdapter:
                 actionable_stake = round(min(0.03, 0.25 * (chosen_ev / (dec - 1.0))), 4)
             elif chosen_edge >= (EDGE_HURDLE * 0.5) and chosen_ev > 0:
                 status = "LEAN"
+
+        # Pre-start qualification requirement: A post-start quote cannot qualify for entry.
+        is_pre_start = getattr(quote, "pre_start", None)
+        if is_pre_start is None:
+            quoted_at = getattr(quote, "quoted_at", None)
+            sched_start = getattr(quote, "scheduled_start", None)
+            if quoted_at and sched_start:
+                from src.scheduler.capture_scheduler import compute_pre_start_attribute
+                ps, _ = compute_pre_start_attribute(quoted_at, sched_start)
+                is_pre_start = (ps is True)
+            else:
+                is_pre_start = True
+
+        if is_pre_start is not True:
+            is_qualified = False
+            status = "CLOSED" if is_pre_start is False else "UNEVALUABLE"
+            actionable_stake = 0.0
 
         # Determine catalyst
         if is_qualified:

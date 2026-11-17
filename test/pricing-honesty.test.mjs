@@ -47,3 +47,10 @@ test('homepage status line reads the shared derived state', async () => {
   assert.match(app, /const derived = marketStatus\(\)/);
   assert.doesNotMatch(app, /source-unspecified\} research lines ·/, 'long detail line must stay out of the homepage status');
 });
+
+test('viewer derived state never renders post-start quote as actionable', async () => {
+  const app = await read('../viewer/app.js');
+  assert.match(app, /const postStart = quote\.pre_start === false/);
+  assert.match(app, /actionable = .* && !postStart/);
+  assert.match(app, /closed \|\| Boolean\(postStart\)/);
+});

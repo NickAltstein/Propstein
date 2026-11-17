@@ -11,6 +11,8 @@ SETTLEMENT_RULES_MISMATCH = "SETTLEMENT_RULES_MISMATCH"
 MISSING_SETTLEMENT_RULES = "MISSING_SETTLEMENT_RULES"
 EVENT_MISMATCH = "EVENT_MISMATCH"
 SOURCE_MISMATCH = "SOURCE_MISMATCH"
+CLOSE_AFTER_START = "CLOSE_AFTER_START"
+CLOSE_UNKNOWN_START = "CLOSE_UNKNOWN_START"
 
 
 @dataclass(frozen=True)
@@ -23,6 +25,9 @@ class CloseQuote:
     over_american_odds: int | None = None
     under_american_odds: int | None = None
     quote_source: str = "unknown"
+    quoted_at: str | None = None
+    scheduled_start: str | None = None
+    pre_start: bool | str | None = None
 
 
 @dataclass(frozen=True)
@@ -56,6 +61,18 @@ def match_close(expected: CloseQuote, observed: CloseQuote) -> MatchResult:
         return MatchResult(False, SOURCE_MISMATCH)
     if not _same_line(expected.line, observed.line):
         return MatchResult(False, LINE_CHANGED)
+
+    # Pre-start gate: a close quote must be captured prior to event start
+    obs_pre = observed.pre_start
+    if obs_pre is None and (observed.quoted_at is not None or observed.scheduled_start is not None):
+        from src.scheduler.capture_scheduler import compute_pre_start_attribute
+        obs_pre, _ = compute_pre_start_attribute(observed.quoted_at, observed.scheduled_start)
+
+    if obs_pre is False:
+        return MatchResult(False, CLOSE_AFTER_START)
+    if obs_pre == "unknown":
+        return MatchResult(False, CLOSE_UNKNOWN_START)
+
     return MatchResult(True, None)
 
 
