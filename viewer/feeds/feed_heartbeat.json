@@ -27,11 +27,11 @@
       }
     },
     "nfl": {
-      "last_success_at": null,
-      "last_success_quotes": 0,
+      "last_success_at": "2026-11-17T03:40:47Z",
+      "last_success_quotes": 11,
       "last_error": "No module named 'pydantic'",
       "last_error_at": "2026-11-17T03:19:30Z",
-      "last_attempt_at": "2026-11-17T03:19:30Z",
+      "last_attempt_at": "2026-11-17T03:40:47Z",
       "schedule": {
         "observed_at": null,
         "state": null,
