@@ -2,14 +2,17 @@ name: Daily NBA Kalshi Market Slate
 
 on:
   schedule:
-    # Noon Eastern in EDT and EST. Delayed ticks run; the published-date guard skips duplicates.
-    - cron: '0 16 * * *'
-    - cron: '0 17 * * *'
+    # Noon Eastern in EDT and EST, on odd minutes. :00 and :30 pile up with
+    # other GitHub schedules and those ticks get dropped. Delayed ticks still
+    # run; the published-date guard skips a duplicate only when the file is
+    # not a Kalshi slate.
+    - cron: '7 16 * * *'
+    - cron: '23 17 * * *'
     # Late-afternoon Eastern refreshes (before the earliest 7 pm ET tips).
     # Kalshi quotes tighten closer to tip-off, so a Kalshi slate refreshes
     # on every tick.
-    - cron: '30 20 * * *'
-    - cron: '30 22 * * *'
+    - cron: '37 20 * * *'
+    - cron: '53 22 * * *'
   workflow_dispatch:
 
 # Keep NBA publishing independent from the NFL autopilot and news watcher.

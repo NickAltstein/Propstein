@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER, FROZEN_MS } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, neutralFeedStatusResponse, VIEWER, FROZEN_MS } from './helpers/sandbox.mjs';
 
 /**
  * FEED HEALTH / FAILURE-MODE UI — Phase 2, commit 5.
@@ -47,6 +47,9 @@ function localFetcher(overrides = {}) {
     if (clean === '/live_odds_feed.json' || clean === 'live_odds_feed.json') {
       const text = fs.readFileSync(pinnedOdds, 'utf8');
       return { ok: true, status: 200, json: async () => JSON.parse(text) };
+    }
+    if (clean === '/feeds/feed_status.json' || clean === 'feeds/feed_status.json') {
+      return neutralFeedStatusResponse();
     }
     const file = path.join(VIEWER, clean.replace(/^\/+/, ''));
     if (!fs.existsSync(file)) return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
