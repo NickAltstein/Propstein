@@ -37,6 +37,11 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from src.scheduler.capture_scheduler import (
+    compute_pre_start_attribute,
+    generate_capture_plan,
+    parse_utc_dt,
+)
 VIEWER = ROOT / "viewer"
 ET = ZoneInfo("America/New_York")
 KALSHI = "https://api.elections.kalshi.com/trade-api/v2"
@@ -177,6 +182,8 @@ def build_quotes(day: str, games: list[dict], events: list[dict], markets: list[
         if game is None:
             continue
         ev_markets = [m for m in markets if m.get("event_ticker") == ev["event_ticker"]]
+        tipoff = game.get("tipoff_utc")
+        ps, offset_sec = compute_pre_start_attribute(observed_at, tipoff)
         for player, m in sorted(main_lines(ev_markets, max_spread).items()):
             seg = str(m["ticker"]).split("-")[2] if m["ticker"].count("-") >= 3 else ""
             own = next((t for t in pair if seg.startswith(t) or seg.startswith(_kalshi_code(ev, t))), None)
@@ -199,6 +206,9 @@ def build_quotes(day: str, games: list[dict], events: list[dict], markets: list[
                 "under_ask_price": price(m, "no_ask"),
                 "observed_at": observed_at,
                 "quoted_at": observed_at,
+                "scheduled_start": tipoff,
+                "offset_to_scheduled_start_sec": offset_sec,
+                "pre_start": ps,
                 "source": SOURCE,
                 "verified": False,
                 "_fixture": False,
@@ -217,6 +227,79 @@ def _kalshi_code(event: dict, repo_code: str) -> str:
 
 
 # ---- publish --------------------------------------------------------------
+
+def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
+                            now_iso: str, viewer_dir: Path | None = None) -> list[dict]:
+    """Merge newly fetched quotes with existing quotes, preserving prior pre-start quotes.
+
+    Rules:
+    1. If an existing quote has pre_start == True, and the game has tipped off at now_iso
+       (now >= tipoff), preserve the prior pre-start quote.
+    2. If a game has tipped off and no prior pre-start quote exists, the quote is marked
+       pre_start = False.
+    3. If a game has not tipped off (now < tipoff), the newly fetched quote updates the
+       market. If the fetch produced no quote for a player that previously had a pre-start
+       quote, preserve the prior pre-start quote.
+    """
+    vdir = Path(viewer_dir) if viewer_dir is not None else VIEWER
+    existing_file = vdir / f"nba_odds_{day}.json"
+    existing_quotes = {}
+    if existing_file.is_file():
+        try:
+            data = json.loads(existing_file.read_text(encoding="utf-8"))
+            for q in data.get("quotes", []):
+                key = (q.get("game_id"), q.get("player_id"), q.get("market"))
+                g_tip = next((g.get("tipoff_utc") for g in games if g.get("game_id") == q.get("game_id")), None)
+                sched = q.get("scheduled_start") or g_tip
+                ps, off = compute_pre_start_attribute(q.get("quoted_at"), sched)
+                q["pre_start"] = ps
+                q["scheduled_start"] = sched
+                q["offset_to_scheduled_start_sec"] = off
+                existing_quotes[key] = q
+        except Exception as exc:
+            print(f"[kalshi_nba] warning reading existing odds: {exc}", file=sys.stderr)
+
+    now_dt = parse_utc_dt(now_iso)
+    game_by_id = {g["game_id"]: g for g in games}
+    new_by_key = {}
+    for q in new_quotes:
+        game = game_by_id.get(q.get("game_id"))
+        sched = q.get("scheduled_start") or (game.get("tipoff_utc") if game else None)
+        ps, off = compute_pre_start_attribute(q.get("quoted_at"), sched)
+        q["pre_start"] = ps
+        q["scheduled_start"] = sched
+        q["offset_to_scheduled_start_sec"] = off
+        new_by_key[(q.get("game_id"), q.get("player_id"), q.get("market"))] = q
+
+    all_keys = set(existing_quotes.keys()) | set(new_by_key.keys())
+    merged = []
+
+    for key in sorted(all_keys, key=lambda k: (str(k[0]), str(k[1]), str(k[2]))):
+        gid, pid, mkt = key
+        game = game_by_id.get(gid)
+        tip_dt = parse_utc_dt(game.get("tipoff_utc")) if game else None
+
+        existing_q = existing_quotes.get(key)
+        new_q = new_by_key.get(key)
+
+        is_post_tip = (now_dt is not None and tip_dt is not None and now_dt >= tip_dt)
+
+        if is_post_tip:
+            if existing_q and existing_q.get("pre_start") is True:
+                merged.append(existing_q)
+            elif new_q:
+                new_q["pre_start"] = False
+                merged.append(new_q)
+            elif existing_q:
+                merged.append(existing_q)
+        else:
+            if new_q and (new_q.get("pre_start") is True or not (existing_q and existing_q.get("pre_start") is True)):
+                merged.append(new_q)
+            elif existing_q and existing_q.get("pre_start") is True:
+                merged.append(existing_q)
+
+    return merged
+
 
 def write_files(day: str, games: list[dict], quotes: list[dict], observed_at: str) -> bool:
     from src.contracts.gate import validate_and_publish
@@ -270,7 +353,8 @@ def run(day: str, max_spread: float) -> int:
         _note_feed(ok=False, quotes=0, error=str(exc))
         return 5
     observed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    quotes = build_quotes(day, games, events, markets, observed_at, max_spread)
+    raw_quotes = build_quotes(day, games, events, markets, observed_at, max_spread)
+    quotes = merge_quotes_with_guard(day, games, raw_quotes, observed_at)
     covered = len({q["game_id"] for q in quotes})
     print(f"[kalshi_nba] {day}: {len(games)} games (ESPN), {len(markets)} open Kalshi markets, "
           f"{len(quotes)} two-sided main lines across {covered} games")
@@ -311,6 +395,20 @@ def selftest() -> None:
     assert q[0]["line"] == 24.5 and q[0]["team"] == "GSW" and q[0]["opponent"] == "SAS", q[0]
     assert q[0]["over_odds"] == -104 and q[0]["under_odds"] == -113, q[0]
     assert q[0]["verified"] is False and q[0]["_fixture"] is False and q[0]["book"] == "Kalshi"
+    assert q[0]["pre_start"] is True, q[0]
+    assert q[0]["scheduled_start"] == "2026-11-14T02:30:00Z", q[0]
+    assert q[0]["offset_to_scheduled_start_sec"] < 0, q[0]
+
+    # Post-tip quote is marked pre_start = False
+    q_post = build_quotes("2026-11-13", games, events, markets, "2026-11-14T03:00:00Z")
+    assert q_post[0]["pre_start"] is False, q_post[0]
+    assert q_post[0]["offset_to_scheduled_start_sec"] > 0, q_post[0]
+
+    # Capture plan covers all games before tip
+    plan = generate_capture_plan(games, lead_minutes=15)
+    assert len(plan) == 2, plan
+    assert plan[0]["planned_capture_utc"] == "2026-11-13T23:45:00Z"
+    assert plan[0]["target_start_utc"] == "2026-11-14T00:00:00Z"
     print("selftest ok")
 
 
@@ -318,6 +416,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--date", help="US-Eastern slate date, YYYY-MM-DD (default: today ET)")
     ap.add_argument("--max-spread", type=float, default=0.10)
+    ap.add_argument("--plan-schedule", action="store_true", help="Print capture schedule plan for the day's slate")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args(argv)
     if args.selftest:
@@ -325,6 +424,11 @@ def main(argv=None) -> int:
         return 0
     day = args.date or datetime.now(ET).date().isoformat()
     date.fromisoformat(day)
+    if args.plan_schedule:
+        games = normalize_espn_games(get_json(ESPN, {"dates": day.replace("-", "")}), day)
+        plan = generate_capture_plan(games)
+        print(json.dumps(plan, indent=2))
+        return 0
     return run(day, args.max_spread)
 
 

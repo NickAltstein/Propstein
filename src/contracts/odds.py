@@ -46,6 +46,9 @@ class OddsQuote(BaseModel):
     unit: Optional[str] = None
     fair_line: Optional[float] = None
     evaluation: Optional[QuoteEvaluation] = None
+    scheduled_start: Optional[str] = None
+    offset_to_scheduled_start_sec: Optional[float] = None
+    pre_start: Optional[Any] = None
 
     @field_validator("player_id", "player_name", "market", "book")
     @classmethod

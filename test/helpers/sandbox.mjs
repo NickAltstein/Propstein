@@ -231,6 +231,8 @@ export function attachSyntheticQuote(P, { market = 'receiving_yards' } = {}) {
     under_odds: -110,
     observed_at: '2026-10-20T06:23:35.000137+00:00',
     quoted_at: '2026-10-20T06:23:35.000137+00:00',
+    scheduled_start: '2026-10-20T20:00:00Z',
+    pre_start: true,
     source: 'Synthetic Book A Manual Entry (UNVERIFIED - harness fixture)',
     source_url: '',
     receipt_id: '',
@@ -264,6 +266,7 @@ export function authorizeSyntheticExecution(P, quote) {
   quote.receipt_id = 'receipt_harness_verified';
   quote.observed_at = '2026-10-22T11:59:30Z';
   quote.quoted_at = quote.observed_at;
+  quote.scheduled_start = '2026-10-22T20:00:00Z';
   quote.evaluation.prob_edge = 0.11;
   quote.evaluation.expected_return = 0.05;
   quote.evaluation.status = 'QUALIFIED';

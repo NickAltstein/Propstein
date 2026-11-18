@@ -3,7 +3,7 @@
   'use strict';
 
   const parseTime = (value) => {
-    if (typeof value !== 'string' || !value.trim()) return null;
+    if (typeof value !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
     const time = Date.parse(value);
     return Number.isFinite(time) ? time : null;
   };
@@ -51,11 +51,20 @@
       const verdict = qualifications[quoteKey(quote)];
       const qualification = verdict === true ? 'qualifies' : verdict === false
         ? 'does_not_qualify' : 'not_evaluable';
+      const quoteStart = parseTime(quote.scheduled_start);
+      const isPostStart = quote.pre_start === false ||
+        (quotedAt !== null && quoteStart !== null && quotedAt >= quoteStart);
+      const isPreStart = quotedAt !== null && quoteStart !== null
+        && quotedAt < quoteStart && quote.pre_start !== false;
+      const timingDiagnostics = [];
+      if (quotedAt === null) timingDiagnostics.push('QUOTE_TIME_MISSING_OR_INVALID');
+      if (quoteStart === null) timingDiagnostics.push('START_TIME_MISSING_OR_INVALID');
+      if (isPostStart) timingDiagnostics.push('AFTER_START');
       const opportunity = feed === 'available' && lifecycle === 'upcoming'
         && freshness === 'current' && verification === 'verified'
-        && qualification === 'qualifies';
+        && qualification === 'qualifies' && isPreStart;
       return { quote, key: quoteKey(quote), lifecycle, freshness, verification,
-        qualification, opportunity, quotedAt: quote.quoted_at || null,
+        qualification, opportunity, timingDiagnostics, quotedAt: quote.quoted_at || null,
         ingestedAt: quote.observed_at || null,
         validatedAt: quote.verification_checked_at || null };
     });

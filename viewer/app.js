@@ -7501,14 +7501,21 @@
     const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
     const health = feedHealthStates();
     const liveFeedsFresh = health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok' && health.news === 'ok' && health.newsFreshness === 'ok';
-    const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt && !dataCheck && liveFeedsFresh;
+    const timed = (value) => typeof value === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+      ? Date.parse(value) : NaN;
+    const quoteTime = timed(quote.quoted_at);
+    const startTime = timed(quote.scheduled_start);
+    const timingKnown = Number.isFinite(quoteTime) && Number.isFinite(startTime);
+    const postStart = quote.pre_start === false || (timingKnown && quoteTime >= startTime);
+    const preStart = timingKnown && quoteTime < startTime && quote.pre_start !== false;
+    const actionable = qState === 'verified' && qualified && !closed && preStart && !volatilityHalt && !dataCheck && liveFeedsFresh;
 
     let stake = 0;
     if (actionable) {
       const supplied = num(evaluation.actionable_stake, NaN);
       stake = Number.isFinite(supplied) && supplied > 0 ? Math.min(supplied, activePolicy.cap) : Math.min(unitAllocFromEvaluation(quote, evaluation, side), activePolicy.cap);
     }
-    const tone = closed ? 'closed' : volatilityHalt ? 'caution' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
+    const tone = closed || postStart ? 'closed' : volatilityHalt ? 'caution' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
     return {
       state: qState,
       quote,
@@ -7519,7 +7526,7 @@
       edge,
       ev,
       stake,
-      qualified,
+      qualified: qualified && preStart,
       dataCheck,
       volatilityHalt,
       haltReason,
@@ -7528,7 +7535,7 @@
       exemption_audit: exemptionAudit,
       highEdgeCaution,
       highEdgeWarning,
-      closed,
+      closed: closed || Boolean(postStart),
       actionable,
       tone,
       target: targetLine(row, quote, side, activePolicy)

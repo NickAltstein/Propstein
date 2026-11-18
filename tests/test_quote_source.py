@@ -4,7 +4,8 @@ from src.ledger.quote_source import headline_clv, tag_ledger_row, tag_quote_sour
 
 
 def _quote(source: str, line: float = 4.5) -> CloseQuote:
-    return CloseQuote("evt", "player_receptions", "over", line, "nfl_player_prop_v1", -110, -110, source)
+    return CloseQuote("evt", "player_receptions", "over", line, "nfl_player_prop_v1", -110, -110, source,
+                      "2026-10-20T02:00:00Z", "2026-10-20T20:00:00Z", True)
 
 
 def test_close_requires_the_same_quote_source():

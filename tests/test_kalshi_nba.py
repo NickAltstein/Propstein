@@ -57,6 +57,106 @@ def test_one_two_sided_main_line_per_player_and_nothing_invented():
     assert q["book"] == "Kalshi" and q["verified"] is False and q["_fixture"] is False
     assert q["provider_quote_id"] == "KXNBAPTS-26NOV13ATLCHI-CHIJSMITH25-15"
     assert q["quoted_at"] == q["observed_at"] == "2026-11-13T16:00:00Z"
+    assert q["pre_start"] is True
+    assert q["scheduled_start"] == "2026-11-14T01:00:00Z"
+    assert q["offset_to_scheduled_start_sec"] == -32400.0
+
+
+def test_quote_attaches_pre_start_and_offset():
+    games = k.normalize_espn_games(ESPN, DAY)
+    # 1. Quoted prior to tipoff -> pre_start is True, offset < 0
+    q_pre = k.build_quotes(DAY, games, EVENTS, MARKETS, "2026-11-14T00:45:00Z")[0]
+    assert q_pre["pre_start"] is True
+    assert q_pre["offset_to_scheduled_start_sec"] == -900.0
+    assert q_pre["scheduled_start"] == "2026-11-14T01:00:00Z"
+
+    # 2. Quoted after tipoff -> pre_start is False, offset > 0
+    q_post = k.build_quotes(DAY, games, EVENTS, MARKETS, "2026-11-14T01:15:00Z")[0]
+    assert q_post["pre_start"] is False
+    assert q_post["offset_to_scheduled_start_sec"] == 900.0
+
+    # 3. Missing tipoff -> pre_start is "unknown", offset is None
+    from src.scheduler.capture_scheduler import compute_pre_start_attribute
+    ps, off = compute_pre_start_attribute("2026-11-14T00:45:00Z", None)
+    assert ps == "unknown" and off is None
+
+
+def test_post_tip_preserves_prior_pre_start_quote(tmp_path):
+    games = k.normalize_espn_games(ESPN, DAY)
+    pre_tip_time = "2026-11-14T00:45:00Z"  # 15m prior to 01:00Z tip
+    post_tip_time = "2026-11-14T01:30:00Z" # 30m after 01:00Z tip
+
+    # Step 1: Pre-tip capture writes Jalen Smith line 14.5
+    quotes_pre = k.build_quotes(DAY, games, EVENTS, MARKETS, pre_tip_time)
+    assert len(quotes_pre) == 1 and quotes_pre[0]["line"] == 14.5
+    assert quotes_pre[0]["pre_start"] is True
+    # Point viewer dir to tmp_path by saving existing odds file
+    odds_file = tmp_path / f"nba_odds_{DAY}.json"
+    odds_file.write_text(json.dumps({
+        "schema_version": "nba.v1",
+        "feed_status": "live-unverified",
+        "slate": DAY,
+        "quotes": quotes_pre,
+    }))
+
+    # Step 2: In-game markets change line to 9.5
+    ingame_markets = [
+        market("CHIJSMITH25", "Jalen Smith", 10, "0.48", "0.52", "0.52"),  # floor_strike 9.5
+    ]
+    quotes_ingame = k.build_quotes(DAY, games, EVENTS, ingame_markets, post_tip_time)
+    assert quotes_ingame[0]["line"] == 9.5
+    assert quotes_ingame[0]["pre_start"] is False
+
+    # Step 3: merge_quotes_with_guard must preserve pre-tip quote (14.5) rather than overwriting with 9.5
+    merged = k.merge_quotes_with_guard(DAY, games, quotes_ingame, post_tip_time, viewer_dir=tmp_path)
+    assert len(merged) == 1
+    assert merged[0]["line"] == 14.5
+    assert merged[0]["pre_start"] is True
+    assert merged[0]["quoted_at"] == pre_tip_time
+
+    # Step 4: If in-game markets settled and returned zero markets, pre-tip quote is still preserved
+    merged_empty = k.merge_quotes_with_guard(DAY, games, [], post_tip_time, viewer_dir=tmp_path)
+    assert len(merged_empty) == 1
+    assert merged_empty[0]["line"] == 14.5
+    assert merged_empty[0]["pre_start"] is True
+
+
+def test_unknown_time_update_cannot_replace_prior_pre_start_quote(tmp_path):
+    games = k.normalize_espn_games(ESPN, DAY)
+    pre = k.build_quotes(DAY, games, EVENTS, MARKETS, "2026-11-14T00:45:00Z")[0]
+    (tmp_path / f"nba_odds_{DAY}.json").write_text(json.dumps({"quotes": [pre]}))
+    unknown = {**pre, "line": 9.5, "quoted_at": None, "pre_start": True}
+    merged = k.merge_quotes_with_guard(
+        DAY, games, [unknown], "2026-11-14T00:50:00Z", viewer_dir=tmp_path)
+    assert len(merged) == 1
+    assert merged[0]["line"] == 14.5
+    assert merged[0]["quoted_at"] == "2026-11-14T00:45:00Z"
+    assert merged[0]["pre_start"] is True
+
+
+def test_slate_fixture_produces_capture_plan_with_every_game_covered_before_start():
+    from src.scheduler.capture_scheduler import generate_capture_plan, parse_utc_dt
+
+    slate_games = [
+        {"game_id": "nba-g1", "tipoff_utc": "2026-11-14T00:00:00Z"},  # 19:00 ET
+        {"game_id": "nba-g2", "tipoff_utc": "2026-11-14T00:30:00Z"},  # 19:30 ET
+        {"game_id": "nba-g3", "tipoff_utc": "2026-11-14T01:00:00Z"},  # 20:00 ET
+        {"game_id": "nba-g4", "tipoff_utc": "2026-11-14T02:00:00Z"},  # 21:00 ET
+        {"game_id": "nba-g5", "tipoff_utc": "2026-11-14T03:30:00Z"},  # 22:30 ET
+    ]
+
+    plan = generate_capture_plan(slate_games, lead_minutes=15)
+    assert len(plan) == 5
+
+    covered_ids = set()
+    for slot in plan:
+        cap_dt = parse_utc_dt(slot["planned_capture_utc"])
+        tgt_dt = parse_utc_dt(slot["target_start_utc"])
+        assert cap_dt < tgt_dt
+        assert (tgt_dt - cap_dt).total_seconds() == 15 * 60
+        covered_ids.update(slot["games_covered"])
+
+    assert covered_ids == {g["game_id"] for g in slate_games}
 
 
 def test_run_writes_nothing_without_quotes_and_publishes_through_the_contract(tmp_path, monkeypatch):
