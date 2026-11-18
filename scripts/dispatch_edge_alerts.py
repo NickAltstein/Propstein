@@ -87,7 +87,10 @@ def collect_active_edges(min_edge_pct: float = 5.0, edges_url: str | None = None
     edges = []
     seen = set()
     for edge in payload["data"]:
-        if not isinstance(edge, dict) or edge.get("verified") is not True or edge.get("verification_status") != "VERIFIED":
+        if (not isinstance(edge, dict) or edge.get("verified") is not True
+                or edge.get("verification_status") != "VERIFIED"
+                or edge.get("verification_engine") != "verification.v1"
+                or not isinstance(edge.get("receipt_id"), str) or not edge["receipt_id"].strip()):
             continue
         if edge.get("qualification_policy_version") != POLICY_VERSION:
             continue

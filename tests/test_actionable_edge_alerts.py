@@ -46,7 +46,7 @@ def now() -> datetime:
 
 
 def test_complete_quote_produces_one_edge_and_one_alert(now, monkeypatch):
-    edges, diagnostics = decide_feed({"slate": "2026_w11", "quotes": [complete_quote(now)]}, now)
+    edges, diagnostics = decide_feed({"slate": "2026-W11", "quotes": [complete_quote(now)]}, now, slate="2026_w11")
     assert len(edges) == 1 and diagnostics == []
 
     class Response(io.BytesIO):
@@ -122,7 +122,8 @@ def test_dispatcher_rejects_missing_verification_or_price(now, monkeypatch):
         def __exit__(self, *_):
             self.close()
 
-    for key in ("verified", "verification_status", "qualification_policy_version", "odds", "quoted_at", "line"):
+    for key in ("verified", "verification_status", "verification_engine", "receipt_id",
+                "qualification_policy_version", "odds", "quoted_at", "line"):
         malformed = dict(edges[0])
         malformed.pop(key)
         payload = {"status": "success", "source": "verified_feed", "data": [malformed]}

@@ -121,7 +121,9 @@ def decide_quote(quote: dict[str, Any], now: datetime) -> tuple[dict[str, Any] |
 
 def decide_feed(feed: dict[str, Any], now: datetime, *, min_edge: float = 5.0,
                 max_edge: float = 12.0, slate: str | None = None) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-    if not isinstance(feed, dict) or (slate and feed.get("slate") != slate):
+    if not isinstance(feed, dict):
+        return [], []
+    if slate and str(feed.get("slate") or "").lower().replace("-", "_") != slate.lower().replace("-", "_"):
         return [], []
     if not isinstance(feed.get("quotes"), list):
         return [], [{"quote_id": "", "reason": "FEED_QUOTES_MISSING_OR_INVALID"}]
