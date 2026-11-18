@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v267-ice-icons';
+const CACHE_NAME = 'propstein-v268-ice-icons';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
