@@ -1,0 +1,256 @@
+"""Injury Consumer for propwire.events.injury: availability_void, availability_uncertain, CONTEXT_DIRTY, STALE_CONTEXT."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+import re
+from typing import Any, Mapping, Sequence
+
+from src.crypto_utils import canonical_json_sha256
+
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_FORBIDDEN_ADAPTER_PREFIXES = ("dom", "browser", "scraped", "extension")
+
+
+def _validate_post_news_tape_row(row: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Self-contained tape provenance check so injury consumer does not depend on BookQuoteTape."""
+    source_dt = _parse_utc(row.get("source_ts"))
+    if source_dt is None:
+        return None
+    raw_hash = str(row.get("raw_payload_sha256") or "").strip().lower()
+    if not _SHA256_RE.match(raw_hash):
+        return None
+    book = str(row.get("book") or "").strip().lower()
+    quote_source = str(row.get("quote_source") or book).strip().lower()
+    if not quote_source or any(quote_source.startswith(p) or book.startswith(p) for p in _FORBIDDEN_ADAPTER_PREFIXES):
+        return None
+    return {
+        "market_id": str(row.get("market_id") or ""),
+        "source_ts": source_dt.isoformat(),
+        "raw_payload_sha256": raw_hash,
+    }
+
+VOID_STATUSES = frozenset({"OUT", "INACTIVE", "SCRATCHED"})
+UNCERTAIN_STATUSES = frozenset({"QUESTIONABLE", "DOUBTFUL", "LIMITED"})
+
+STATE_AVAILABILITY_VOID = "availability_void"
+STATE_AVAILABILITY_UNCERTAIN = "availability_uncertain"
+STATE_CONTEXT_DIRTY = "CONTEXT_DIRTY"
+STATE_STALE_CONTEXT = "STALE_CONTEXT"
+DIAG_ROLE_SURGE_UNCONFIRMED = "ROLE_SURGE_UNCONFIRMED"
+
+
+def _parse_utc(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return None
+        return value.astimezone(timezone.utc)
+    if not isinstance(value, str) or not value.strip():
+        return None
+    dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        return None
+    return dt.astimezone(timezone.utc)
+
+
+@dataclass
+class ReceiptRecord:
+    receipt_id: str
+    player_id: str
+    team: str
+    market: str
+    receipt_hash: str
+    line: float
+    base_projection: float
+    base_edge_pp: float
+    active: bool = True
+    can_execute: bool = True
+    excluded_from_n: bool = False
+    state: str = "ACTIVE"
+    status_ts: str | None = None
+
+
+@dataclass
+class InjuryConsumerState:
+    gate_paused: bool = False
+    pause_reason: str | None = None
+    voided_receipt_ids: set[str] = field(default_factory=set)
+    uncertain_receipt_ids: set[str] = field(default_factory=set)
+    dirty_receipt_ids: set[str] = field(default_factory=set)
+    diagnostics: list[dict[str, Any]] = field(default_factory=list)
+    receipts: dict[str, ReceiptRecord] = field(default_factory=dict)
+
+
+def consume_injury_events(
+    events: Sequence[Mapping[str, Any]],
+    *,
+    receipts: Sequence[ReceiptRecord],
+    model_usage_table: Mapping[str, Mapping[str, Any]],
+    news_week: int | str | None,
+    board_week: int | str | None,
+    capture_week: int | str | None,
+    tape_rows: Sequence[Mapping[str, Any]] = (),
+    min_edge_pp: float = 10.0,
+    max_normal_edge_pp: float = 12.0,
+    now: datetime | None = None,
+) -> InjuryConsumerState:
+    """Process propwire.events.injury deterministically and fail closed on misalignment."""
+    state = InjuryConsumerState(
+        receipts={r.receipt_id: ReceiptRecord(**vars(r)) for r in receipts}
+    )
+
+    # 1. Week alignment guard: news_week, board_week, capture_week must all match.
+    if (
+        news_week is None
+        or board_week is None
+        or capture_week is None
+        or str(news_week) != str(board_week)
+        or str(board_week) != str(capture_week)
+    ):
+        state.gate_paused = True
+        state.pause_reason = STATE_STALE_CONTEXT
+        for rec in state.receipts.values():
+            rec.active = False
+            rec.can_execute = False
+            rec.state = STATE_STALE_CONTEXT
+        return state
+
+    now_dt = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+
+    for ev in events:
+        player_id = str(ev.get("player_id") or "").strip()
+        team = str(ev.get("team") or "").strip().upper()
+        status = str(ev.get("status") or "").strip().upper()
+        status_ts_raw = ev.get("status_ts") or ev.get("fetched_at") or now_dt.isoformat()
+        status_dt = _parse_utc(status_ts_raw) or now_dt
+
+        if status in VOID_STATUSES:
+            # Void the injured player's open receipts: leave /v1/edges, excluded from N, pre-news hash dead.
+            for rec in state.receipts.values():
+                if rec.player_id == player_id:
+                    rec.active = False
+                    rec.can_execute = False
+                    rec.excluded_from_n = True
+                    rec.state = STATE_AVAILABILITY_VOID
+                    rec.status_ts = status_dt.isoformat()
+                    state.voided_receipt_ids.add(rec.receipt_id)
+
+            # Vacated share comes ONLY from the model's own usage table (ignore caller-supplied vacated_*).
+            usage_entry = model_usage_table.get(player_id) or {}
+            vacated_share = float(usage_entry.get("target_share", 0.0))
+            beneficiary_weights: Mapping[str, float] = usage_entry.get("beneficiary_weights") or {}
+
+            # Mark teammates' open hashes CONTEXT_DIRTY and rerun with model usage table share.
+            for rec in state.receipts.values():
+                if rec.team.upper() == team and rec.player_id != player_id:
+                    rec.state = STATE_CONTEXT_DIRTY
+                    state.dirty_receipt_ids.add(rec.receipt_id)
+                    weight = float(beneficiary_weights.get(rec.player_id, 0.0))
+                    if vacated_share <= 0.0 or weight <= 0.0:
+                        rec.active = False
+                        rec.can_execute = False
+                        continue
+                    added_share = vacated_share * weight
+                    new_edge_pp = round(rec.base_edge_pp + added_share * 25.0, 4)
+                    if min_edge_pp <= new_edge_pp <= max_normal_edge_pp:
+                        rec.base_edge_pp = new_edge_pp
+                        rec.receipt_hash = canonical_json_sha256({
+                            "receipt_id": rec.receipt_id,
+                            "player_id": rec.player_id,
+                            "market": rec.market,
+                            "line": rec.line,
+                            "edge_pp": new_edge_pp,
+                            "status_ts": status_dt.isoformat(),
+                        })
+                        rec.active = True
+                        rec.can_execute = True
+                    elif new_edge_pp > max_normal_edge_pp:
+                        rec.active = False
+                        rec.can_execute = False
+                        state.diagnostics.append({
+                            "receipt_id": rec.receipt_id,
+                            "player_id": rec.player_id,
+                            "code": DIAG_ROLE_SURGE_UNCONFIRMED,
+                            "rerun_edge_pp": new_edge_pp,
+                        })
+                    else:
+                        rec.active = False
+                        rec.can_execute = False
+
+        elif status in UNCERTAIN_STATUSES:
+            # QUESTIONABLE / DOUBTFUL / LIMITED -> availability_uncertain.
+            # Keep old hash in ledger, block action, do NOT rerun distribution.
+            # No new hash until a fresh BookQuoteTape row arrives with source_ts > status_ts.
+            for rec in state.receipts.values():
+                if rec.player_id == player_id:
+                    rec.state = STATE_AVAILABILITY_UNCERTAIN
+                    rec.status_ts = status_dt.isoformat()
+                    rec.can_execute = False
+                    state.uncertain_receipt_ids.add(rec.receipt_id)
+
+                    post_news_tape = []
+                    for row in tape_rows:
+                        validated = _validate_post_news_tape_row(row)
+                        if validated is None:
+                            continue
+                        row_ts = _parse_utc(validated["source_ts"])
+                        if row_ts is not None and row_ts > status_dt and (
+                            str(row.get("player_id") or "") == player_id
+                            or player_id in str(validated["market_id"])
+                        ):
+                            post_news_tape.append(validated)
+
+                    if post_news_tape:
+                        best = post_news_tape[0]
+                        rec.receipt_hash = canonical_json_sha256({
+                            "receipt_id": rec.receipt_id,
+                            "player_id": rec.player_id,
+                            "tape_source_ts": best["source_ts"],
+                            "tape_sha256": best["raw_payload_sha256"],
+                        })
+                        rec.can_execute = True
+
+    return state
+
+
+def consume_injury_stream(
+    stream_bus: Any,
+    *,
+    receipts: Sequence[ReceiptRecord],
+    model_usage_table: Mapping[str, Mapping[str, Any]],
+    news_week: int | str | None,
+    board_week: int | str | None,
+    capture_week: int | str | None,
+    tape_rows: Sequence[Mapping[str, Any]] = (),
+    topic: str = "propwire.events.injury",
+    now: datetime | None = None,
+) -> InjuryConsumerState:
+    """Read real injury.status_changed events from DurableRedisStreamBus and evaluate state."""
+    if hasattr(stream_bus, "recent_entries"):
+        raw_records = stream_bus.recent_entries(topic)
+    elif hasattr(stream_bus, "read"):
+        raw_records = stream_bus.read(topic)
+    else:
+        raw_records = []
+    events: list[dict[str, Any]] = []
+    for item in raw_records:
+        payload = item.get("payload") if isinstance(item, Mapping) else None
+        if isinstance(payload, Mapping):
+            inner = payload.get("payload") if isinstance(payload.get("payload"), Mapping) else payload
+            events.append({
+                "player_id": inner.get("player_id"),
+                "team": inner.get("team"),
+                "status": inner.get("status"),
+                "status_ts": payload.get("fetched_at") or inner.get("fetched_at"),
+            })
+    return consume_injury_events(
+        events,
+        receipts=receipts,
+        model_usage_table=model_usage_table,
+        news_week=news_week,
+        board_week=board_week,
+        capture_week=capture_week,
+        tape_rows=tape_rows,
+        now=now,
+    )

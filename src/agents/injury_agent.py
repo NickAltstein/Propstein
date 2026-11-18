@@ -111,6 +111,8 @@ class InjuryEventAgent:
             for b in beneficiaries_raw
         ]
 
+        # News event sets status only; vacated share is resolved downstream from the
+        # model's own usage table (never caller-supplied on the injury event).
         payload = InjuryEventPayload(
             sport=raw_payload.get("sport", "nba"),
             game_id=raw_payload["game_id"],
@@ -121,9 +123,9 @@ class InjuryEventAgent:
             status=status or "OUT",
             body_part=raw_payload.get("body_part", "undisclosed"),
             source_provider=raw_payload.get("source_provider", "official_report"),
-            vacated_minutes=float(raw_payload.get("vacated_minutes", 0.0)),
-            vacated_targets=float(raw_payload.get("vacated_targets", 0.0)),
-            vacated_usage=float(raw_payload.get("vacated_usage", 0.0)),
+            vacated_minutes=0.0,
+            vacated_targets=0.0,
+            vacated_usage=0.0,
             beneficiaries=beneficiaries,
             is_live=bool(raw_payload.get("is_live", False)),
             notes=str(raw_payload.get("notes", "")),
