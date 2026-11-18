@@ -22,7 +22,7 @@ CHECKS = (
     ),
     (
         "https://propstein.com/app.js",
-        "Grading off. Log 1u rows stay UNGRADED until a proved close tape exists.",
+        "Grading off. Staged tickets stay UNGRADED until a proved close tape exists.",
     ),
 )
 
