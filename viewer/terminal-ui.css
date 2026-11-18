@@ -1066,3 +1066,213 @@ html body.terminal-ui .pw-brand:hover .pw-brand-img { filter: none !important; }
   html body.terminal-ui .pw-topbar-left { flex: 0 0 auto !important; min-width: 0 !important; }
   html body.terminal-ui .pw-brand-img { height: clamp(42px, calc(20vw - 30px), 48px) !important; }
 }
+
+/* Single-venue board hierarchy: first-screen headline, stacked mobile offers,
+   strict green reservation, and responsive quote details side panel / sheet. */
+html body.terminal-ui .terminal-snapshot-strip {
+  width: 100%;
+  max-width: 100%;
+  gap: 8px 12px;
+}
+html body.terminal-ui .terminal-snapshot-status {
+  color: var(--ink);
+  font: 500 12px/1.45 var(--terminal-sans);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html body.terminal-ui .terminal-snapshot-status:not(:empty)::before {
+  margin-right: 8px;
+}
+
+/* Strict green reservation: only verified pre-start qualified offers turn green. */
+html body.terminal-ui .offer-qualified-green {
+  color: #34d399 !important;
+}
+html body.terminal-ui tr.slate-row.offer-qualified-green {
+  border-left: 3px solid #34d399;
+}
+html body.terminal-ui article.mobile-quant-row.offer-qualified-green {
+  border-color: rgb(52 211 153 / 42%) !important;
+}
+html body.terminal-ui .meta-pill.offer-qualified-green,
+html body.terminal-ui .edge-cell.offer-qualified-green {
+  border-color: rgb(52 211 153 / 45%) !important;
+  color: #34d399 !important;
+}
+html body.terminal-ui .mobile-quant-row:not(.offer-qualified-green) :is(.card-hero-edge, .card-edge-badge-lime, .card-edge-sub, .status-active),
+html body.terminal-ui tr.slate-row:not(.offer-qualified-green) :is(.edge-cell, .edge-line-top, .exec-tag, .meta-pill) {
+  color: var(--ink-dim) !important;
+  text-shadow: none !important;
+}
+html body.terminal-ui .card-edge-badge-muted {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+html body.terminal-ui .offer-market-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--terminal-border);
+  background: var(--surface-1);
+  color: var(--ink-dim);
+  font: 600 10px/1.2 var(--terminal-sans);
+}
+html body.terminal-ui .offer-terms-line {
+  font: 600 15px/1.3 var(--terminal-mono);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+html body.terminal-ui .offer-venue-age {
+  font: 500 11px/1.3 var(--terminal-mono);
+  color: var(--ink-dim);
+}
+html body.terminal-ui .view-quote-details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--terminal-border);
+  background: var(--surface-raised);
+  color: var(--quote);
+  font: 600 12px/1.2 var(--terminal-sans);
+  cursor: pointer;
+  white-space: nowrap;
+}
+html body.terminal-ui .view-quote-details-btn:hover {
+  border-color: var(--quote);
+  color: var(--ink);
+}
+html body.terminal-ui .nba-market-quote {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+html body.terminal-ui .nba-market-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Quote details drawer: right-hand side panel on desktop, bottom sheet on mobile */
+@media (min-width: 769px) {
+  html body.terminal-ui dialog.detail-dialog {
+    align-items: stretch !important;
+    justify-content: flex-end !important;
+  }
+  html body.terminal-ui dialog.detail-dialog .dialog-shell {
+    width: min(500px, 44vw) !important;
+    max-width: 520px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border-left: 1px solid var(--terminal-border) !important;
+    border-top: 0 !important;
+  }
+  html body.terminal-ui dialog.detail-dialog .dialog-sheet-handle {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui #cardView {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html body.terminal-ui .mobile-quant-row {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  html body.terminal-ui .mobile-quant-row .card-grid-row:not(.v176-research) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  html body.terminal-ui .mobile-quant-row .col-steam {
+    display: none !important;
+  }
+  html body.terminal-ui .mobile-quant-row .col-action {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  html body.terminal-ui .mobile-quant-row .view-quote-details-btn {
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
+  html body.terminal-ui .terminal-feed-details,
+  html body.terminal-ui .front-legal {
+    margin-top: 8px;
+  }
+}
+
+html body.terminal-ui .quote-details-lead {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+html body.terminal-ui .quote-details-lead.offer-qualified-green {
+  border-color: rgb(52 211 153 / 45%);
+}
+html body.terminal-ui .quote-lead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+html body.terminal-ui .quote-lead-k {
+  color: var(--ink-dim);
+  flex: 0 0 auto;
+}
+html body.terminal-ui .quote-lead-v {
+  color: var(--ink);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+html body.terminal-ui .quote-model-unavailable {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+html body.terminal-ui .quote-model-unavailable strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 13px;
+}
+html body.terminal-ui .quote-model-unavailable p {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+}
+html body.terminal-ui .quote-deep-details {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+html body.terminal-ui .quote-deep-details > summary {
+  cursor: pointer;
+  color: var(--quote);
+  font: 600 12.5px/1.3 var(--terminal-sans);
+}
+html body.terminal-ui .quote-deep-body {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}

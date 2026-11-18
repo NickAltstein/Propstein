@@ -200,6 +200,8 @@
     view: 'cards',
     deferredInstall: null,
     selectedPlayerId: null,
+    selectedQuoteKey: null,
+    detailReturnFocusSelector: null,
     selectedExecutionPlayerId: null,
     focusedIndex: -1,
     scenarioTargetShare: null,
@@ -752,10 +754,32 @@
     }, { passive: true });
   }
 
+  function kickoffTransitionSignature() {
+    const games = state.games || [];
+    if (!games.length) return '';
+    const gameStates = marketGameStates();
+    return games.map((g) => {
+      const startIso = scheduledStart(g);
+      const started = Boolean((startIso && Date.parse(startIso) <= Date.now()) || ['started', 'final'].includes(gameStates[g.game_id]?.lifecycle));
+      return `${g.game_id}:${started ? '1' : '0'}`;
+    }).join('|');
+  }
+
+  let lastKickoffSignature = '';
+
   function initPollingTimer() {
     updatePollingDisplay();
+    lastKickoffSignature = kickoffTransitionSignature();
     if (pollIntervalId) clearInterval(pollIntervalId);
     pollIntervalId = setInterval(() => {
+      const nextSig = kickoffTransitionSignature();
+      if (nextSig && lastKickoffSignature && nextSig !== lastKickoffSignature) {
+        lastKickoffSignature = nextSig;
+        renderAll();
+        updateFeedHealthUI();
+      } else {
+        lastKickoffSignature = nextSig;
+      }
       state.nextPollSeconds--;
       if (state.nextPollSeconds <= 0) {
         triggerOddsPoll(true);
@@ -1715,6 +1739,29 @@
       const status = $('#boardPageStatus');
       if (status) status.textContent = `${cards.querySelectorAll('.mobile-quant-row').length} player cards shown.`;
     });
+
+    ensureEmptyStateInspectListeners();
+
+    const detailDialogEl = $('#detailDialog');
+    if (detailDialogEl) {
+      detailDialogEl.addEventListener('close', () => {
+        const returnSelector = state.detailReturnFocusSelector;
+        state.selectedPlayerId = null;
+        state.selectedQuoteKey = null;
+        state.detailReturnFocusSelector = null;
+        if (returnSelector) {
+          const targetEl = document.querySelector(returnSelector);
+          if (targetEl) {
+            if (typeof targetEl.scrollIntoView === 'function') {
+              targetEl.scrollIntoView({ block: 'nearest' });
+            }
+            if (typeof targetEl.focus === 'function') {
+              targetEl.focus({ preventScroll: true });
+            }
+          }
+        }
+      });
+    }
 
     // v175 fail-closed heartbeat probe: re-fetches the odds feed with
     // cache:'no-store' (via triggerOddsPoll) and reports the OBSERVED feed
@@ -2710,6 +2757,10 @@
   }
 
   function scheduledStart(game) {
+    const explicitIso = game?.tipoff_utc || game?.startAt || game?.scheduled_start;
+    if (typeof explicitIso === 'string' && Number.isFinite(Date.parse(explicitIso))) {
+      return new Date(Date.parse(explicitIso)).toISOString();
+    }
     if (!game?.gameday || !game?.gametime) return null;
     const wall = Date.parse(`${game.gameday}T${game.gametime}:00Z`);
     if (!Number.isFinite(wall)) return null;
@@ -2757,19 +2808,42 @@
       ? state.slate.filter((row) => findQuote(row, market) &&
         (!adapter.hasCompleteInputs || adapter.hasCompleteInputs(row, market))).length
       : state.slate.filter((row) => topList.has(String(row.player_display_name || '').toLowerCase())).length;
-    if (SPORT_ID !== 'nba') {
+    const modelUnavailable = adapter.model === null || Boolean(SLATES[state.slateKey]?.marketOnly) || (state.slate || []).length === 0;
+    const activePolicy = policy();
+    const health = feedHealthStates();
+    if (!modelUnavailable) {
       for (const row of state.slate || []) {
         const quote = findQuote(row, market);
         if (!quote) continue;
         const assessment = evaluateRow(row);
         qualifications[`${quote.player_id || quote.player_name || ''}::${quote.market || ''}`] =
-          policy() ? assessment.qualified && !assessment.closed && !assessment.volatilityHalt &&
-            !assessment.dataCheck && feedHealthStates().newsFreshness === 'ok' : null;
+          activePolicy ? assessment.qualified && !assessment.closed && !assessment.volatilityHalt &&
+            !assessment.dataCheck && health.newsFreshness === 'ok' : null;
       }
     }
+    const marketQuotes = (Array.isArray(state.odds?.quotes) ? state.odds.quotes : [])
+      .filter((q) => !market || q.market === market);
+    const quoteVenues = [...new Set(marketQuotes.map((q) => String(q.book || '').trim()).filter(Boolean))];
+    const fallbackVenue = SPORT_ID === 'nba' && SLATES[state.slateKey]?.marketOnly
+      ? nbaReferenceBook(state.odds?.quotes)
+      : (boardSourceClassLabel() || 'No venue');
+    const venue = quoteVenues.length ? quoteVenues.join(' / ') : fallbackVenue;
+    const evaluable = Boolean(activePolicy) && !SLATES[state.slateKey]?.historical
+      && !state.feedFailClosed && !(SPORT_ID === 'nfl' && state.featureContextLocked !== false)
+      && !modelUnavailable && state.feedHealth?.odds !== 'error' && health.newsFreshness === 'ok';
+    let blockReason = null;
+    if (modelUnavailable) blockReason = 'Model unavailable';
+    else if (!activePolicy) blockReason = 'Qualification policy missing';
+    else if (state.feedFailClosed) blockReason = `Feed stale since ${state.feedStaleSince || 'unknown'}`;
+    else if (SLATES[state.slateKey]?.historical) blockReason = 'Historical slate · research only';
+    else if (SPORT_ID === 'nfl' && state.featureContextLocked !== false) {
+      blockReason = 'Model context has no pre-pricing capture timestamps';
+    } else if (health.newsFreshness !== 'ok') blockReason = 'News context stale';
+
     return window.PropSteinMarketStatus.deriveMarketStatus(state.odds, Date.now(), {
       market, verificationWindows: state.verificationWindows,
       gameStates: marketGameStates(), qualifications,
+      venue, evaluable, blockReason,
       allCount: state.slate.length, topCount, topLimit: CARD_PAGE_SIZE,
       feedUnavailable: state.feedHealth?.odds === 'error' || !state.verificationWindows,
       checking: state.feedHealth?.odds === 'checking',
@@ -2813,14 +2887,18 @@
     if (quoteStatus) {
       const compact = {
         started: 'Event started', unavailable: 'Unavailable', checking: 'Checking',
-        snapshot: 'Snapshot only', opportunities: `${derived.verifiedCount} verified`,
-        none: 'No qualifying'
+        snapshot: 'Snapshot only', opportunities: `${derived.verifiedCount} qualified`,
+        none: derived.evaluable && derived.providerQuotedAt ? 'No qualifying offers' : 'Blocked'
       }[derived.presentation];
       quoteStatus.dataset.state = derived.presentation;
-      quoteStatus.title = derived.label;
+      quoteStatus.title = derived.headline || derived.label;
       if (quoteStatus.textContent !== compact) quoteStatus.textContent = compact;
       const snapshotStatus = document.querySelector('.terminal-snapshot-status');
-      if (snapshotStatus) snapshotStatus.textContent = '';
+      if (snapshotStatus) {
+        snapshotStatus.textContent = health.dataKind === 'fixture'
+          ? `${derived.headline} · Synthetic fixture`
+          : derived.headline;
+      }
     }
     const snapshotPill = elById('snapshotAgePill');
     if (snapshotPill) {
@@ -3794,6 +3872,19 @@
     updateStickyContext(displayRows);
     updateActiveFilterBadge();
     renderPickFlow();
+    syncOpenDetailModal();
+  }
+
+  function syncOpenDetailModal() {
+    if (!state.selectedPlayerId && !state.selectedQuoteKey) return;
+    const dlg = $('#detailDialog');
+    if (!dlg || !dlg.open) return;
+    if (state.selectedQuoteKey) {
+      renderQuoteDetailModal(state.selectedQuoteKey);
+      return;
+    }
+    const row = state.slate.find((item) => item.player_id === state.selectedPlayerId);
+    if (row) renderDetailModal(row);
   }
 
   function syncSimulatorSheet(isMobile) {
@@ -3852,22 +3943,19 @@
     box.classList.add('nba-market-only', `nba-market-view-${state.view}`);
     const quotesHtml = rows.map(q => {
       const game = state.games.find(g => g.game_id === q.game_id);
-      const started = game?.tipoff_utc && Date.parse(game.tipoff_utc) <= Date.now();
-      const oddsLabel = value => Number(value) > 0 ? `+${value}` : String(value);
-      // v221: the browsed reference lines carry identity — each card renders the
-      // player's headshot (avatarFor; initials fallback when no photo resolves)
-      // with the team badge from the photo map, plus the matchup's two team
-      // crests from the games file. Quotes ship team:null, so the badge source
-      // is the photo entry (avatarFor falls back to entry.team); the crests are
-      // the game's away/home codes — never a guess about which side the player
-      // is on.
+      const started = Boolean((game?.tipoff_utc && Date.parse(game.tipoff_utc) <= Date.now()) || q.pre_start === false);
+      const overPrice = formatOfferPrice(q, 'OVER');
+      const underPrice = formatOfferPrice(q, 'UNDER');
+      const ageText = offerAgeLabel(q);
+      const quoteKey = q.quote_id || `${q.player_name || ''}::${q.line ?? ''}`;
       const avatar = avatarFor(q.player_id, q.player_name, q.team);
       const matchupMeta = game
         ? `<span class="nba-market-matchup" title="${esc(String(game.away_team))} @ ${esc(String(game.home_team))}">${teamCrest(game.away_team, 'sm')}<span class="nba-market-vs">@</span>${teamCrest(game.home_team, 'sm')}<span class="nba-market-vs">${esc(String(game.away_team))} @ ${esc(String(game.home_team))}</span></span>`
         : '<span class="nba-market-vs">NBA</span>';
-      return `<article class="nba-market-quote">
-        <div class="nba-market-id">${avatar}<div class="nba-market-id-text"><strong>${esc(q.player_name)}</strong><span>${matchupMeta} · ${esc(q.book)}${started ? ' · GAME STARTED' : ''}</span></div></div>
-        <div class="nba-market-sides"><span>Over ${esc(q.line)} <b>${esc(oddsLabel(q.over_odds))}</b></span><span>Under ${esc(q.line)} <b>${esc(oddsLabel(q.under_odds))}</b></span></div>
+      return `<article class="nba-market-quote" data-testid="nba-market-quote" data-quote-key="${esc(quoteKey)}" tabindex="0" role="button" aria-label="View quote details for ${esc(q.player_name)}">
+        <div class="nba-market-id">${avatar}<div class="nba-market-id-text"><strong>${esc(q.player_name)}</strong><span class="offer-market-pill">Points</span><span>${matchupMeta} · ${esc(q.book)} · ${esc(ageText)}${started ? ' · GAME STARTED' : ''}</span></div></div>
+        <div class="nba-market-sides"><span>Over ${esc(q.line)} <b>${esc(overPrice)}</b></span><span>Under ${esc(q.line)} <b>${esc(underPrice)}</b></span></div>
+        <div class="nba-market-actions"><button type="button" class="view-quote-details-btn" data-inspect-quote="${esc(quoteKey)}">View quote details</button></div>
       </article>`;
     }).join('');
     const staleBanner = state.feedFailClosed ? `stale since ${esc(state.feedStaleSince || 'unknown')} · ` : (stale ? 'STALE · ' : '');
@@ -3877,6 +3965,24 @@
         : rows.length ? `<div class="nba-market-list">${quotesHtml}</div>`
         : `<p>${state.filters.market === 'points' ? 'No player points lines match this filter.' : 'Only player points quotes are available for this date.'}</p>`}`;
     $('#nbaBrowseLines')?.addEventListener('click', () => setPlayMode('all'));
+    ensureEmptyStateInspectListeners();
+    syncOpenDetailModal();
+  }
+
+  function ensureEmptyStateInspectListeners() {
+    const emptyStateEl = $('#emptyState');
+    if (!emptyStateEl || emptyStateEl.dataset?.inspectBound === '1') return;
+    if (emptyStateEl.dataset) emptyStateEl.dataset.inspectBound = '1';
+    emptyStateEl.addEventListener('click', inspectFromEvent);
+    emptyStateEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (event.target.closest('button, a, input, summary')) return;
+      const quoteCard = event.target.closest('article[data-quote-key]');
+      if (quoteCard && quoteCard.dataset.quoteKey) {
+        event.preventDefault();
+        openQuoteDetail(quoteCard.dataset.quoteKey);
+      }
+    });
   }
 
   const HOME_EDGE_LIMIT = 8;
@@ -6913,22 +7019,24 @@
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>`;
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
     const corrRisk = checkCorrelatedRisk(row, evaluation);
-    const rowStateClass = evaluation.state === 'ingested'
-      ? 'row-state-unverified'
-      : evaluation.state === 'none'
-        ? 'row-state-no-quote'
-        : evaluation.actionable
-          ? 'row-state-actionable'
+    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
+    const rowStateClass = qualifiedGreen
+      ? 'row-state-actionable offer-qualified-green'
+      : evaluation.state === 'ingested'
+        ? 'row-state-unverified'
+        : evaluation.state === 'none'
+          ? 'row-state-no-quote'
           : 'row-state-quoted';
+    const marketLabel = marketDef().chipLabel || state.filters.market;
 
-    return `<tr class="slate-row ${rowStateClass} ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+    return `<tr class="slate-row ${rowStateClass} ${isTopEdge && qualifiedGreen ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="View quote details for ${esc(row.player_display_name)}">
       <td>
         <div class="player-cell">
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
             <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name, row.team)}<span class="player-name-text" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
-              <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
+              <span class="cell-sub">${esc(row.team)} · ${esc(marketLabel)}</span>
               ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
               ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
             </div>
@@ -7148,6 +7256,12 @@
     const sparklineHtml = renderPriceSparkline(row, quote, evaluation);
     const execution = executionDecision(row, evaluation);
 
+    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
+    const statusSummary = offerStatusSummary(evaluation, quote);
+    const offerPriceText = evaluation.state !== 'none' ? formatOfferPrice(quote, evaluation.side, evaluation.odds) : '';
+    const offerAgeText = evaluation.state !== 'none' ? offerAgeLabel(quote) : '';
+    const marketLabel = marketDef().chipLabel || state.filters.market;
+
     // Row 1 Hero Edge & Context Subtag
     let heroEdgeHtml = '';
     let heroSubHtml = '';
@@ -7158,24 +7272,20 @@
     } else if (SLATES[state.slateKey]?.historical) {
       const settled = evaluateSettledRow(row);
       const isPos = settled.delta > 0;
-      heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
+      heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'settled-pos' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
       heroSubHtml = `<span class="card-edge-sub">${settled.outcome}</span>`;
     } else if (evaluation.closed) {
       heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
-      heroSubHtml = '<span class="card-edge-sub status-no-line">OFF BOARD</span>';
+      heroSubHtml = '<span class="card-edge-sub status-no-line">EVENT STARTED</span>';
     } else if (evaluation.state === 'none') {
       const pid = row.player_id;
       if (state.simulatedLines && state.simulatedLines[pid] !== undefined) {
         const simVal = state.simulatedLines[pid];
         const rawEdge = simVal > 0 ? (((dist.proj - simVal) / simVal) * 100) : 0;
         const isPos = rawEdge > 0;
-        heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${rawEdge.toFixed(1)}%</span>`;
-        heroSubHtml = `<span class="card-edge-sub status-active">SIM EDGE</span>`;
+        heroEdgeHtml = `<span class="card-hero-edge">${isPos ? '+' : ''}${rawEdge.toFixed(1)}%</span>`;
+        heroSubHtml = '<span class="card-edge-sub status-sub-gate">SIM EDGE</span>';
       } else {
-        // No directional marker without a price. The fair line is the model's 50/50 point and
-        // the projection is the (right-skewed) mean, so "proj vs fair" is positive on every yards
-        // card: it would imply a lean that does not exist. SIM EDGE above compares against a line
-        // the user entered, which is a real comparison.
         heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
         heroSubHtml = '<span class="card-edge-sub status-sub-gate">NO LIVE QUOTE</span>';
       }
@@ -7188,18 +7298,18 @@
     } else if (evaluation.dataCheck) {
       heroEdgeHtml = `<span class="card-hero-edge text-caution">${signedPct(evaluation.edge)}</span>`;
       heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
-    } else if (execution && execution.allowed) {
-      heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-active">• ACTIVE</span>';
+    } else if (qualifiedGreen) {
+      heroEdgeHtml = `<span class="card-hero-edge positive offer-qualified-green">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      heroSubHtml = '<span class="card-edge-sub status-active offer-qualified-green">• QUALIFIED</span>';
     } else if (evaluation.edge > 0) {
-      heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-sub-gate">• QUALIFIED</span>';
+      heroEdgeHtml = `<span class="card-hero-edge">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
     } else if (evaluation.edge < 0) {
       heroEdgeHtml = `<span class="card-hero-edge negative">${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-sub-gate">—</span>';
+      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
     } else {
       heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = '<span class="card-edge-sub status-sub-gate">—</span>';
+      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
     }
 
     const edgePctDisplay = evaluation.edge ? Math.abs(evaluation.edge * 100).toFixed(1) : '0.0';
@@ -7272,18 +7382,15 @@
         </div>
         ${inlineSimPanelHtml(row, dist)}`;
     } else {
-      const isFlatJuice = evaluation.odds === -110;
-      const juiceLabel = isFlatJuice ? 'Flat -110' : oddsText(evaluation.odds);
-      const juiceClass = isFlatJuice ? 'flat-odds' : (evaluation.odds <= -115 ? 'heavy-juice' : 'plus-money');
-      const capChipHtml = '';
+      const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
       const distTitle = dist.isTd
         ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
         : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
       gridColsHtml = `
-        <div class="card-grid-col col-book">
-          <span class="grid-col-lbl">${quoteSourceClass(evaluation.book) === 'kalshi' ? 'KALSHI' : quoteSourceClass(evaluation.book) === 'polymarket' ? 'POLY' : 'BOOK'}</span>
-          <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
-          <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
+        <div class="card-grid-col col-book offer-terms-stack">
+          <span class="grid-col-lbl offer-market-pill">${esc(marketLabel)}</span>
+          <span class="grid-col-val font-mono text-white dens-val-700 offer-terms-line">${sketchSideArrow(evaluation.side)} ${sideLabel} ${evaluation.line.toFixed(1)} · ${esc(offerPriceText)}</span>
+          <span class="offer-venue-age">${esc(quote?.book || evaluation.book)} · ${esc(offerAgeText)}</span>
           ${listedSideBoxes(quote)}
           ${evaluation.state === 'verified' ? terminalReceiptBadge(quote) : ''}
         </div>
@@ -7291,10 +7398,9 @@
           <span class="grid-col-lbl">MODEL</span>
           <div class="card-proj-fair-row font-mono dens-row-6">
             <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
-            ${hasPositiveEdge ? `<span class="card-edge-badge-lime">+${edgePctDisplay}%</span>` : ''}
+            ${qualifiedGreen && hasPositiveEdge ? `<span class="card-edge-badge-lime offer-qualified-green">+${edgePctDisplay}%</span>` : hasPositiveEdge ? `<span class="card-edge-badge-muted">+${edgePctDisplay}%</span>` : ''}
             <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
           </div>
-          ${capChipHtml}
           <div class="card-dist-block" title="${esc(distTitle)}">
             <span class="card-ci-chip">${dist.isTd ? `P(TD) ${(dist.prob * 100).toFixed(0)}%` : `80% CI ${dist.low}–${dist.high}`}</span>
             ${cardDistStripSvg(dist, { bookLine: dist.isTd ? null : evaluation.line })}
@@ -7305,16 +7411,16 @@
           <div class="grid-col-spark">${sparklineHtml}</div>
         </div>
         <div class="card-grid-col col-action">
-          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
+          <button type="button" class="view-quote-details-btn" data-inspect="${esc(row.player_id)}">View quote details</button>
           <button type="button" class="card-btn-sim-quick${state.inlineSim && state.inlineSim.pid === row.player_id ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
-          <button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}" title="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}">${isLogged ? 'Logged' : 'Stage ticket'}</button>
+          ${qualifiedGreen ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}" title="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}">${isLogged ? 'Logged' : 'Stage ticket'}</button>` : ''}
         </div>
         ${inlineSimPanelHtml(row, dist)}
       `;
     }
 
     return `
-      <article class="mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${isTopEdge ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+      <article class="mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${qualifiedGreen ? 'row-state-actionable offer-qualified-green' : ''} ${isTopEdge && qualifiedGreen ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="View quote details for ${esc(row.player_display_name)}">
         <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
         <div class="card-header-row">
           <div class="card-id-block">
@@ -7393,9 +7499,141 @@
     return state.odds.quotes.find((quote) => quote.market === market && (quote.player_id === row.player_id || String(quote.player_name).toLowerCase() === String(row.player_display_name).toLowerCase())) || null;
   }
 
+  function quoteSideCents(quote, side = 'OVER') {
+    if (!quote) return null;
+    const isUnder = String(side || 'OVER').toUpperCase() === 'UNDER';
+    const explicit = isUnder
+      ? (quote.under_cents ?? quote.no_cents ?? null)
+      : (quote.over_cents ?? quote.yes_cents ?? null);
+    if (explicit !== null && explicit !== undefined && Number.isFinite(Number(explicit)) && Number(explicit) > 0) {
+      return Number(explicit);
+    }
+    if (quote.price_cents !== null && quote.price_cents !== undefined && Number.isFinite(Number(quote.price_cents)) && Number(quote.price_cents) > 0) {
+      return Number(quote.price_cents);
+    }
+    if (quote.price_unit === 'cents' || quote.odds_unit === 'cents' || quote.unit === 'cents') {
+      const unitVal = isUnder
+        ? (quote.under_price ?? quote.under_odds ?? quote.price ?? quote.odds)
+        : (quote.over_price ?? quote.over_odds ?? quote.price ?? quote.odds);
+      if (unitVal !== null && unitVal !== undefined && Number.isFinite(Number(unitVal)) && Number(unitVal) > 0) {
+        return Number(unitVal);
+      }
+    }
+    return null;
+  }
+
+  function quoteHasPrice(quote, side = null) {
+    if (!quote) return false;
+    const checkSide = (s) => {
+      if (quoteSideCents(quote, s) !== null) return true;
+      const raw = String(s).toUpperCase() === 'UNDER' ? quote.under_odds : quote.over_odds;
+      if (raw !== null && raw !== undefined && Number.isFinite(Number(raw)) && Number(raw) !== 0) return true;
+      return quote.odds !== null && quote.odds !== undefined && Number.isFinite(Number(quote.odds)) && Number(quote.odds) !== 0;
+    };
+    return side ? checkSide(side) : (checkSide('OVER') || checkSide('UNDER'));
+  }
+
+  function formatOfferPrice(quote, side = 'OVER', fallbackOdds = null) {
+    const cents = quoteSideCents(quote, side);
+    if (cents !== null) {
+      return `${Number.isInteger(cents) ? cents : Number(cents.toFixed(1))}¢`;
+    }
+    const isUnder = String(side || 'OVER').toUpperCase() === 'UNDER';
+    const rawSide = quote ? (isUnder ? quote.under_odds : quote.over_odds) : null;
+    const candidate = (rawSide !== null && rawSide !== undefined && Number.isFinite(Number(rawSide)) && Number(rawSide) !== 0)
+      ? Number(rawSide)
+      : (quote && quote.odds !== null && quote.odds !== undefined && Number.isFinite(Number(quote.odds)) && Number(quote.odds) !== 0)
+        ? Number(quote.odds)
+        : (fallbackOdds !== null && fallbackOdds !== undefined && Number.isFinite(Number(fallbackOdds)) && Number(fallbackOdds) !== 0)
+          ? Number(fallbackOdds)
+          : NaN;
+    return Number.isFinite(candidate) ? oddsText(candidate) : 'Price unavailable';
+  }
+
+  function offerQuotedMs(quote) {
+    const raw = quote?.quoted_at;
+    if (typeof raw !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(raw)) return null;
+    const ms = Date.parse(raw);
+    return Number.isFinite(ms) ? ms : null;
+  }
+
+  function offerAgeLabel(quote) {
+    const ms = offerQuotedMs(quote);
+    if (ms === null) return 'Quote time unknown';
+    const now = Date.now();
+    if (ms > now) return 'Quote time unknown';
+    const sec = Math.max(0, (now - ms) / 1000);
+    if (sec < 60) return 'Just now';
+    if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+    return `${Math.floor(sec / 3600)}h ago`;
+  }
+
+  function offerTimestampLabel(quote) {
+    const ms = offerQuotedMs(quote);
+    if (ms === null) return 'Provider quote time unknown';
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    }).format(new Date(ms));
+    return `${formatted} ET (${offerAgeLabel(quote)})`;
+  }
+
+  function isOfferQualifiedGreen(evaluation) {
+    if (!evaluation || evaluation.state !== 'verified') return false;
+    if (!evaluation.qualified || !evaluation.actionable || evaluation.closed) return false;
+    if (evaluation.volatilityHalt || evaluation.dataCheck) return false;
+    if (state.feedFailClosed || SLATES[state.slateKey]?.historical) return false;
+    return true;
+  }
+
+  function offerStatusSummary(evaluation, quote) {
+    if (!evaluation || evaluation.state === 'none') {
+      return { label: 'No live quote', toneClass: 'offer-state-none', blocker: 'No live quote available' };
+    }
+    if (isOfferQualifiedGreen(evaluation)) {
+      return { label: 'Qualified', toneClass: 'offer-qualified-green', blocker: null };
+    }
+    if (evaluation.closed) {
+      return { label: 'Event started · research only', toneClass: 'offer-state-closed', blocker: 'Event started' };
+    }
+    if (state.feedFailClosed) {
+      return { label: 'Feed stale · research only', toneClass: 'offer-state-blocked', blocker: `Feed stale since ${state.feedStaleSince || 'unknown'}` };
+    }
+    if (SPORT_ID === 'nfl' && state.featureContextLocked !== false) {
+      return { label: 'Blocked · context lock', toneClass: 'offer-state-blocked', blocker: 'Model context has no pre-pricing capture timestamps.' };
+    }
+    if (evaluation.volatilityHalt) {
+      return { label: 'Line shift · verify', toneClass: 'offer-state-caution', blocker: evaluation.haltReason || 'Line movement exceeded threshold' };
+    }
+    if (evaluation.dataCheck) {
+      return { label: 'Verify before acting', toneClass: 'offer-state-caution', blocker: evaluation.highEdgeWarning || 'Edge exceeds 12% review threshold' };
+    }
+    if (evaluation.state === 'unquoted' || !quoteHasPrice(quote, evaluation.side)) {
+      return {
+        label: quoteHasPrice(quote, evaluation.side) ? 'Time unknown · research only' : 'Price unavailable · research only',
+        toneClass: 'offer-state-muted',
+        blocker: quoteHasPrice(quote, evaluation.side) ? 'Provider quote time unknown.' : 'Price unavailable'
+      };
+    }
+    if (evaluation.state === 'ingested') {
+      return { label: 'Unverified · research only', toneClass: 'offer-state-muted', blocker: 'Missing verification receipt' };
+    }
+    if (offerQuotedMs(quote) === null) {
+      return { label: 'Time unknown · research only', toneClass: 'offer-state-muted', blocker: 'Provider quote time unknown.' };
+    }
+    const health = feedHealthStates();
+    if (health.oddsFreshness !== 'ok') {
+      return { label: 'Stale · research only', toneClass: 'offer-state-muted', blocker: 'Quotes older than verification window' };
+    }
+    if (health.newsFreshness !== 'ok') {
+      return { label: 'News stale · research only', toneClass: 'offer-state-muted', blocker: 'News context stale' };
+    }
+    return { label: 'Below gate · research only', toneClass: 'offer-state-muted', blocker: 'Does not clear active qualification gate' };
+  }
+
   function quoteState(quote) {
     if (!quote) return 'none';
-    const hasPrice = (quote.over_odds && quote.over_odds !== 0) || (quote.under_odds && quote.under_odds !== 0) || (quote.odds && quote.odds !== 0);
+    const hasPrice = quoteHasPrice(quote);
     const hasLine = quote.line !== null && quote.line !== undefined && !Number.isNaN(Number(quote.line));
     const hasBook = Boolean(quote.book);
     const hasObservedAt = Number.isFinite(Date.parse(quote.quoted_at || ''));
@@ -7413,7 +7651,13 @@
     if (!quote) return { state: 'none', tone: 'closed', actionable: false };
     const evaluation = quote.evaluation || {};
     const side = String(evaluation.best_side || 'OVER').toUpperCase();
-    const odds = num(side === 'UNDER' ? quote.under_odds : quote.over_odds, -110);
+    const rawSideOdds = side === 'UNDER' ? quote.under_odds : quote.over_odds;
+    const odds = (rawSideOdds !== null && rawSideOdds !== undefined && Number.isFinite(Number(rawSideOdds)) && Number(rawSideOdds) !== 0)
+      ? Number(rawSideOdds)
+      : (quote.odds !== null && quote.odds !== undefined && Number.isFinite(Number(quote.odds)) && Number(quote.odds) !== 0)
+        ? Number(quote.odds)
+        : null;
+    const hasSidePrice = quoteHasPrice(quote, side);
     const edge = num(evaluation.prob_edge);
     const ev = num(evaluation.expected_return);
     const activePolicy = policy();
@@ -7497,7 +7741,7 @@
 
     const roundedEdgePct = +(num(edge) * 100).toFixed(1);
     const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
-    const qualified = Boolean(activePolicy) && roundedEdgePct >= roundedGatePct && ev > 0;
+    const qualified = Boolean(activePolicy) && hasSidePrice && roundedEdgePct >= roundedGatePct && ev > 0;
     const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
     const health = feedHealthStates();
     const liveFeedsFresh = health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok' && health.news === 'ok' && health.newsFreshness === 'ok';
@@ -7508,7 +7752,7 @@
     const timingKnown = Number.isFinite(quoteTime) && Number.isFinite(startTime);
     const postStart = quote.pre_start === false || (timingKnown && quoteTime >= startTime);
     const preStart = timingKnown && quoteTime < startTime && quote.pre_start !== false;
-    const actionable = qState === 'verified' && qualified && !closed && preStart && !volatilityHalt && !dataCheck && liveFeedsFresh;
+    const actionable = qState === 'verified' && qualified && !closed && hasSidePrice && !volatilityHalt && !dataCheck && liveFeedsFresh && preStart;
 
     let stake = 0;
     if (actionable) {
@@ -7587,12 +7831,13 @@
 
 
   function listedSideBoxes(quote) {
-    if (!quote || !Number.isFinite(Number(quote.line)) ||
-        !Number.isFinite(Number(quote.over_odds)) || !Number.isFinite(Number(quote.under_odds))) return '';
+    if (!quote || !Number.isFinite(Number(quote.line))) return '';
     const line = Number(quote.line).toFixed(1);
+    const overPrice = formatOfferPrice(quote, 'OVER');
+    const underPrice = formatOfferPrice(quote, 'UNDER');
     return `<div class="ou-mini-pair" aria-label="Listed Over and Under prices">
-      <span class="ou-mini-box ou-over"><span class="ou-mini-arrow" aria-hidden="true">↑</span><span>OVER ${line}</span><small>${oddsText(quote.over_odds)}</small></span>
-      <span class="ou-mini-box ou-under"><span class="ou-mini-arrow" aria-hidden="true">↓</span><span>UNDER ${line}</span><small>${oddsText(quote.under_odds)}</small></span>
+      <span class="ou-mini-box ou-over"><span class="ou-mini-arrow" aria-hidden="true">↑</span><span>OVER ${line}</span><small>${esc(overPrice)}</small></span>
+      <span class="ou-mini-box ou-under"><span class="ou-mini-arrow" aria-hidden="true">↓</span><span>UNDER ${line}</span><small>${esc(underPrice)}</small></span>
     </div>`;
   }
 
@@ -7603,7 +7848,7 @@
         <span class="number-main"><span class="settled-stat-box">${settled.actual} ${settled.isYards ? 'yds' : 'rec'}</span></span>
         <div class="book-meta">
           <span class="book-tag">Settled</span>
-          <span class="meta-pill ${settled.delta > 0 ? 'actionable' : 'closed'}">${settled.delta > 0 ? '+' : ''}${settled.delta} vs Line</span>
+          <span class="meta-pill ${settled.delta > 0 ? 'settled-pos' : 'closed'}">${settled.delta > 0 ? '+' : ''}${settled.delta} vs Line</span>
         </div>
       </div>`;
     }
@@ -7633,37 +7878,33 @@
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
     const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
 
-    const statusPill = evaluation.closed
-      ? '<span class="meta-pill closed">Closed</span>'
-      : evaluation.dataCheck
-        ? `<span class="meta-pill caution" title="Verify before acting: edge > 12%">${SVG_ICONS.warn} Verify</span>`
-        : evaluation.actionable
-          ? `<span class="meta-pill actionable">${SVG_ICONS.edge} Active</span>`
-          : evaluation.state === 'ingested'
-            ? `<span class="meta-pill unverified" title="Ingested quote pending receipt verification">${SVG_ICONS.lock} Unverified</span>`
-            : '<span class="meta-pill">Active</span>';
+    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
+    const quote = row ? findQuote(row, state.filters.market) : null;
+    const summary = offerStatusSummary(evaluation, quote);
+    const statusPill = `<span class="meta-pill ${qualifiedGreen ? 'actionable offer-qualified-green' : evaluation.closed ? 'closed' : evaluation.dataCheck || evaluation.volatilityHalt ? 'caution' : 'unverified'}"${summary.blocker ? ` title="${esc(summary.blocker)}"` : ''}>${esc(summary.label)}</span>`;
 
     const isOver = evaluation.side === 'OVER';
-    const quote = row ? findQuote(row, state.filters.market) : null;
+    const priceText = formatOfferPrice(quote, evaluation.side, evaluation.odds);
+    const ageText = offerAgeLabel(quote);
     const sparklineHtml = renderPriceSparkline(row, quote, evaluation);
     const disc = row ? detectBookDiscrepancy(row) : null;
     const discHtml = disc ? `<span class="discrepancy-indicator" title="Cross-Book Discrepancy: ${esc(disc.label)}">${SVG_ICONS.edge} ${esc(disc.label)}</span>` : '';
 
-    const implied = impliedProbability(evaluation.odds);
+    const implied = Number.isFinite(Number(evaluation.odds)) && Number(evaluation.odds) !== 0 ? impliedProbability(evaluation.odds) : 0;
     return `<div class="book-cell ${flashClass}">
       <span class="number-main">
         <span class="dir-line-pill ${isOver ? 'dir-over' : 'dir-under'}">
           <span class="dir-arrow">${isOver ? '↑' : '↓'}</span>
-          <span class="dir-num">${evaluation.line.toFixed(1)}</span>
+          <span class="dir-num">${isOver ? 'Over' : 'Under'} ${evaluation.line.toFixed(1)}</span>
         </span>
-        <small class="odds-val fixed-odds">${oddsText(evaluation.odds)}</small>
+        <small class="odds-val fixed-odds">${esc(priceText)}</small>
         ${glyph}
       </span>
       ${listedSideBoxes(quote)}
       ${implied > 0 ? `<span class="book-implied" title="${esc(quoteSourceClass(evaluation.book) === 'kalshi' || quoteSourceClass(evaluation.book) === 'polymarket' ? `Raw implied probability from the listed ${quoteSourceClassLabel(evaluation.book)} ${evaluation.side} price` : `Raw implied probability from listed ${evaluation.side} odds; includes bookmaker margin`)}">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
       ${sparklineHtml}
       <div class="book-meta">
-        <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
+        <span class="book-tag">${esc(quote?.book || evaluation.book)} · ${esc(ageText)}</span>
         ${evaluation.state === 'verified' ? terminalReceiptBadge(quote) : ''}
         ${statusPill}
         ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}
@@ -7698,8 +7939,12 @@
   }
 
   function priceCheckCell(evaluation, row = null, isLogged = false) {
+    const inspectBtn = row
+      ? `<button class="view-quote-details-btn" type="button" data-inspect="${esc(row.player_id)}">View quote details</button>`
+      : '';
+
     if (state.feedFailClosed && !SLATES[state.slateKey]?.historical) {
-      return `<div class="edge-cell-wrap"><div class="edge-cell edge-cell-none"><span class="text-muted edge-cell-muted">—</span><span class="unverified-state-micro">stale since ${esc(state.feedStaleSince || '')}</span></div></div>`;
+      return `<div class="edge-cell-wrap"><div class="edge-cell edge-cell-none"><span class="text-muted edge-cell-muted">—</span><span class="unverified-state-micro">stale since ${esc(state.feedStaleSince || '')}</span></div>${inspectBtn}</div>`;
     }
     if (SLATES[state.slateKey]?.historical && row) {
       const settled = evaluateSettledRow(row);
@@ -7708,6 +7953,7 @@
           <span class="settled-badge ${settled.outcomeClass}">${settled.outcome}</span>
           <span class="cell-sub" style="margin-top:2px; font-variant-numeric:tabular-nums;">Actual ${settled.actual} (Line ${settled.line.toFixed(1)})</span>
         </div>
+        ${inspectBtn}
       </div>`;
     }
 
@@ -7729,13 +7975,15 @@
         const isPos = edge > 0;
         return `<div class="edge-cell-wrap">
           <button type="button" class="simulated-edge-badge sim-edge-btn-reset ${isPos ? 'pos' : 'neg'}" data-simulate-player="${esc(pid)}" title="Click to adjust line simulation">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</button>
+          ${inspectBtn}
         </div>`;
       }
       return `<div class="edge-cell-wrap">
-        <div class="edge-cell edge-cell-none ${flashClass}" title="Price check fail-closed: Awaiting 3-book consensus receipt hash (SHA-256)">
+        <div class="edge-cell edge-cell-none ${flashClass}" title="No live quote available">
           <span class="text-muted edge-cell-muted">—</span>
-          <span class="unverified-state-micro" title="Awaiting 3-book consensus receipt hash">Awaiting Hash</span>
+          <span class="unverified-state-micro">No live quote</span>
         </div>
+        ${inspectBtn}
       </div>`;
     }
     if (evaluation.closed) {
@@ -7744,15 +7992,16 @@
           <span class="edge-line-top text-closed">CLOSED</span>
           <span class="exec-tag exec-tag-closed">CLOSED</span>
         </div>
+        ${inspectBtn}
       </div>`;
     }
-    if (evaluation.state === 'ingested') {
+    if (evaluation.state === 'ingested' || evaluation.state === 'unquoted') {
       return `<div class="edge-cell-wrap">
-        <div class="edge-cell edge-cell-unverified ${flashClass}" data-quote-state="ingested">
+        <div class="edge-cell edge-cell-unverified ${flashClass}" data-quote-state="${esc(evaluation.state)}">
           <span class="edge-line-top text-unverified">${signedPct(evaluation.edge)}${glyph}</span>
-          <span class="exec-tag exec-tag-unverified">UNVERIFIED</span>
+          <span class="exec-tag exec-tag-unverified">${evaluation.state === 'unquoted' ? 'UNQUOTED' : 'UNVERIFIED'}</span>
         </div>
-        ${logBtn}
+        ${inspectBtn}
       </div>`;
     }
     if (evaluation.volatilityHalt) {
@@ -7761,7 +8010,7 @@
           <span class="edge-line-top text-halt">${signedPct(evaluation.edge)}${glyph}</span>
           <span class="exec-tag exec-tag-halt" title="${esc(evaluation.haltReason)}">LINE SHIFT</span>
         </div>
-        ${logBtn}
+        ${inspectBtn}
       </div>`;
     }
     if (evaluation.highEdgeCaution) {
@@ -7770,7 +8019,7 @@
           <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}${glyph}</span>
           <span class="exec-tag exec-tag-verify" title="${esc(evaluation.highEdgeWarning)}">CHECK NEWS</span>
         </div>
-        ${logBtn}
+        ${inspectBtn}
       </div>`;
     }
     if (evaluation.dataCheck) {
@@ -7779,26 +8028,30 @@
           <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}${glyph}</span>
           <span class="exec-tag exec-tag-verify" title="Verify before acting: edge > 12%">VERIFY</span>
         </div>
-        ${logBtn}
+        ${inspectBtn}
       </div>`;
     }
+    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
     const activePolicy = policy();
     const roundedEdgePct = +(num(evaluation.edge) * 100).toFixed(1);
     const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
-    const isSubGate = activePolicy && roundedEdgePct < roundedGatePct;
+    const isSubGate = !qualifiedGreen || (activePolicy && roundedEdgePct < roundedGatePct);
 
     const edgeMag = Math.min(Math.max((evaluation.edge || 0) / 0.25, 0), 1);
     const heatOpacity = (0.02 + edgeMag * 0.12).toFixed(3);
-    const heatmapStyle = evaluation.edge > 0.03
-      ? `style="background: linear-gradient(90deg, rgba(182, 243, 107, ${heatOpacity}) 0%, transparent 100%);"`
+    const heatmapStyle = qualifiedGreen && evaluation.edge > 0.03
+      ? `style="background: linear-gradient(90deg, rgba(16, 185, 129, ${heatOpacity}) 0%, transparent 100%);"`
       : '';
+    const quote = row ? findQuote(row, state.filters.market) : null;
+    const tagLabel = qualifiedGreen ? 'QUALIFIED' : (offerQuotedMs(quote) === null ? 'TIME UNKNOWN' : 'BLOCKED');
 
     return `<div class="edge-cell-wrap">
-      <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'} ${flashClass}" data-quote-state="verified" ${heatmapStyle}>
-        <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}${glyph}</span>
-        <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? 'SUB-GATE' : 'ACTIVE'}</span>
+      <div class="edge-cell ${qualifiedGreen ? 'edge-cell-verified offer-qualified-green' : 'edge-cell-subgate'} ${flashClass}" data-quote-state="${qualifiedGreen ? 'qualified' : 'blocked'}" ${heatmapStyle}>
+        <span class="edge-line-top ${qualifiedGreen ? 'text-verified' : 'text-subgate'}">${signedPct(evaluation.edge)}${glyph}</span>
+        <span class="exec-tag ${qualifiedGreen ? 'exec-tag-active' : 'exec-tag-subgate'}">${tagLabel}</span>
       </div>
-      ${logBtn}
+      ${inspectBtn}
+      ${qualifiedGreen ? logBtn : ''}
     </div>`;
   }
 
@@ -7856,8 +8109,16 @@
   }
 
   function isClosed(row) {
-    if (SLATES[state.slateKey].historical) return true;
+    if (SLATES[state.slateKey]?.historical) return true;
+    const gameStates = marketGameStates();
+    const gs = gameStates[row.game_id];
+    if (gs && ['started', 'final'].includes(gs.lifecycle)) return true;
     const game = state.games.find((item) => item.game_id === row.game_id);
+    const isoStart = gs?.startAt || game?.tipoff_utc || game?.startAt || game?.scheduled_start;
+    if (isoStart) {
+      const startMs = Date.parse(String(isoStart));
+      if (Number.isFinite(startMs) && startMs <= Date.now()) return true;
+    }
     if (!game || !game.gameday || !game.gametime) return false;
     const kickoff = new Date(`${game.gameday}T${game.gametime}:00-04:00`);
     return Number.isFinite(kickoff.getTime()) && kickoff.getTime() <= Date.now();
@@ -8000,6 +8261,16 @@
     }
     if (event.target.closest('.sim-line-input')) {
       event.stopPropagation();
+      return;
+    }
+    const quoteBtn = event.target.closest('[data-inspect-quote]');
+    if (quoteBtn) {
+      openQuoteDetail(quoteBtn.dataset.inspectQuote);
+      return;
+    }
+    const quoteCard = event.target.closest('article[data-quote-key]');
+    if (quoteCard && quoteCard.dataset.quoteKey) {
+      openQuoteDetail(quoteCard.dataset.quoteKey);
       return;
     }
     const button = event.target.closest('[data-inspect]');
@@ -8891,7 +9162,9 @@
     const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
     const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
-    const oddsVal = existingBet ? oddsText(existingBet.odds) : oddsText(evaluation.odds || -110);
+    const oddsVal = existingBet
+      ? oddsText(existingBet.odds)
+      : (evaluation.odds == null ? formatOfferPrice(evaluation.quote, side) : oddsText(evaluation.odds));
     const stakeVal = existingBet && existingBet.stake_amount ? existingBet.stake_amount : wagerDollars;
 
     return `
@@ -8930,14 +9203,77 @@
 
   // ── §21. Detail modal & scenario modeling ─────────────────────────────
 
+  function renderQuoteDetailModal(quoteKey) {
+    const q = (state.odds?.quotes || []).find((item) =>
+      (item.quote_id && item.quote_id === quoteKey)
+      || `${item.player_name || ''}::${item.line ?? ''}` === quoteKey
+      || item.player_id === quoteKey
+    );
+    if (!q) return false;
+    state.selectedQuoteKey = quoteKey;
+    state.selectedPlayerId = q.player_id || quoteKey;
+    const game = (state.games || []).find((g) => g.game_id === q.game_id);
+    const started = Boolean((game?.tipoff_utc && Date.parse(game.tipoff_utc) <= Date.now()) || q.pre_start === false);
+    const overPrice = formatOfferPrice(q, 'OVER');
+    const underPrice = formatOfferPrice(q, 'UNDER');
+    const providerStamp = offerTimestampLabel(q);
+    const qualResult = started
+      ? 'Blocked · Event started'
+      : q.verified === true && q.verification_status === 'VERIFIED'
+        ? 'Not evaluable · Model unavailable'
+        : 'Unverified · Model unavailable';
+    const receiptId = q.verification_receipt_id || q.receipt_id || q.provider_quote_id || '';
+    const receiptHash = quoteReceiptSha(q);
+    $('#detailTitle').innerHTML = `
+      <div class="detail-title-row">
+        ${avatarFor(q.player_id, q.player_name, q.team)}
+        <div class="detail-title-name">${esc(q.player_name || 'Player')}</div>
+      </div>`;
+    $('#detailMeta').innerHTML = `<span class="detail-meta-line">${esc(String(q.market || 'points').toUpperCase())} · ${esc(game ? `${game.away_team} @ ${game.home_team}` : (SPORT_ID || 'NBA').toUpperCase())}</span>`;
+    $('#detailSummary').textContent = `${esc(q.book || 'Venue')} · ${providerStamp} · Model unavailable`;
+    updateModalWatchlistBtn(q.player_id || '');
+    $('#detailContent').innerHTML = `
+      <section class="quote-details-lead" aria-label="Quote details">
+        <div class="quote-lead-row"><span class="quote-lead-k">Quote source</span><strong class="quote-lead-v">${esc(q.book || 'Unknown venue')} · ${esc(q.source || 'Market feed')}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Offered terms</span><strong class="quote-lead-v font-mono">Over ${esc(q.line)} · ${esc(overPrice)} / Under ${esc(q.line)} · ${esc(underPrice)}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Provider timestamp</span><strong class="quote-lead-v">${esc(providerStamp)}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Qualification result</span><strong class="quote-lead-v">${esc(qualResult)}</strong></div>
+      </section>
+      <div class="quote-model-unavailable">
+        <strong>Model unavailable</strong>
+        <p>No calibrated model probability or qualifying price is available for this offer.</p>
+      </div>
+      <details class="quote-deep-details">
+        <summary>Receipt &amp; methodology</summary>
+        <div class="quote-deep-body">
+          <div class="quote-lead-row"><span class="quote-lead-k">Verification receipt</span><span class="quote-lead-v">${receiptHash ? `<code>sha256:${esc(receiptHash)}</code>` : receiptId ? esc(receiptId) : 'No verified receipt'}</span></div>
+          <div class="quote-lead-row"><span class="quote-lead-k">Ingested time</span><span class="quote-lead-v">${esc(q.observed_at || state.odds?.updated_at || 'unknown')}</span></div>
+          ${q.source_url ? `<div class="quote-lead-row"><span class="quote-lead-k">Source link</span><span class="quote-lead-v">${esc(q.source_url)}</span></div>` : ''}
+        </div>
+      </details>`;
+    return true;
+  }
+
+  function openQuoteDetail(quoteKey) {
+    state.detailReturnFocusSelector = `[data-quote-key="${String(quoteKey).replace(/"/g, '\\"')}"]`;
+    if (!renderQuoteDetailModal(quoteKey)) return;
+    const dlg = $('#detailDialog');
+    if (dlg && !dlg.open) dlg.showModal();
+  }
+
   function openDetail(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
+    state.selectedQuoteKey = null;
     state.selectedPlayerId = playerId;
+    state.detailReturnFocusSelector = state.view === 'table'
+      ? `tr[data-player-id="${String(playerId).replace(/"/g, '\\"')}"]`
+      : `article[data-player-id="${String(playerId).replace(/"/g, '\\"')}"]`;
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     state.scenarioTargetShare = baseShare;
     renderDetailModal(row);
-    $('#detailDialog').showModal();
+    const dlg = $('#detailDialog');
+    if (dlg && !dlg.open) dlg.showModal();
   }
 
   function renderDetailModal(row) {
@@ -9535,11 +9871,14 @@
     }).join('');
 
     const badge = !hasQuote ? ''
-      : evaluation.state === 'verified'
-        ? `<span class="pd-badge pd-badge-verified">${PD_ICONS.check} Verified</span>`
-        : '<span class="pd-badge pd-badge-unverified">Unverified</span>';
+      : evaluation.closed
+        ? '<span class="pd-badge pd-badge-unverified">Event started</span>'
+        : evaluation.state === 'verified'
+          ? `<span class="pd-badge pd-badge-verified">${PD_ICONS.check} Verified</span>`
+          : '<span class="pd-badge pd-badge-unverified">Unverified</span>';
+    const heroPriceText = formatOfferPrice(q, 'OVER', q && finite(q.over_odds) ? q.over_odds : evaluation.odds);
     const marketTile = hasQuote
-      ? `<div class="pd-market-line"><b>${marketLine.toFixed(1)}</b><span>${esc(oddsText(q && finite(q.over_odds) ? q.over_odds : evaluation.odds))}</span></div>${badge}<small class="pd-tile-foot">Over price · ${esc(bookShort(evaluation.book))}</small>`
+      ? `<div class="pd-market-line"><b>${marketLine.toFixed(1)}</b><span>${esc(heroPriceText)}</span></div>${badge}<small class="pd-tile-foot">Over price · ${esc(bookShort(evaluation.book))}</small>`
       : '<div class="pd-market-none">No live quote</div><small class="pd-tile-foot">Model only</small>';
 
     const dist = pdDistribution(row, market);
@@ -9674,8 +10013,63 @@
       : { tag: 'ENV: NOT MODELED', desc: 'Environment context is not modeled for this sport.' };
     const envTag = env.tag;
     const weatherDesc = env.desc;
+    const quote = evaluation.quote || null;
+    const statusSummary = offerStatusSummary(evaluation, quote);
+    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
+    const hasValidModel = Boolean(row) && !SLATES[state.slateKey]?.marketOnly && Number.isFinite(fair) && fair > 0;
+    const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
+    const priceText = evaluation.state !== 'none' ? formatOfferPrice(quote, evaluation.side, evaluation.odds) : 'No live quote';
+    const offeredTerms = evaluation.state !== 'none'
+      ? `${sideLabel} ${Number(evaluation.line).toFixed(1)} · ${priceText}`
+      : 'No live quote';
+    const providerStamp = quote ? offerTimestampLabel(quote) : 'No live quote';
+    const qualVerdict = qualifiedGreen
+      ? `Qualified · Clears ${policy() ? pct(policy().gate, 0) : '10%'} gate`
+      : `${statusSummary.label}${statusSummary.blocker && statusSummary.blocker !== statusSummary.label ? ` — ${statusSummary.blocker}` : ''}`;
+    const pOverAtLine = (hasValidModel && evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line)))
+      ? modelPOver(row, state.filters.market, Number(evaluation.line))
+      : NaN;
+    const modelProbText = Number.isFinite(pOverAtLine)
+      ? `P(${sideLabel} ${Number(evaluation.line).toFixed(1)}): ${((evaluation.side === 'UNDER' ? (1 - pOverAtLine) : pOverAtLine) * 100).toFixed(1)}%`
+      : null;
+    const targetText = (hasValidModel && evaluation.state !== 'none' && Number.isFinite(Number(evaluation.target)))
+      ? `Qualifying target line: ${Number(evaluation.target).toFixed(1)}`
+      : null;
+    const receiptHash = quoteReceiptSha(quote);
+    const receiptId = quote?.verification_receipt_id || quote?.receipt_id || quote?.provider_quote_id || '';
+    const leadHtml = `
+      <section class="quote-details-lead ${qualifiedGreen ? 'offer-qualified-green' : ''}" aria-label="Quote summary">
+        <div class="quote-lead-row"><span class="quote-lead-k">Quote source</span><strong class="quote-lead-v">${quote ? `${esc(quote.book || 'Book')} · ${esc(quote.source || 'Market feed')}` : 'No live quote'}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Offered terms</span><strong class="quote-lead-v font-mono">${esc(offeredTerms)}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Provider timestamp</span><strong class="quote-lead-v">${esc(providerStamp)}</strong></div>
+        <div class="quote-lead-row"><span class="quote-lead-k">Qualification result</span><strong class="quote-lead-v ${qualifiedGreen ? 'offer-qualified-green' : ''}">${esc(qualVerdict)}</strong></div>
+        ${modelProbText ? `<div class="quote-lead-row"><span class="quote-lead-k">Model probability</span><strong class="quote-lead-v font-mono">${esc(modelProbText)}</strong></div>` : ''}
+        ${targetText ? `<div class="quote-lead-row"><span class="quote-lead-k">Qualifying line</span><strong class="quote-lead-v font-mono">${esc(targetText)}</strong></div>` : ''}
+      </section>`;
+
+    if (!hasValidModel) {
+      return `
+        ${leadHtml}
+        <div class="quote-model-unavailable">
+          <strong>Model unavailable</strong>
+          <p>No calibrated model probability or qualifying price is available for this offer.</p>
+        </div>
+        <details class="quote-deep-details">
+          <summary>Receipt &amp; methodology</summary>
+          <div class="quote-deep-body">
+            <div class="quote-lead-row"><span class="quote-lead-k">Verification receipt</span><span class="quote-lead-v">${receiptHash ? `<code>sha256:${esc(receiptHash)}</code>` : receiptId ? esc(receiptId) : 'No verified receipt'}</span></div>
+            <div class="quote-lead-row"><span class="quote-lead-k">Ingested time</span><span class="quote-lead-v">${esc(quote?.observed_at || state.odds?.updated_at || 'unknown')}</span></div>
+          </div>
+        </details>`;
+    }
+
+    const stickyTerms = evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line))
+      ? `${evaluation.side || 'OVER'} ${Number(evaluation.line).toFixed(1)} (${priceText})`
+      : `Fair ${fair.toFixed(1)}`;
 
     return `
+      ${leadHtml}
+
       ${playerDetailHero(row, evaluation, fair, projection)}
 
       ${surgeSection}
@@ -9702,34 +10096,41 @@
       <!-- Inline Execution Ticket (CLV Ledger) -->
       ${executionTicketMarkup(row, evaluation, '')}
 
-      <!-- Institutional 2-Column Terminal Specification Grid (Replacing Text-Heavy Footer) -->
-      <div class="spec-grid-card">
-        <div class="spec-col spec-col-invalidation">
-          <div class="spec-header">
-            <span class="spec-title">Invalidation &amp; Risk Envelope</span>
-            <span class="spec-tag ${env.dome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
-          </div>
-          <div class="spec-body">
-            <div class="spec-meta-list">
-              <div class="spec-meta-item"><span class="spec-k">Game Script:</span> <span class="spec-v">${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}</span></div>
-              <div class="spec-meta-item"><span class="spec-k">Venue / Env:</span> <span class="spec-v">${weatherDesc}</span></div>
-              <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || (SPORT_ID === 'nba' ? 'Minutes risk unpriced' : 'Snap risk unpriced')})` : 'Late inactive / unmodeled rotation'}</span></div>
+      <details class="quote-deep-details">
+        <summary>Receipt &amp; methodology</summary>
+        <div class="quote-deep-body">
+          <div class="quote-lead-row"><span class="quote-lead-k">Ingested time</span><span class="quote-lead-v">${esc(quote?.observed_at || state.odds?.updated_at || 'unknown')}</span></div>
+          <div class="quote-lead-row"><span class="quote-lead-k">Verification hash</span><span class="quote-lead-v">${receiptHash ? `<code>sha256:${esc(receiptHash)}</code>` : 'No verified receipt'}</span></div>
+          <!-- Institutional 2-Column Terminal Specification Grid -->
+          <div class="spec-grid-card">
+            <div class="spec-col spec-col-invalidation">
+              <div class="spec-header">
+                <span class="spec-title">Invalidation &amp; Risk Envelope</span>
+                <span class="spec-tag ${env.dome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
+              </div>
+              <div class="spec-body">
+                <div class="spec-meta-list">
+                  <div class="spec-meta-item"><span class="spec-k">Game Script:</span> <span class="spec-v">${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}</span></div>
+                  <div class="spec-meta-item"><span class="spec-k">Venue / Env:</span> <span class="spec-v">${weatherDesc}</span></div>
+                  <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || (SPORT_ID === 'nba' ? 'Minutes risk unpriced' : 'Snap risk unpriced')})` : 'Late inactive / unmodeled rotation'}</span></div>
+                </div>
+                ${injury ? `<div class="spec-alert alert-amber"><strong>${SPORT_ID === 'nba' ? 'Minutes' : 'Snap'} risk unpriced:</strong> Availability designation tracked without false precision.</div>` : ''}
+                ${evaluation.dataCheck ? '<div class="spec-alert alert-amber"><strong>Audit Flag:</strong> Edge &gt;12% warrants active receipt check.</div>' : ''}
+              </div>
             </div>
-            ${injury ? `<div class="spec-alert alert-amber"><strong>${SPORT_ID === 'nba' ? 'Minutes' : 'Snap'} risk unpriced:</strong> Availability designation tracked without false precision.</div>` : ''}
-            ${evaluation.dataCheck ? '<div class="spec-alert alert-amber"><strong>Audit Flag:</strong> Edge &gt;12% warrants active receipt check.</div>' : ''}
+            ${sgpCorrelationSectionHtml(row, evaluation)}
           </div>
         </div>
-        ${sgpCorrelationSectionHtml(row, evaluation)}
-      </div>
+      </details>
 
       <!-- Sticky Add To Ledger Bar pinned to bottom of bottom sheet -->
       <div class="detail-sticky-bar">
         <div class="sticky-bar-info">
-          <span class="sticky-verdict">${evaluation.side || 'OVER'} ${evaluation.line ? evaluation.line.toFixed(1) : fair.toFixed(1)} <small class="text-dim">(${oddsText(evaluation.odds)})</small></span>
-          <span class="sticky-edge ${evaluation.edge > 0 ? 'text-accent' : 'text-dim'}">${signedPct(evaluation.edge)} edge</span>
+          <span class="sticky-verdict">${esc(stickyTerms)}</span>
+          <span class="sticky-edge ${qualifiedGreen && evaluation.edge > 0 ? 'text-accent offer-qualified-green' : 'text-dim'}">${signedPct(evaluation.edge)} edge</span>
         </div>
-        <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
-          Review ticket
+        <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn"${evaluation.closed ? ' disabled aria-disabled="true"' : ''}>
+          ${evaluation.closed ? 'Event started' : 'Review ticket'}
         </button>
       </div>
     `;
@@ -9775,6 +10176,7 @@
 
   function targetLine(row, quote, side, activePolicy) {
     if (!activePolicy || !finite(row.mu_rec) || !finite(row.mu_ypr)) return NaN;
+    if (!finite(quote?.over_odds) || !finite(quote?.under_odds) || Number(quote.over_odds) === 0 || Number(quote.under_odds) === 0) return NaN;
     const probabilities = devig(quote.over_odds, quote.under_odds);
     const marketProbability = side === 'UNDER' ? probabilities.under : probabilities.over;
     const step = state.filters.market === 'receptions' ? 0.5 : 0.5;
@@ -9831,14 +10233,22 @@
       state.odds = normalizeFeed(feed);
       renderHeader();
       renderBoard();
+      updateFeedHealthUI();
     },
     clearQuotes() {
       state.odds = { quotes: [] };
       renderHeader();
       renderBoard();
+      updateFeedHealthUI();
     },
     getVisibleCount() { return filteredRows().length; },
     getSlateCount() { return state.slate.length; },
+    marketStatus,
+    openDetail,
+    openQuoteDetail,
+    formatOfferPrice,
+    offerAgeLabel,
+    isOfferQualifiedGreen,
     priceLine,
     quoteIsSynthetic,
     resolveDataKind
