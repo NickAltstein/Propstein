@@ -46,6 +46,7 @@ jobs:
 
       - name: Commit and push only when new availability events exist
         run: |
+          git add -N data/availability_events.jsonl 2>/dev/null || true
           if git diff --quiet data/availability_events.jsonl; then
             echo "No new availability events — skipping commit (no timestamp-only commits)."
             exit 0
