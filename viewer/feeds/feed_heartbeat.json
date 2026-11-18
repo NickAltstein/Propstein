@@ -2,13 +2,13 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-18T10:45:24Z",
-      "last_success_quotes": 104,
+      "last_success_at": "2026-11-18T11:31:57Z",
+      "last_success_quotes": 106,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
       "last_error_at": "2026-11-18T02:40:20Z",
-      "last_attempt_at": "2026-11-18T10:45:24Z",
+      "last_attempt_at": "2026-11-18T11:31:57Z",
       "schedule": {
-        "observed_at": "2026-11-18T10:45:24Z",
+        "observed_at": "2026-11-18T11:31:57Z",
         "state": "pending",
         "starts": [
           "2026-11-19T00:00:00Z",
