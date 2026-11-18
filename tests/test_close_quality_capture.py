@@ -183,3 +183,16 @@ def test_stored_schedule_coverage_across_t60_t30_t15_t5_windows():
             if not any(lo <= (dt - t).total_seconds() / 60.0 <= hi for t in ticks):
                 uncovered.append((gid, dt.isoformat(), wname))
     assert uncovered == []
+
+
+def test_workflow_commit_guard_exits_zero_when_capture_file_missing(tmp_path):
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, stdout=subprocess.DEVNULL)
+    script = (
+        "if [ ! -f data/close_quality_captures.jsonl ]; then exit 0; fi; "
+        "git add -N data/close_quality_captures.jsonl 2>/dev/null || true; "
+        "git diff --quiet data/close_quality_captures.jsonl"
+    )
+    res = subprocess.run(["bash", "-c", script], cwd=tmp_path, capture_output=True, text=True)
+    assert res.returncode == 0

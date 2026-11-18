@@ -3033,7 +3033,7 @@
       }
       apply(
         `${beat}/${total}`,
-        `<strong>Board</strong> ${beat}/${total} beat close. Hand ledger excluded (8 rows, hash 178e29974bf8748c).`
+        `<strong>Board</strong> ${beat}/${total} beat last stored pre-kickoff price (2.3–5.4 days before kickoff; not T-0 closes). Hand ledger excluded (8 rows, hash 178e29974bf8748c).`
       );
     }).catch(() => {
       apply('unavailable', '<strong>Board</strong> unavailable. LEDGER ROOT UNAVAILABLE');
@@ -8930,11 +8930,11 @@
       <td>${esc(row.status)}</td>
     </tr>`).join('');
 
-    $('#clvReportTitle').textContent = 'Week 7 board · 2 of 37 beat close';
+    $('#clvReportTitle').textContent = 'Week 7 board · 2 of 37 beat stored pre-kickoff price';
     $('#clvReportEyebrow').textContent = 'Hand ledger excluded';
     $('#clvReportContent').innerHTML = `
       <p>The 8-row hand ledger is a different file and is not this denominator.</p>
-      <p>${summary.beat_close_count} of ${summary.total_graded} beat close. This is not a model-skill claim. See the time-to-close table on the performance page.</p>
+      <p>${summary.beat_close_count} of ${summary.total_graded} beat the last stored pre-kickoff price (captured 2.3–5.4 days before kickoff, not T-0 closes). This is not a model-skill claim. See the time-to-close table on the performance page.</p>
       <div class="clv-table-scroll">
         <table class="clv-audit-table">
           <thead><tr><th>Player</th><th>Market</th><th>Entry</th><th>Snapshot labeled close</th><th>Status</th></tr></thead>
