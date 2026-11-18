@@ -58,7 +58,7 @@ Every published edge is anchored across three verifiable lifecycle states serial
 - Maintains deterministic state deduplication via SHA-256 payload fingerprints stored in `.cache/sent_edge_alerts.json`, guaranteeing zero duplicate webhook emissions across stateless runner restarts.
 
 ### 4. Model Context Protocol (MCP) Server Integration
-- Exposes a native TypeScript `@modelcontextprotocol/sdk` server allowing autonomous quantitative agents to query live edges, validate multi-leg correlation slips, and cryptographically inspect historical receipts.
+- Exposes a native TypeScript `@modelcontextprotocol/sdk` server allowing autonomous quantitative agents to query live edges, verify historical receipts via SHA-256 hash checks, and inspect feed diagnostics.
 
 ---
 
@@ -69,7 +69,7 @@ Every published edge is anchored across three verifiable lifecycle states serial
 | **Quantitative Engine** | Python 3.12, FastAPI, Pytest | Statistical distribution modeling, vig removal, canonical JSON hashing |
 | **State & Persistence** | PostgreSQL / SQLite, `.cache` JSON | `closing_snapshots` ledger, idempotent alert deduplication |
 | **Terminal UI** | Vanilla ES6+ / Next.js, Tailwind | Zero-bloat `#0B0D11` slate canvas, 1px `#222733` hairlines, sub-16ms table renders |
-| **Agent Interface** | TypeScript, `@modelcontextprotocol/sdk` | Structured tool definitions (`get_current_edges`, `verify_slip`, `inspect_diagnostics`) |
+| **Agent Interface** | TypeScript, `@modelcontextprotocol/sdk` | Structured tool definitions (`get_current_edges`, `verify_receipt`, `inspect_diagnostics`) |
 | **CI/CD & Automation** | GitHub Actions, Vercel Edge | Automated cron ingestion, persistent state caching, strict CSP/SSL headers |
 
 ---
@@ -96,7 +96,7 @@ Connect Claude Desktop, Cursor, or custom autonomous agents directly to the Prop
 ### Exposed MCP Tools
 
 - **`get_current_edges`**: Retrieves fail-closed validated edges (5.0% ≤ EV ≤ 12.0%) with embedded SHA-256 opening receipts.
-- **`verify_slip`**: Evaluates multi-leg DFS Pick'em (PrizePicks 5-Flex / 2-Power, Underdog 3-Pick) and SGP correlation matrices against breakeven implied probability thresholds.
+- **`verify_receipt`** (deprecated alias: `verify_slip`, kept for one release): Hash check only. Fetches a 3-stage receipt chain (Entry -> T-0 Close -> Boxscore Settlement) and independently recomputes RFC-8785 SHA-256 digests locally; does not price or evaluate slips.
 - **`inspect_diagnostics`**: Queries quarantined feed anomalies (>12.0% divergence) and stale-market flags for quantitative debugging.
 
 ---

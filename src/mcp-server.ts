@@ -86,9 +86,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
+      name: "verify_receipt",
+      description:
+        "Hash check only. Fetches a 3-stage receipt chain (Entry -> T-0 Close -> Boxscore Settlement) AND independently recomputes the RFC-8785 SHA-256 digests locally inside the MCP client for zero-trust verification. Does not price slips.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          receipt_hash: {
+            type: "string",
+            description: "64-character hex SHA-256 receipt hash",
+          },
+        },
+        required: ["receipt_hash"],
+      },
+    },
+    {
       name: "verify_slip",
       description:
-        "Fetches a 3-stage receipt chain (Entry -> T-0 Close -> Boxscore Settlement) AND independently recomputes the RFC-8785 SHA-256 digests locally inside the MCP client for zero-trust verification.",
+        "Deprecated one-release alias for verify_receipt (hash check only; does not price slips).",
       inputSchema: {
         type: "object",
         properties: {
@@ -150,6 +165,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case "verify_receipt":
       case "verify_slip": {
         const args = VerifySlipArgsSchema.parse(request.params.arguments);
         const headers: Record<string, string> = {
