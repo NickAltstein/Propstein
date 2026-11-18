@@ -1,6 +1,9 @@
 {
   "schema": "propwire.close_quality_config.v1",
   "version": "2026.11.18-1",
+  "status": "UNAPPROVED_PLACEHOLDER",
+  "grades_nothing_until_section_14_approved": true,
+  "source": "agent_placeholder_pending_pr185_section_14",
   "venues": {
     "polymarket": {
       "max_bid_ask_spread_prob": 0.06,

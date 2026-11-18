@@ -5,12 +5,12 @@
 - **Status:** Defines the estimand for new observations captured at or after the effective timestamp only. No retroactive reinterpretation; `docs/EDGE_GATE.md` thresholds, §1, §13, and unfilled §14 slots are unchanged.
 
 ## 1. Historical Immutability
-Historical rows recorded with `reason_code = 'LINE_CHANGED'` and any observations captured before `2026-11-19T00:00:00+00:00` remain untouched under pre-amendment rules.
+Historical rows recorded with `reason_code = 'LINE_CHANGED'` and any observations captured before `2026-12-01T00:00:00+00:00` remain untouched under pre-amendment rules.
 
 ## 2. Close States & Close Quality (Post-Amendment)
 - `CLOSE_EXACT`: Closing reference matches entry line (`round(line, 4)`) with valid two-sided closing odds and passes close quality checks.
 - `CLOSE_TRANSLATED`: Closing line differs from entry line, and the closing market provides two bracketing quoted ladder rungs (`low_rung.line <= entry_line <= high_rung.line`, `low_rung.line < high_rung.line`). Translation interpolates linearly between the closing de-vigged probabilities of the two neighboring rungs—never a model distribution and never a half-yard heuristic without a neighboring rung. Every `CLOSE_TRANSLATED` output and receipt is labeled `derived: true` with `translation_method_hash`, and any aggregate over translated closes reports a confidence interval.
-- `CLOSE_UNEVALUABLE`: Line changed with only a single closing number and no neighboring bracketing rung, missing/incomplete closing odds, wide closing spread (`CLOSE_WIDE_SPREAD`), or thin top-of-book depth (`CLOSE_THIN_DEPTH`). Spread and depth thresholds are versioned in `src/contracts/close_quality_config.json` (`2026.11.18-1`: `max_bid_ask_spread_prob = 0.06`, `min_top_of_book_depth_usd = 250.0` for Polymarket and Kalshi).
+- `CLOSE_UNEVALUABLE`: Line changed with only a single closing number and no neighboring bracketing rung, missing/incomplete closing odds, wide closing spread (`CLOSE_WIDE_SPREAD`), thin top-of-book depth (`CLOSE_THIN_DEPTH`), or unapproved placeholder close-quality config (`UNAPPROVED_CLOSE_QUALITY_CONFIG`). The values in `src/contracts/close_quality_config.json` (`2026.11.18-1`: `0.06` / `$250.0`) are unapproved agent placeholders (`grades_nothing_until_section_14_approved: true`) that grade nothing until Nick approves the §14 slots in PR #185.
 
 ## 3. Canonical Closing Snapshot v2
 Translated closes are hashed under schema `propwire.closing_snapshot.v2` using canonical JSON SHA-256 (`src/crypto_utils.py`). Legacy `propwire.closing_snapshot.v1` receipts remain valid and unchanged.

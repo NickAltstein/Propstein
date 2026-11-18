@@ -16,7 +16,8 @@ CLOSE_TRANSLATED = "CLOSE_TRANSLATED"
 CLOSE_UNEVALUABLE = "CLOSE_UNEVALUABLE"
 CLOSE_WIDE_SPREAD = "CLOSE_WIDE_SPREAD"
 CLOSE_THIN_DEPTH = "CLOSE_THIN_DEPTH"
-AMENDMENT_003_EFFECTIVE_AT = datetime(2026, 11, 19, 0, 0, 0, tzinfo=timezone.utc)
+UNAPPROVED_CLOSE_QUALITY_CONFIG = "UNAPPROVED_CLOSE_QUALITY_CONFIG"
+AMENDMENT_003_EFFECTIVE_AT = datetime(2026, 12, 1, 0, 0, 0, tzinfo=timezone.utc)
 
 TRANSLATION_METHOD_SPEC = {
     "schema": "propwire.ladder_translation_method.v1",
@@ -212,6 +213,25 @@ def evaluate_post_amendment_close(
 
     cfg = dict(close_quality_config) if close_quality_config is not None else load_close_quality_config()
     cfg_version = str(cfg.get("version") or "unknown")
+    if is_post_amendment and (
+        cfg.get("grades_nothing_until_section_14_approved")
+        or cfg.get("status") == "UNAPPROVED_PLACEHOLDER"
+    ):
+        return LadderTranslation(
+            close_state=CLOSE_UNEVALUABLE,
+            entry_line=float(entry_line),
+            close_line=float(observed.line),
+            entry_devig_p=float(entry_devig_p),
+            translated_close_devig_p=None,
+            low_rung=None,
+            high_rung=None,
+            interpolation_weight=None,
+            closing_devig_pair=(round(close_pair[0], 6), round(close_pair[1], 6)),
+            closing_snapshot_hash=None,
+            reason_code=UNAPPROVED_CLOSE_QUALITY_CONFIG,
+            derived=False,
+            close_quality_version=cfg_version,
+        )
     venue_cfg = (cfg.get("venues") or {}).get(_source(observed.quote_source))
     if is_post_amendment and isinstance(venue_cfg, Mapping):
         max_spread = float(venue_cfg["max_bid_ask_spread_prob"])

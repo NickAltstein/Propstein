@@ -98,6 +98,16 @@ def test_post_amendment_close_exact_and_translated_ladder():
         quote_source="polymarket",
         quoted_at="2026-11-19T12:00:00+00:00",
     )
+    approved_cfg = {
+        "schema": "propwire.close_quality_config.v1",
+        "version": "test-approved-1",
+        "status": "APPROVED",
+        "grades_nothing_until_section_14_approved": False,
+        "venues": {
+            "polymarket": {"max_bid_ask_spread_prob": 0.06, "min_top_of_book_depth_usd": 250.0},
+            "kalshi": {"max_bid_ask_spread_prob": 0.06, "min_top_of_book_depth_usd": 250.0},
+        },
+    }
     exact_res = evaluate_post_amendment_close(
         event_id="evt-2",
         market="receiving_yards",
@@ -109,6 +119,7 @@ def test_post_amendment_close_exact_and_translated_ladder():
         raw_provider_payload_sha256="a" * 64,
         closing_spread_prob=0.03,
         closing_depth_usd=500.0,
+        close_quality_config=approved_cfg,
     )
     assert exact_res.close_state == CLOSE_EXACT
     assert exact_res.derived is False
@@ -139,10 +150,11 @@ def test_post_amendment_close_exact_and_translated_ladder():
         entry_devig_p=0.50,
         observed=observed_shifted,
         closing_ladder=ladder,
-        observed_at="2026-11-19T12:00:00+00:00",
+        observed_at="2026-12-01T12:00:00+00:00",
         raw_provider_payload_sha256="b" * 64,
         closing_spread_prob=0.03,
         closing_depth_usd=500.0,
+        close_quality_config=approved_cfg,
     )
     assert tr.close_state == CLOSE_TRANSLATED
     assert tr.derived is True
@@ -164,7 +176,8 @@ def test_post_amendment_close_exact_and_translated_ladder():
         entry_devig_p=0.50,
         observed=observed_shifted,
         closing_ladder=[],
-        observed_at="2026-11-19T12:00:00+00:00",
+        observed_at="2026-12-01T12:00:00+00:00",
+        close_quality_config=approved_cfg,
     )
     assert uneval.close_state == CLOSE_UNEVALUABLE
     assert uneval.reason_code == "NO_BRACKETING_RUNGS"
@@ -174,6 +187,13 @@ def test_post_amendment_close_exact_and_translated_ladder():
 def test_close_quality_thresholds_polymarket_and_kalshi():
     cfg = load_close_quality_config()
     assert cfg["version"] == "2026.11.18-1"
+    assert cfg["status"] == "UNAPPROVED_PLACEHOLDER"
+    assert cfg["grades_nothing_until_section_14_approved"] is True
+    approved_cfg = {
+        **cfg,
+        "status": "APPROVED",
+        "grades_nothing_until_section_14_approved": False,
+    }
     for venue in ("polymarket", "kalshi"):
         obs = CloseQuote(
             event_id="evt-q",
@@ -184,8 +204,22 @@ def test_close_quality_thresholds_polymarket_and_kalshi():
             over_american_odds=-110,
             under_american_odds=-110,
             quote_source=venue,
-            quoted_at="2026-11-19T12:00:00+00:00",
+            quoted_at="2026-12-01T12:00:00+00:00",
         )
+        unapproved = evaluate_post_amendment_close(
+            event_id="evt-q",
+            market="receiving_yards",
+            selection="OVER",
+            entry_line=49.5,
+            entry_devig_p=0.50,
+            observed=obs,
+            observed_at="2026-12-01T12:00:00+00:00",
+            closing_spread_prob=0.02,
+            closing_depth_usd=500.0,
+        )
+        assert unapproved.close_state == CLOSE_UNEVALUABLE
+        assert unapproved.reason_code == "UNAPPROVED_CLOSE_QUALITY_CONFIG"
+
         wide = evaluate_post_amendment_close(
             event_id="evt-q",
             market="receiving_yards",
@@ -193,9 +227,10 @@ def test_close_quality_thresholds_polymarket_and_kalshi():
             entry_line=49.5,
             entry_devig_p=0.50,
             observed=obs,
-            observed_at="2026-11-19T12:00:00+00:00",
+            observed_at="2026-12-01T12:00:00+00:00",
             closing_spread_prob=0.09,
             closing_depth_usd=500.0,
+            close_quality_config=approved_cfg,
         )
         assert wide.close_state == CLOSE_UNEVALUABLE
         assert wide.reason_code == CLOSE_WIDE_SPREAD
@@ -207,9 +242,10 @@ def test_close_quality_thresholds_polymarket_and_kalshi():
             entry_line=49.5,
             entry_devig_p=0.50,
             observed=obs,
-            observed_at="2026-11-19T12:00:00+00:00",
+            observed_at="2026-12-01T12:00:00+00:00",
             closing_spread_prob=0.02,
             closing_depth_usd=100.0,
+            close_quality_config=approved_cfg,
         )
         assert thin.close_state == CLOSE_UNEVALUABLE
         assert thin.reason_code == CLOSE_THIN_DEPTH
