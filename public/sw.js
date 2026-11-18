@@ -1,13 +1,59 @@
-// PropStein Service Worker (PWA Offline Support & Cache)
-const CACHE_NAME = 'propstein-v188-ice-icons';
+// PropStein Service Worker (offline shell only; market data always fails closed)
+const CACHE_NAME = 'propstein-v268-ice-icons';
 const STATIC_ASSETS = [
-  '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v124',
-  '/app.js?v=2026_v124',
-  '/manifest.json',
+  '/style.css?v=2026_v264',
+  '/feed-status.css?v=2026_v260',
+  '/app.js?v=2026_v265',
+  '/design-system.css?v=2026_v230',
+  '/terminal-ui.css?v=2026_v7',
+  '/js/market-status.js?v=2026_v3',
+  '/js/instrument-panel.js?v=2026_v1',
+  '/widget/line-pricer/widget.css?v=2026_v1',
+  '/widget/line-pricer/widget.js?v=2026_v2',
+  '/refresh-2026.css?v=2026_r15',
+  '/js/refresh-2026.js?v=2026_r2',
+  '/js/quant-math.js?v=2026_v215',
+  '/js/today-schedule.js?v=2026_v262',
+  '/js/feed-status.js?v=2026_v260',
+  '/js/sports/ufc.js?v=2026_v200',
+  '/ufc.css?v=2026_v200',
+  '/js/ufc-fighter.js?v=2026_v199',
+  '/js/front-page.js?v=2026_v254',
+  '/league-logos/nba.png',
+  '/league-logos/nfl.png',
+  '/league-logos/ufc.svg',
+  '/league-logos/nhl.png',
+  // v171: public verify landing assets (externalized from a336e2f inline blocks)
+  '/verify-landing.css',
+  '/verify-landing.js',
+  '/verify-landing.css?v=2026_v229',
+  '/verify-landing.js?v=2026_v179',
+  '/js/sports/registry.js?v=2026_v179',
+  '/js/sports/nfl.js?v=2026_v181',
+  '/js/sports/nba.js?v=2026_v221',
+  // brand marks: PropStein lighter ice-blue logo suite
+  '/propstein-header-ice.png?v=2026_v250',
+  '/propstein-logo-dark.webp?v=2026_v249',
+  '/propstein-logo.svg?v=2026_v179',
+  '/propstein-logo-dark.svg?v=2026_v179',
+  // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
+  '/books/draftkings.svg?v=v152',
+  '/books/fanduel.svg?v=v152',
+  '/books/betmgm.svg?v=v152',
+  '/books/caesars.svg?v=v152',
+  '/books/pinnacle.svg?v=v152',
+  '/books/betrivers.svg?v=v152',
+  '/books/fanatics.svg?v=v152',
+  '/books/bet365.svg?v=v152',
+  '/books/espnbet.svg?v=v152',
+  '/books/circa.svg?v=v152',
+  // v149 fix: this list previously referenced /manifest.json (never existed),
+  // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
+  // Now every entry matches the exact busted URLs the pages request.
+  '/site.webmanifest?v=2027_icon3',
   '/favicon.svg?v=2027_icon3',
   '/icon-192.png?v=2027_icon3',
   '/icon-512.png?v=2027_icon3',
@@ -41,19 +87,45 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network first with cache fallback
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Never cache quotes, health state, picks, receipts, or other JSON/CSV data.
+  // An offline research shell is useful; an offline price presented as current is not.
+  // Per-slate artifacts (slate_*.json, snapshots_*.json) are the one exception: the HTTP
+  // cache may keep them, but every use revalidates with the server (no-cache + ETag), so
+  // they are never served stale. The service worker itself still never stores JSON.
+  // Keep this pattern in sync with viewer/app.js (REVALIDATED_DATA_RE) and vercel.json.
+  if (/\.(?:json|csv)$/i.test(url.pathname)) {
+    const revalidate = /^\/(?:slate_[^/.]+|snapshots_[^/.]+)\.json$/.test(url.pathname);
+    event.respondWith(fetch(event.request, { cache: revalidate ? 'no-cache' : 'no-store' }));
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match('/index.html'))
+        .then((response) => response || new Response('PropStein is offline. Live market data is unavailable.', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        }))
+    );
+    return;
+  }
+
+  const isStaticAsset = ['script', 'style', 'image', 'font', 'manifest'].includes(event.request.destination);
+  if (!isStaticAsset) return;
+
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+      if (response && response.ok && response.type === 'basic') {
+        const clone = response.clone();
+        event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)));
+      }
+      return response;
+    }))
   );
 });

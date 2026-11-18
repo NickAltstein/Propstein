@@ -55,10 +55,10 @@ Every published edge is anchored across three verifiable lifecycle states serial
 
 ### 3. Idempotent Event-Driven Alert Dispatcher
 - Automated GitHub Actions cron workflow (`scripts/dispatch_edge_alerts.py`) evaluates live market boards on schedule.
-- Maintains deterministic state deduplication via SHA-256 payload fingerprints stored in `.cache/sent_edge_alerts.json`, guaranteeing zero duplicate webhook emissions across stateless runner restarts.
+- Deduplicates by quote ID, side, line, and price using `.cache/sent_edge_alerts.json` across scheduled runs.
 
 ### 4. Model Context Protocol (MCP) Server Integration
-- Exposes a native TypeScript `@modelcontextprotocol/sdk` server allowing autonomous quantitative agents to query live edges, validate multi-leg correlation slips, and cryptographically inspect historical receipts.
+- Exposes a native TypeScript `@modelcontextprotocol/sdk` server allowing autonomous quantitative agents to query live edges, verify historical receipts via SHA-256 hash checks, and inspect feed diagnostics.
 
 ---
 
@@ -69,7 +69,7 @@ Every published edge is anchored across three verifiable lifecycle states serial
 | **Quantitative Engine** | Python 3.12, FastAPI, Pytest | Statistical distribution modeling, vig removal, canonical JSON hashing |
 | **State & Persistence** | PostgreSQL / SQLite, `.cache` JSON | `closing_snapshots` ledger, idempotent alert deduplication |
 | **Terminal UI** | Vanilla ES6+ / Next.js, Tailwind | Zero-bloat `#0B0D11` slate canvas, 1px `#222733` hairlines, sub-16ms table renders |
-| **Agent Interface** | TypeScript, `@modelcontextprotocol/sdk` | Structured tool definitions (`get_current_edges`, `verify_slip`, `inspect_diagnostics`) |
+| **Agent Interface** | TypeScript, `@modelcontextprotocol/sdk` | Structured tool definitions (`get_current_edges`, `verify_receipt`, `inspect_diagnostics`) |
 | **CI/CD & Automation** | GitHub Actions, Vercel Edge | Automated cron ingestion, persistent state caching, strict CSP/SSL headers |
 
 ---
@@ -85,8 +85,8 @@ Connect Claude Desktop, Cursor, or custom autonomous agents directly to the Prop
       "command": "node",
       "args": ["./mcp-server/dist/index.js"],
       "env": {
-        "PROPSTEIN_API_URL": "https://propstein.com/api/v1",
-        "PROPSTEIN_QUANT_KEY": "QUANT-XXXX-XXXX"
+        "PropWire_API_URL": "https://YOUR-LIVE-API-HOST",
+        "PropWire_API_KEY": "OPTIONAL-SCOPED-KEY"
       }
     }
   }
@@ -95,9 +95,11 @@ Connect Claude Desktop, Cursor, or custom autonomous agents directly to the Prop
 
 ### Exposed MCP Tools
 
-- **`get_current_edges`**: Retrieves fail-closed validated edges (5.0% ≤ EV ≤ 12.0%) with embedded SHA-256 opening receipts.
-- **`verify_slip`**: Evaluates multi-leg DFS Pick'em (PrizePicks 5-Flex / 2-Power, Underdog 3-Pick) and SGP correlation matrices against breakeven implied probability thresholds.
-- **`inspect_diagnostics`**: Queries quarantined feed anomalies (>12.0% divergence) and stale-market flags for quantitative debugging.
+- **`get_current_edges`**: Reads the same `/v1/edges` decision used by alert dispatch. A source quote must carry explicit verification, complete book terms, fresh provider time, and the `edge_10pct_v1` qualification policy. Missing evidence returns no actionable edge.
+- **`verify_receipt`** (deprecated alias: `verify_slip`, kept for one release): Hash check only. Fetches a 3-stage receipt chain (Entry -> T-0 Close -> Boxscore Settlement) and independently recomputes RFC-8785 SHA-256 digests locally; does not price or evaluate slips.
+- **`inspect_diagnostics`**: Reads `/v1/diagnostics` for rejected quote IDs and fail-closed reasons.
+
+Alert dispatch requires `PROPSTEIN_EDGES_URL` to point to the live API's `/v1/edges` route. It has no picks-file fallback and no unverified override. Until that URL and a verified receiving quote are available, the dispatcher emits no alerts. The public static feed remains research-only.
 
 ---
 
