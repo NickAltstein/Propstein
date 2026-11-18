@@ -160,3 +160,40 @@ def test_api_edges_and_diagnostics_use_same_quote_decision(now, tmp_path, monkey
     assert diagnostics.json()["data"] == [
         {"quote_id": "missing-price", "reason": "BOOK_PRICE_MISSING_OR_INVALID"}
     ]
+
+
+def test_dispatcher_unset_url_raises_and_sends_nothing(monkeypatch):
+    import pytest
+    import sys
+
+    monkeypatch.delenv("PROPSTEIN_EDGES_URL", raising=False)
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.test/webhook")
+    sent = []
+    monkeypatch.setattr(dispatcher, "post_webhook", lambda *args, **kwargs: sent.append(("discord", args)) or True)
+    monkeypatch.setattr(dispatcher, "post_telegram", lambda *args, **kwargs: sent.append(("telegram", args)) or True)
+    monkeypatch.setattr(sys, "argv", ["dispatch_edge_alerts.py"])
+    with pytest.raises(RuntimeError, match="PROPSTEIN_EDGES_URL is required"):
+        dispatcher.main()
+    assert sent == []
+
+
+def test_dispatcher_set_url_zero_qualifying_edges_sends_nothing(monkeypatch):
+    import sys
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            self.close()
+
+    monkeypatch.setenv("PROPSTEIN_EDGES_URL", "https://example.test/v1/edges")
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.test/webhook")
+    payload = {"status": "success", "source": "verified_feed", "data": []}
+    monkeypatch.setattr(dispatcher, "urlopen", lambda *_args, **_kwargs: Response(json.dumps(payload).encode()))
+    sent = []
+    monkeypatch.setattr(dispatcher, "post_webhook", lambda *args, **kwargs: sent.append(("discord", args)) or True)
+    monkeypatch.setattr(dispatcher, "post_telegram", lambda *args, **kwargs: sent.append(("telegram", args)) or True)
+    monkeypatch.setattr(sys, "argv", ["dispatch_edge_alerts.py"])
+    dispatcher.main()
+    assert sent == []

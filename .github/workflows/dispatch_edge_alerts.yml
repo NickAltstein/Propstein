@@ -22,7 +22,17 @@ permissions:
   contents: read
 
 jobs:
+  disabled_notice:
+    if: vars.PROPSTEIN_EDGES_URL == ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report disabled alert dispatch
+        run: |
+          echo "::notice::alert dispatch disabled: PROPSTEIN_EDGES_URL unset"
+          echo "alert dispatch disabled: PROPSTEIN_EDGES_URL unset" >> "$GITHUB_STEP_SUMMARY"
+
   dispatch:
+    if: vars.PROPSTEIN_EDGES_URL != ''
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
