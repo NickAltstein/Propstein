@@ -1,0 +1,58 @@
+name: Poll NFL Availability and IR Events
+
+on:
+  schedule:
+    # Midweek (Tue-Thu): every 6h on odd minute :19
+    - cron: '19 2,8,14,20 * * 2-4'
+    # Fri-Sun active injury/IR window: every 2h on odd minute :19
+    - cron: '19 */2 * * 5,6,0'
+    # Official-inactive / pre-kickoff windows (TNF, Sun early/late/SNF, MNF)
+    - cron: '45 23 * * 4'
+    - cron: '45 0 * * 5'
+    - cron: '35 16 * * 0'
+    - cron: '35 19 * * 0'
+    - cron: '50 23 * * 0,1'
+  workflow_dispatch:
+
+concurrency:
+  group: availability-producer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install parquet dependency
+        run: python -m pip install "pandas>=2,<3" "pyarrow>=15,<20"
+
+      - name: Poll availability sources into append-only JSONL
+        run: |
+          PYTHONPATH=. python -m src.availability_producer --season 2026 --week 11
+
+      - name: Commit and push only when new availability events exist
+        run: |
+          if git diff --quiet data/availability_events.jsonl; then
+            echo "No new availability events — skipping commit (no timestamp-only commits)."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/availability_events.jsonl viewer/availability_report.json
+          git commit -m "chore(data): append availability events [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
