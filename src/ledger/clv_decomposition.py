@@ -112,3 +112,111 @@ def summarize_cohort_decomposition(
         price_beat_rate=round(price_beats / n, 4),
     )
 
+
+@dataclass(frozen=True)
+class DecomposedPriceCLV:
+    signal_id: str
+    close_state: str
+    is_confirmatory: bool
+    quote_source: str
+    total_price_clv_pp: float
+    line_component: float
+    juice_component: float
+    book_execution_component: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def decompose_price_clv(
+    signal_id: str,
+    *,
+    close_state: str,
+    quote_source: str,
+    entry_devig_p: float,
+    translated_close_devig_p: float,
+    raw_close_devig_p_at_close_line: float | None = None,
+    is_confirmatory: bool = True,
+    best_tape_devig_p: float | None = None,
+    best_tape_quote_source: str | None = None,
+) -> DecomposedPriceCLV:
+    """Decompose price CLV into line_component, juice_component, and book_execution_component.
+
+    - Same yard, worse juice scores strictly negative (total_price_clv_pp < 0).
+    - Confirmatory sample (Polymarket vs Polymarket): book_execution_component is identically 0.0.
+    - Shadow ledger (is_confirmatory=False): book_execution_component is computed only inside
+      one quote_source class against best_tape_devig_p at the same source_ts.
+    """
+    if close_state not in {"CLOSE_EXACT", "CLOSE_TRANSLATED"}:
+        raise ValueError(f"cannot decompose non-evaluable close_state={close_state!r}")
+
+    total_pp = (float(translated_close_devig_p) - float(entry_devig_p)) * 100.0
+    if close_state == "CLOSE_EXACT" or raw_close_devig_p_at_close_line is None:
+        line_pp = 0.0
+        juice_pp = total_pp
+    else:
+        line_pp = (float(translated_close_devig_p) - float(raw_close_devig_p_at_close_line)) * 100.0
+        juice_pp = total_pp - line_pp
+
+    if is_confirmatory:
+        book_exec_pp = 0.0
+    else:
+        if best_tape_devig_p is None:
+            book_exec_pp = 0.0
+        else:
+            if best_tape_quote_source and best_tape_quote_source.strip().lower() != quote_source.strip().lower():
+                raise ValueError("book_execution_component may only compare within one quote_source class")
+            book_exec_pp = (float(best_tape_devig_p) - float(entry_devig_p)) * 100.0
+
+    return DecomposedPriceCLV(
+        signal_id=signal_id,
+        close_state=close_state,
+        is_confirmatory=is_confirmatory,
+        quote_source=quote_source,
+        total_price_clv_pp=round(total_pp, 4),
+        line_component=round(line_pp, 4),
+        juice_component=round(juice_pp, 4),
+        book_execution_component=round(book_exec_pp, 4),
+    )
+
+
+def summarize_price_clv_cohort(
+    items: Sequence[DecomposedPriceCLV],
+    *,
+    replicates: int = 2000,
+    seed: int = 20261118,
+) -> dict[str, Any]:
+    """Aggregate decomposed price CLV with derived counts and a 95% bootstrap confidence interval."""
+    import random
+
+    n = len(items)
+    if n == 0:
+        return {
+            "n_signals": 0,
+            "n_derived": 0,
+            "mean_total_clv_pp": 0.0,
+            "mean_line_component": 0.0,
+            "mean_juice_component": 0.0,
+            "mean_book_execution_component": 0.0,
+            "ci_level": 0.95,
+            "ci_low": 0.0,
+            "ci_high": 0.0,
+        }
+    totals = [s.total_price_clv_pp for s in items]
+    mean_total = sum(totals) / n
+    rng = random.Random(seed)
+    boot = sorted(sum(rng.choice(totals) for _ in range(n)) / n for _ in range(replicates))
+    lo_idx = max(0, int(0.025 * replicates))
+    hi_idx = min(replicates - 1, int(0.975 * replicates))
+    return {
+        "n_signals": n,
+        "n_derived": sum(1 for s in items if s.close_state == "CLOSE_TRANSLATED"),
+        "mean_total_clv_pp": round(mean_total, 4),
+        "mean_line_component": round(sum(s.line_component for s in items) / n, 4),
+        "mean_juice_component": round(sum(s.juice_component for s in items) / n, 4),
+        "mean_book_execution_component": round(sum(s.book_execution_component for s in items) / n, 4),
+        "ci_level": 0.95,
+        "ci_low": round(boot[lo_idx], 4),
+        "ci_high": round(boot[hi_idx], 4),
+    }
+

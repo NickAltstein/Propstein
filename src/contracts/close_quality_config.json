@@ -1,0 +1,14 @@
+{
+  "schema": "propwire.close_quality_config.v1",
+  "version": "2026.11.18-1",
+  "venues": {
+    "polymarket": {
+      "max_bid_ask_spread_prob": 0.06,
+      "min_top_of_book_depth_usd": 250.0
+    },
+    "kalshi": {
+      "max_bid_ask_spread_prob": 0.06,
+      "min_top_of_book_depth_usd": 250.0
+    }
+  }
+}
