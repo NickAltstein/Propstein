@@ -36,6 +36,10 @@ jobs:
 
       - name: Commit and push only when new capture records exist
         run: |
+          if [ ! -f data/close_quality_captures.jsonl ]; then
+            echo "No close-quality captures yet — skipping commit."
+            exit 0
+          fi
           git add -N data/close_quality_captures.jsonl 2>/dev/null || true
           if git diff --quiet data/close_quality_captures.jsonl; then
             echo "No new close-quality capture records — skipping commit."
