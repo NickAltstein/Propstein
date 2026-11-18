@@ -780,6 +780,16 @@ def get_v1_edges(
     }
 
 
+@app.post("/v1/slips")
+@app.post("/api/v1/slips")
+async def post_v1_slips(request: Request):
+    """Price a multi-leg slip under the three frozen correlation buckets."""
+    from src.contracts.slip_pricer import price_slip
+    body = await request.json()
+    return price_slip(body.get("legs") or [], qualification_policy=body.get("qualification_policy"))
+
+
+
 # ---------------------------------------------------------------------------
 # Diagnostics & Quarantine Endpoint: /api/v1/diagnostics
 # Returns quarantined outliers (>12% edge) with strict DO NOT BET directives
