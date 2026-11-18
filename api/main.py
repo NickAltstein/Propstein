@@ -655,6 +655,32 @@ async def legacy_stripe_webhook(request: Request):
 # High-speed query endpoint querying Postgres or local MarketEdge DB
 # ---------------------------------------------------------------------------
 
+from src.contracts.book_quote_tape import (
+    DEFAULT_MAX_TAPE_AGE_SECONDS,
+    best_price_view,
+    filter_fresh_tape,
+)
+
+_BOOK_QUOTE_TAPE: list[dict[str, Any]] = []
+
+
+def set_book_quote_tape(rows: list[dict[str, Any]]) -> None:
+    """Replace the in-memory timestamped tape for deterministic evaluation/testing."""
+    _BOOK_QUOTE_TAPE.clear()
+    _BOOK_QUOTE_TAPE.extend(rows)
+
+
+def _load_tape_rows() -> list[dict[str, Any]]:
+    if _BOOK_QUOTE_TAPE:
+        return list(_BOOK_QUOTE_TAPE)
+    tape_path = os.path.join(BASE_DIR, "data", "book_quote_tape.jsonl")
+    if os.path.exists(tape_path):
+        with open(tape_path, "r", encoding="utf-8") as handle:
+            return [json.loads(line) for line in handle if line.strip()]
+    return []
+
+
+@app.get("/v1/edges")
 @app.get("/api/v1/edges")
 def get_v1_edges(
     slate: str = Query("2026_w7", description="Slate key (e.g. 2026_w7)"),
@@ -674,6 +700,9 @@ def get_v1_edges(
     limit_val = getattr(limit, "default", limit) if hasattr(limit, "default") else limit
     player_val = getattr(player, "default", player) if hasattr(player, "default") else player
     market_val = getattr(market, "default", market) if hasattr(market, "default") else market
+    raw_tape = _load_tape_rows()
+    fresh_tape = filter_fresh_tape(raw_tape, max_age_seconds=DEFAULT_MAX_TAPE_AGE_SECONDS)
+    best_prices = best_price_view(raw_tape, max_age_seconds=DEFAULT_MAX_TAPE_AGE_SECONDS)
 
     try:
         min_edge_val = float(min_edge_val)
@@ -727,6 +756,8 @@ def get_v1_edges(
                 "source": "postgresql",
                 "count": len(records),
                 "slate": slate_val,
+                "tape": fresh_tape,
+                "best_price": best_prices,
                 "data": records
             }
         except Exception as err:
@@ -765,6 +796,8 @@ def get_v1_edges(
                 "source": "sqlite",
                 "count": len(records),
                 "slate": slate_val,
+                "tape": fresh_tape,
+                "best_price": best_prices,
                 "data": records
             }
         except Exception as err:
@@ -772,9 +805,11 @@ def get_v1_edges(
 
     return {
         "status": "success",
-        "source": "none",
+        "source": "tape" if fresh_tape else "none",
         "count": 0,
         "slate": slate_val,
+        "tape": fresh_tape,
+        "best_price": best_prices,
         "data": [],
         "note": "MarketEdge database empty or initializing"
     }
