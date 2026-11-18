@@ -15,6 +15,7 @@ data/raw_espn_captures/*
 !viewer/feeds/grades/*.jsonl
 !viewer/precommit_log.jsonl
 !data/game_context_captures.jsonl
+!data/availability_events.jsonl
 __pycache__/
 .env
 
