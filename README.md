@@ -55,7 +55,7 @@ Every published edge is anchored across three verifiable lifecycle states serial
 
 ### 3. Idempotent Event-Driven Alert Dispatcher
 - Automated GitHub Actions cron workflow (`scripts/dispatch_edge_alerts.py`) evaluates live market boards on schedule.
-- Maintains deterministic state deduplication via SHA-256 payload fingerprints stored in `.cache/sent_edge_alerts.json`, guaranteeing zero duplicate webhook emissions across stateless runner restarts.
+- Deduplicates by quote ID, side, line, and price using `.cache/sent_edge_alerts.json` across scheduled runs.
 
 ### 4. Model Context Protocol (MCP) Server Integration
 - Exposes a native TypeScript `@modelcontextprotocol/sdk` server allowing autonomous quantitative agents to query live edges, validate multi-leg correlation slips, and cryptographically inspect historical receipts.
@@ -85,8 +85,8 @@ Connect Claude Desktop, Cursor, or custom autonomous agents directly to the Prop
       "command": "node",
       "args": ["./mcp-server/dist/index.js"],
       "env": {
-        "PROPSTEIN_API_URL": "https://propstein.com/api/v1",
-        "PROPSTEIN_QUANT_KEY": "QUANT-XXXX-XXXX"
+        "PropWire_API_URL": "https://YOUR-LIVE-API-HOST",
+        "PropWire_API_KEY": "OPTIONAL-SCOPED-KEY"
       }
     }
   }
@@ -95,9 +95,11 @@ Connect Claude Desktop, Cursor, or custom autonomous agents directly to the Prop
 
 ### Exposed MCP Tools
 
-- **`get_current_edges`**: Retrieves fail-closed validated edges (5.0% ≤ EV ≤ 12.0%) with embedded SHA-256 opening receipts.
+- **`get_current_edges`**: Reads the same `/v1/edges` decision used by alert dispatch. A source quote must carry explicit verification, complete book terms, fresh provider time, and the `edge_10pct_v1` qualification policy. Missing evidence returns no actionable edge.
 - **`verify_slip`**: Evaluates multi-leg DFS Pick'em (PrizePicks 5-Flex / 2-Power, Underdog 3-Pick) and SGP correlation matrices against breakeven implied probability thresholds.
-- **`inspect_diagnostics`**: Queries quarantined feed anomalies (>12.0% divergence) and stale-market flags for quantitative debugging.
+- **`inspect_diagnostics`**: Reads `/v1/diagnostics` for rejected quote IDs and fail-closed reasons.
+
+Alert dispatch requires `PROPSTEIN_EDGES_URL` to point to the live API's `/v1/edges` route. It has no picks-file fallback and no unverified override. Until that URL and a verified receiving quote are available, the dispatcher emits no alerts. The public static feed remains research-only.
 
 ---
 

@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "viewer/current_picks.json"
+      - "viewer/live_odds_feed.json"
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
@@ -17,11 +17,6 @@ on:
         description: "Minimum EV% threshold"
         required: false
         default: "5.0"
-      allow_unverified:
-        description: "Allow unverified lines (dev testing only)"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -51,16 +46,11 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PROPSTEIN_EDGES_URL: ${{ vars.PROPSTEIN_EDGES_URL }}
         run: |
-          EXTRA_FLAGS=""
-          if [ "${{ github.event.inputs.allow_unverified }}" = "true" ]; then
-            EXTRA_FLAGS="--allow-unverified"
-          fi
           MIN_EV="${{ github.event.inputs.min_ev || '5.0' }}"
           python3 scripts/dispatch_edge_alerts.py \
-            --input viewer/current_picks.json \
-            --min-ev "$MIN_EV" \
-            $EXTRA_FLAGS
+            --min-ev "$MIN_EV"
 
       - name: Save updated SHA-256 sent alerts cache
         if: always()

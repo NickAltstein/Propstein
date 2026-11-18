@@ -651,133 +651,56 @@ async def legacy_stripe_webhook(request: Request):
 
 
 # ---------------------------------------------------------------------------
-# B2B Infrastructure API: /api/v1/edges
-# High-speed query endpoint querying Postgres or local MarketEdge DB
+# Verified NFL receiving offer decision. Legacy /api/v1/edges is an alias;
+# MarketEdge rows lack verification evidence and cannot be actionable.
 # ---------------------------------------------------------------------------
 
+@app.get("/v1/edges")
 @app.get("/api/v1/edges")
 def get_v1_edges(
-    slate: str = Query("2026_w7", description="Slate key (e.g. 2026_w7)"),
-    min_edge: float = Query(0.0, description="Minimum edge percentage hurdle"),
-    max_edge: float = Query(12.0, description="Maximum edge percentage ceiling (12.0% quarantine limit)"),
-    player: str | None = Query(None, description="Optional player name filter"),
-    market: str | None = Query(None, description="Optional market filter"),
-    limit: int = Query(50, ge=1, le=500, description="Maximum rows returned"),
+    slate: str | None = Query(None, description="Slate key"),
+    min_edge: float = Query(5.0, ge=5.0, le=12.0),
+    max_edge: float = Query(12.0, ge=0.0, le=12.0),
+    player: str | None = Query(None),
+    market: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=500),
 ):
-    """
-    Direct low-latency B2B executable edge endpoint.
-    Enforces a strict 12.0% anomaly ceiling to prevent betting quarantined lines.
-    """
-    slate_val = getattr(slate, "default", slate) if hasattr(slate, "default") else slate
-    min_edge_val = getattr(min_edge, "default", min_edge) if hasattr(min_edge, "default") else min_edge
-    max_edge_val = getattr(max_edge, "default", max_edge) if hasattr(max_edge, "default") else max_edge
-    limit_val = getattr(limit, "default", limit) if hasattr(limit, "default") else limit
-    player_val = getattr(player, "default", player) if hasattr(player, "default") else player
-    market_val = getattr(market, "default", market) if hasattr(market, "default") else market
+    """Serve only fresh, explicitly verified source quotes that passed policy."""
+    from src.services.actionable_edges import decide_feed
 
+    path = resolve_file("LIVE_ODDS_FEED_PATH", "live_odds_feed.json")
     try:
-        min_edge_val = float(min_edge_val)
-    except (ValueError, TypeError):
-        min_edge_val = 0.0
+        with open(path, encoding="utf-8") as source:
+            feed = json.load(source)
+    except (OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Verified edge feed unavailable") from exc
+    edges, _ = decide_feed(
+        feed, datetime.now(timezone.utc), min_edge=min_edge, max_edge=max_edge,
+        slate=slate,
+    )
+    if player:
+        edges = [edge for edge in edges if player.lower() in edge["player_name"].lower()]
+    if market:
+        edges = [edge for edge in edges if edge["market"] == market]
+    edges = edges[:limit]
+    return {"status": "success", "source": "verified_feed", "count": len(edges),
+            "slate": feed.get("slate"), "data": edges}
 
+
+@app.get("/v1/diagnostics")
+def get_edge_diagnostics(slate: str | None = None):
+    """Read-only reasons that observed quotes did not enter the action feed."""
+    from src.services.actionable_edges import decide_feed
+
+    path = resolve_file("LIVE_ODDS_FEED_PATH", "live_odds_feed.json")
     try:
-        max_edge_val = float(max_edge_val)
-    except (ValueError, TypeError):
-        max_edge_val = 12.0
-
-    try:
-        limit_val = int(limit_val)
-    except (ValueError, TypeError):
-        limit_val = 50
-
-    db_url = os.getenv("DATABASE_URL")
-    records = []
-
-    # 1. Direct Postgres Query via psycopg2 if DATABASE_URL is present
-    if db_url:
-        try:
-            import psycopg2
-            from psycopg2.extras import RealDictCursor
-            query = """
-                SELECT "id", "slateId", "playerId", "playerName", "market",
-                       "bookLine", "odds", "fairLine", "edgePct", "updatedAt"
-                FROM "MarketEdge"
-                WHERE "slateId" = %s AND "edgePct" >= %s AND "edgePct" <= %s
-            """
-            params: list[Any] = [slate_val, min_edge_val, max_edge_val]
-            if player_val:
-                query += ' AND "playerName" ILIKE %s'
-                params.append(f"%{player_val}%")
-            if market_val:
-                query += ' AND "market" ILIKE %s'
-                params.append(f"%{market_val}%")
-
-            query += ' ORDER BY "edgePct" DESC LIMIT %s;'
-            params.append(limit_val)
-
-            with psycopg2.connect(db_url) as conn:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute(query, params)
-                    records = [dict(r) for r in cur.fetchall()]
-                    for r in records:
-                        if "updatedAt" in r and r["updatedAt"]:
-                            r["updatedAt"] = r["updatedAt"].isoformat()
-            return {
-                "status": "success",
-                "source": "postgresql",
-                "count": len(records),
-                "slate": slate_val,
-                "data": records
-            }
-        except Exception as err:
-            print(f"[api/v1/edges] Postgres query error: {err}. Trying local SQLite...")
-
-    # 2. Local SQLite fallback (data/market_edges.db)
-    sqlite_path = os.path.join(BASE_DIR, "data", "market_edges.db")
-    if os.path.exists(sqlite_path):
-        try:
-            import sqlite3
-            conn = sqlite3.connect(sqlite_path)
-            conn.row_factory = sqlite3.Row
-            cur = conn.cursor()
-            query = """
-                SELECT id, slateId, playerId, playerName, market,
-                       bookLine, odds, fairLine, edgePct, updatedAt
-                FROM MarketEdge
-                WHERE slateId = ? AND edgePct >= ? AND edgePct <= ?
-            """
-            params = [slate_val, min_edge_val, max_edge_val]
-            if player_val:
-                query += " AND playerName LIKE ?"
-                params.append(f"%{player_val}%")
-            if market_val:
-                query += " AND market LIKE ?"
-                params.append(f"%{market_val}%")
-
-            query += " ORDER BY edgePct DESC LIMIT ?"
-            params.append(limit_val)
-
-            cur.execute(query, params)
-            records = [dict(row) for row in cur.fetchall()]
-            conn.close()
-            return {
-                "status": "success",
-                "source": "sqlite",
-                "count": len(records),
-                "slate": slate_val,
-                "data": records
-            }
-        except Exception as err:
-            print(f"[api/v1/edges] SQLite query error: {err}")
-
-    return {
-        "status": "success",
-        "source": "none",
-        "count": 0,
-        "slate": slate_val,
-        "data": [],
-        "note": "MarketEdge database empty or initializing"
-    }
+        with open(path, encoding="utf-8") as source:
+            feed = json.load(source)
+    except (OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Quote diagnostics unavailable") from exc
+    _, diagnostics = decide_feed(feed, datetime.now(timezone.utc), slate=slate)
+    return {"status": "success", "slate": feed.get("slate"),
+            "count": len(diagnostics), "data": diagnostics}
 
 
 # ---------------------------------------------------------------------------

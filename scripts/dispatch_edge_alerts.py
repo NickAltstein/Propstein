@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Zero-dependency alert dispatcher for PropStein edge detections.
+"""Fail-closed alert dispatcher for PropStein verified edge decisions.
 
-Dispatches high-conviction sportsbook +EV and DFS Pick'em edges to Discord webhooks
-and/or Telegram bot chats with deduplication and state tracking.
+Reads only /v1/edges and dispatches verified sportsbook offers to Discord
+and/or Telegram with deduplication and state tracking.
 
 Usage:
     python3 scripts/dispatch_edge_alerts.py [--dry-run] [--selftest] [--threshold 5.0]
@@ -12,22 +12,44 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 import time
 from pathlib import Path
+from datetime import datetime, timezone
+from urllib.parse import urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 SENT_LOG_PATH = CACHE_DIR / "sent_edge_alerts.json"
-VIEWER_DIR = Path(__file__).resolve().parent.parent / "viewer"
+POLICY_VERSION = "edge_10pct_v1"  # parity-checked against src.freeze_slate
 
-DFS_HURDLES = {
-    "PrizePicks 5-Flex": 0.5421,
-    "PrizePicks 2-Power": 0.5774,
-    "Underdog 3-Pick": 0.5500,
-}
+
+def _parse_utc(value: object) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        stamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return stamp.astimezone(timezone.utc) if stamp.tzinfo else None
+
+
+def _finite_number(value: object) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _american_odds(value: object) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) and 100 <= abs(value) <= 50000 else None
+
 
 
 def load_sent_alerts() -> dict:
@@ -44,90 +66,61 @@ def save_sent_alerts(alerts: dict) -> None:
     SENT_LOG_PATH.write_text(json.dumps(alerts, indent=2), encoding="utf-8")
 
 
-def american_to_implied(american: float | int) -> float:
-    try:
-        val = float(american)
-        if val > 0:
-            return 100.0 / (val + 100.0)
-        return abs(val) / (abs(val) + 100.0)
-    except (ValueError, TypeError, ZeroDivisionError):
-        return 0.5
-
-
-def collect_active_edges(min_edge_pct: float = 5.0, allow_unverified: bool = False, picks_path: Path | None = None) -> list[dict]:
-    """Inspects viewer/live_odds_feed.json, current_picks.json, and snapshots for high-conviction plays."""
-    edges: list[dict] = []
-
-    # 1. Ingest live picks if present
-    if picks_path and picks_path.is_file():
-        target_files = [picks_path]
-    else:
-        picks_files = sorted(VIEWER_DIR.glob("current_picks*.json"), reverse=True)
-        live_picks_files = sorted(VIEWER_DIR.glob("live_picks*.json"), reverse=True)
-        target_files = live_picks_files + picks_files
-
-    for tf in target_files:
-        try:
-            data = json.loads(tf.read_text(encoding="utf-8"))
-            picks = data.get("picks", [])
-            for p in picks:
-                if not allow_unverified and p.get("verified") is False:
-                    continue
-                player = p.get("player") or p.get("player_name")
-                market = p.get("market", "points")
-                line = p.get("line") or p.get("fair_line_rec") or p.get("fair_line_yards")
-                odds = p.get("odds", -110)
-                book = p.get("book", "Consensus")
-                team = p.get("team", "")
-
-                ev_pct = float(p.get("ev_per_unit", 0.0) or 0.0) * 100.0
-                edge_pct = float(p.get("edge", 0.0) or 0.0) * 100.0
-
-                # DFS win probability calculation
-                win_prob = float(p.get("p_rec_at_fair_line", 0.0) or 0.0)
-                if win_prob <= 0:
-                    win_prob = american_to_implied(odds)
-
-                pp_flex_edge = (win_prob - DFS_HURDLES["PrizePicks 5-Flex"]) * 100.0
-
-                # Gating: must meet either the sportsbook EV threshold OR the DFS hurdle threshold
-                qualifies_sportsbook = ev_pct >= min_edge_pct or edge_pct >= min_edge_pct
-                qualifies_dfs = pp_flex_edge >= min_edge_pct
-
-                if qualifies_sportsbook or qualifies_dfs:
-                    effective_edge = max(ev_pct, edge_pct) if qualifies_sportsbook else pp_flex_edge
-                    edges.append({
-                        "id": f"{player}:{market}:{line}:{book}".lower().replace(" ", "_"),
-                        "player": player,
-                        "team": team,
-                        "market": market,
-                        "line": line,
-                        "side": p.get("side", "OVER"),
-                        "odds": odds,
-                        "book": book,
-                        "ev_pct": max(ev_pct, edge_pct),
-                        "win_prob_pct": win_prob * 100.0,
-                        "pp_flex_edge": pp_flex_edge,
-                        "effective_edge": effective_edge,
-                        "source": tf.name,
-                    })
-        except Exception:
-            continue
-
-    # Deduplicate by unique player + market
+def collect_active_edges(min_edge_pct: float = 5.0, edges_url: str | None = None) -> list[dict]:
+    """Read only the canonical edge decision API; never infer a quote from picks."""
+    url = edges_url or os.environ.get("PROPSTEIN_EDGES_URL")
+    if not url:
+        raise RuntimeError("PROPSTEIN_EDGES_URL is required; alert dispatch is disabled")
+    parsed = urlparse(url)
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost"}):
+        raise ValueError("PROPSTEIN_EDGES_URL must use HTTPS (localhost may use HTTP)")
+    from urllib.parse import parse_qsl, urlencode, urlunparse
+    query = dict(parse_qsl(parsed.query))
+    query["min_edge"] = str(min_edge_pct)
+    url = urlunparse(parsed._replace(query=urlencode(query)))
+    req = Request(url, headers={"Accept": "application/json", "User-Agent": "PropStein-AlertBot/2.0"})
+    with urlopen(req, timeout=10) as response:
+        payload = json.load(response)
+    if payload.get("status") != "success" or payload.get("source") != "verified_feed" or not isinstance(payload.get("data"), list):
+        return []
+    now = datetime.now(timezone.utc)
+    edges = []
     seen = set()
-    deduped = []
-    for e in edges:
-        if e["id"] not in seen:
-            seen.add(e["id"])
-            deduped.append(e)
-
-    return sorted(deduped, key=lambda x: max(x["ev_pct"], x["pp_flex_edge"]), reverse=True)
+    for edge in payload["data"]:
+        if not isinstance(edge, dict) or edge.get("verified") is not True or edge.get("verification_status") != "VERIFIED":
+            continue
+        if edge.get("qualification_policy_version") != POLICY_VERSION:
+            continue
+        if not isinstance(edge.get("quote_id"), str) or not edge["quote_id"].strip():
+            continue
+        line = _finite_number(edge.get("line"))
+        odds = _american_odds(edge.get("odds"))
+        quoted_at = _parse_utc(edge.get("quoted_at"))
+        expires_at = _parse_utc(edge.get("expires_at"))
+        expected_return = _finite_number(edge.get("expected_return_pct"))
+        edge_pct = _finite_number(edge.get("edge_pct"))
+        if (line is None or line <= 0 or odds is None or quoted_at is None or expires_at is None
+                or quoted_at > now or expires_at <= now or expected_return is None or expected_return <= 0
+                or edge_pct is None or edge_pct <= 0 or expected_return < min_edge_pct or expected_return > 12.0):
+            continue
+        if edge.get("side") not in ("OVER", "UNDER") or not all(edge.get(k) for k in ("book", "player_name", "market", "game_id")):
+            continue
+        edge_id = f"{edge['quote_id']}:{edge['side']}:{line}:{odds}"
+        if edge_id in seen:
+            continue
+        seen.add(edge_id)
+        edges.append({
+            "id": edge_id, "quote_id": edge["quote_id"], "player": edge["player_name"],
+            "team": edge.get("team", ""), "market": edge["market"], "line": line,
+            "side": edge["side"], "odds": odds, "book": edge["book"],
+            "ev_pct": expected_return, "edge_pct": edge_pct,
+            "expires_at": edge["expires_at"], "quoted_at": edge["quoted_at"],
+        })
+    return sorted(edges, key=lambda x: x["ev_pct"], reverse=True)
 
 
 def format_discord_payload(edge: dict) -> dict:
     ev_val = f"+{edge['ev_pct']:.1f}%" if edge['ev_pct'] > 0 else f"{edge['ev_pct']:.1f}%"
-    pp_val = f"+{edge['pp_flex_edge']:.1f}%" if edge['pp_flex_edge'] > 0 else f"{edge['pp_flex_edge']:.1f}%"
     odds_str = f"+{edge['odds']}" if edge['odds'] > 0 else str(edge['odds'])
 
     return {
@@ -138,12 +131,12 @@ def format_discord_payload(edge: dict) -> dict:
             "description": f"**Pick**: {edge['side']} {edge['line']} {edge['market'].title()}\n**Book**: {edge['book']} ({odds_str})",
             "color": 0x80C6F6,  # PropStein Blue
             "fields": [
-                {"name": "Sportsbook +EV", "value": ev_val, "inline": True},
-                {"name": "Model Win Prob", "value": f"{edge['win_prob_pct']:.1f}%", "inline": True},
-                {"name": "PrizePicks 5-Flex Edge", "value": pp_val, "inline": True},
+                {"name": "Expected return", "value": ev_val, "inline": True},
+                {"name": "Quote ID", "value": edge['quote_id'], "inline": False},
+                {"name": "Expires", "value": edge['expires_at'], "inline": False},
             ],
             "footer": {
-                "text": "PropStein Terminal · De-Vigged Quant Consensus · https://whop.com/propstein"
+                "text": "PropStein Terminal · Recheck line and price at the book before acting"
             },
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         }]
@@ -152,7 +145,6 @@ def format_discord_payload(edge: dict) -> dict:
 
 def format_telegram_message(edge: dict) -> str:
     ev_val = f"+{edge['ev_pct']:.1f}%" if edge['ev_pct'] > 0 else f"{edge['ev_pct']:.1f}%"
-    pp_val = f"+{edge['pp_flex_edge']:.1f}%" if edge['pp_flex_edge'] > 0 else f"{edge['pp_flex_edge']:.1f}%"
     odds_str = f"+{edge['odds']}" if edge['odds'] > 0 else str(edge['odds'])
 
     return (
@@ -160,11 +152,11 @@ def format_telegram_message(edge: dict) -> str:
         f"<b>Player</b>: {edge['player']} ({edge['team']})\n"
         f"<b>Market</b>: {edge['side']} {edge['line']} {edge['market'].title()}\n"
         f"<b>Book</b>: {edge['book']} ({odds_str})\n\n"
-        f"📊 <b>Sportsbook +EV</b>: <code>{ev_val}</code>\n"
-        f"🎯 <b>Model Win Prob</b>: <code>{edge['win_prob_pct']:.1f}%</code>\n"
-        f"⚡ <b>PrizePicks 5-Flex Edge</b>: <code>{pp_val}</code>\n\n"
+        f"📊 <b>Expected return</b>: <code>{ev_val}</code>\n"
+        f"<b>Quote ID</b>: <code>{edge['quote_id']}</code>\n"
+        f"<b>Expires</b>: <code>{edge['expires_at']}</code>\n\n"
         f"<a href=\"https://propstein.com\">Open PropStein Terminal</a> · "
-        f"<a href=\"https://whop.com/propstein\">Unlock Pro Desk</a>"
+        f"Recheck line and price at the book before acting"
     )
 
 
@@ -175,7 +167,7 @@ def post_webhook(url: str, payload: dict) -> bool:
         with urlopen(req, timeout=10) as resp:
             return resp.status in (200, 204)
     except (HTTPError, URLError) as err:
-        sys.stderr.write(f"Webhook post error to {url}: {err}\n")
+        sys.stderr.write(f"Webhook post error: {err}\n")
         return False
 
 
@@ -201,8 +193,8 @@ def run_selftest() -> None:
         "odds": -110,
         "book": "FanDuel",
         "ev_pct": 8.4,
-        "win_prob_pct": 59.2,
-        "pp_flex_edge": 5.0,
+        "quote_id": "selftest-quote",
+        "expires_at": "2026-11-18T05:00:00+00:00",
         "source": "selftest",
     }
     discord = format_discord_payload(sample_edge)
@@ -211,24 +203,15 @@ def run_selftest() -> None:
     assert "QUANT EDGE DETECTED" in discord["embeds"][0]["title"]
     assert discord["embeds"][0]["fields"][0]["value"] == "+8.4%"
     assert "Jaxon Smith-Njigba" in telegram
-    assert "+5.0%" in telegram
+    assert "selftest-quote" in telegram
 
-    # Test deduplication storage roundtrip
-    test_dict = {"test_id": time.time()}
-    save_sent_alerts(test_dict)
-    loaded = load_sent_alerts()
-    assert "test_id" in loaded
-
-    # Clean up test entry
-    SENT_LOG_PATH.unlink(missing_ok=True)
-    print("✅ Selftest passed: Alert payload structures, DFS math, and state store verified.")
+    print("✅ Selftest passed: alert payload structures verified.")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="PropStein Edge Alert Dispatcher")
-    parser.add_argument("--input", type=str, default=None, help="Input picks file path")
-    parser.add_argument("--min-ev", "--threshold", dest="threshold", type=float, default=5.0, help="Minimum EV/DFS edge percent hurdle")
-    parser.add_argument("--allow-unverified", action="store_true", help="Allow unverified lines")
+    parser.add_argument("--edges-url", type=str, default=None, help="Canonical /v1/edges endpoint")
+    parser.add_argument("--min-ev", "--threshold", dest="threshold", type=float, default=5.0, help="Minimum edge percent hurdle")
     parser.add_argument("--dry-run", action="store_true", help="Print payloads without firing webhooks")
     parser.add_argument("--selftest", action="store_true", help="Execute built-in test suite and exit")
     args = parser.parse_args()
@@ -241,8 +224,7 @@ def main() -> None:
     tg_token = os.environ.get("TELEGRAM_BOT_TOKEN")
     tg_chat = os.environ.get("TELEGRAM_CHAT_ID")
 
-    picks_path = Path(args.input) if args.input else None
-    edges = collect_active_edges(min_edge_pct=args.threshold, allow_unverified=args.allow_unverified, picks_path=picks_path)
+    edges = collect_active_edges(min_edge_pct=args.threshold, edges_url=args.edges_url)
     sent_log = load_sent_alerts()
 
     new_dispatches = 0
@@ -258,7 +240,7 @@ def main() -> None:
             continue
 
         if args.dry_run or not (discord_url or (tg_token and tg_chat)):
-            print(f"[DRY RUN / NO WEBHOOK] Alert queued: {edge['player']} ({edge['team']}) - {edge['market']} EV: {edge['ev_pct']:.1f}% DFS: {edge['pp_flex_edge']:.1f}%")
+            print(f"[DRY RUN / NO WEBHOOK] Alert queued: {edge['player']} ({edge['team']}) - {edge['market']} EV: {edge['ev_pct']:.1f}%")
             if not (discord_url or (tg_token and tg_chat)):
                 print("  Note: Set DISCORD_EDGE_WEBHOOK or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID to dispatch live.")
             continue
