@@ -31,7 +31,7 @@ def _validate_post_news_tape_row(row: Mapping[str, Any]) -> dict[str, Any] | Non
         "raw_payload_sha256": raw_hash,
     }
 
-VOID_STATUSES = frozenset({"OUT", "INACTIVE", "SCRATCHED"})
+VOID_STATUSES = frozenset({"OUT", "INACTIVE", "SCRATCHED", "IR", "REPORTED_OUT"})
 UNCERTAIN_STATUSES = frozenset({"QUESTIONABLE", "DOUBTFUL", "LIMITED"})
 
 STATE_AVAILABILITY_VOID = "availability_void"
@@ -246,6 +246,95 @@ def consume_injury_stream(
             })
     return consume_injury_events(
         events,
+        receipts=receipts,
+        model_usage_table=model_usage_table,
+        news_week=news_week,
+        board_week=board_week,
+        capture_week=capture_week,
+        tape_rows=tape_rows,
+        now=now,
+    )
+
+
+def load_availability_events_jsonl(jsonl_path: Any) -> list[dict[str, Any]]:
+    """Load append-only availability events from JSONL and return effective latest state per player."""
+    import json
+    from pathlib import Path
+
+    path = Path(jsonl_path)
+    if not path.exists():
+        return []
+    raw_events: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        raw_events.append(json.loads(line))
+    return raw_events
+
+
+def hydrate_bus_from_jsonl(
+    jsonl_path: Any,
+    stream_bus: Any,
+    *,
+    topic: str = "propwire.events.injury",
+) -> int:
+    """Hydrate DurableRedisStreamBus from append-only availability_events.jsonl."""
+    raw_events = load_availability_events_jsonl(jsonl_path)
+    published = 0
+    for ev in raw_events:
+        envelope = {
+            "event_id": ev.get("event_id"),
+            "fetched_at": ev.get("observed_at"),
+            "payload": {
+                "player_id": ev.get("player_id"),
+                "team": ev.get("team"),
+                "status": ev.get("category") or ev.get("new_status"),
+                "source": ev.get("source"),
+                "source_url": ev.get("source_url"),
+                "fetched_at": ev.get("observed_at"),
+            },
+        }
+        if hasattr(stream_bus, "xadd"):
+            stream_bus.xadd(topic, envelope, source_hash=ev.get("raw_payload_sha256"))
+            published += 1
+        elif hasattr(stream_bus, "publish"):
+            stream_bus.publish(topic, envelope)
+            published += 1
+    return published
+
+
+def consume_availability_jsonl(
+    jsonl_path: Any,
+    *,
+    receipts: Sequence[ReceiptRecord],
+    model_usage_table: Mapping[str, Mapping[str, Any]],
+    news_week: int | str | None,
+    board_week: int | str | None,
+    capture_week: int | str | None,
+    tape_rows: Sequence[Mapping[str, Any]] = (),
+    now: datetime | None = None,
+) -> InjuryConsumerState:
+    """Consume append-only availability_events.jsonl directly into InjuryConsumerState."""
+    raw_events = load_availability_events_jsonl(jsonl_path)
+    latest_by_player: dict[str, dict[str, Any]] = {}
+    for ev in raw_events:
+        pid = str(ev.get("player_id") or "").strip()
+        if not pid:
+            continue
+        cat = str(ev.get("category") or ev.get("new_status") or "").strip().upper()
+        if cat == "ACTIVE":
+            latest_by_player.pop(pid, None)
+            continue
+        latest_by_player[pid] = {
+            "player_id": pid,
+            "team": ev.get("team"),
+            "status": cat,
+            "status_ts": ev.get("observed_at"),
+            "source": ev.get("source"),
+            "source_url": ev.get("source_url"),
+        }
+    return consume_injury_events(
+        list(latest_by_player.values()),
         receipts=receipts,
         model_usage_table=model_usage_table,
         news_week=news_week,

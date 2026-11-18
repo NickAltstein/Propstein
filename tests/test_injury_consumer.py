@@ -212,7 +212,7 @@ def test_week_misalignment_pauses_gate_with_stale_context():
 
 def test_real_stream_bus_ingests_official_report_and_ignores_caller_vacated(tmp_path):
     now = datetime(2026, 11, 18, 15, 0, 0, tzinfo=timezone.utc)
-    bus = DurableRedisStreamBus()
+    bus = DurableRedisStreamBus(wal_db_path=tmp_path / "wal.db")
     agent = InjuryEventAgent(stream_bus=bus, truth_store=TruthStore(db_path=str(tmp_path / "truth.db")))
     out = agent.ingest_event(
         {
