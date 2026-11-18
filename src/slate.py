@@ -155,9 +155,38 @@ def espn_availability(slate: pd.DataFrame, max_age_hours: float = 36.0) -> dict[
     return {str(rows[i]["player_id"]): entry for i, entry in match(report, rows, name_col).items()}
 
 
+def availability_events_exclusions(jsonl_path: str | None = None) -> dict[str, dict]:
+    """Read sticky exclusions from append-only data/availability_events.jsonl (read-only)."""
+    path = jsonl_path or os.path.join(DATA_DIR, "availability_events.jsonl")
+    if not os.path.exists(path):
+        return {}
+    excluded_cats = {"OUT", "IR", "DOUBTFUL", "INACTIVE", "REPORTED_OUT"}
+    latest: dict[str, dict] = {}
+    with open(path, encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line:
+                continue
+            ev = json.loads(line)
+            pid = str(ev.get("player_id") or "").strip()
+            if not pid:
+                continue
+            cat = str(ev.get("category") or ev.get("new_status") or "").strip().upper()
+            if cat in excluded_cats:
+                latest[pid] = {
+                    "category": cat,
+                    "source": str(ev.get("source") or "availability_events"),
+                    "observed_at": ev.get("observed_at"),
+                }
+            elif cat == "ACTIVE":
+                latest.pop(pid, None)
+    return latest
+
+
 def availability_eligible(slate: pd.DataFrame, injured: set[str],
                           confirmed_inactive: set[str],
-                          espn: dict[str, dict] | None = None) -> pd.DataFrame:
+                          espn: dict[str, dict] | None = None,
+                          availability_events: dict[str, dict] | None = None) -> pd.DataFrame:
     """Apply hard availability exclusions in every week, including Weeks 2+."""
     result = slate.copy()
     result["excl_reason"] = ""
@@ -166,6 +195,10 @@ def availability_eligible(slate: pd.DataFrame, injured: set[str],
         if entry.get("unavailable"):
             result.loc[(result.player_id == pid) & (result.excl_reason == ""),
                        "excl_reason"] = f"espn: {entry['status'].lower()}"
+    events_map = availability_events if availability_events is not None else availability_events_exclusions()
+    for pid, ev in events_map.items():
+        result.loc[(result.player_id == pid) & (result.excl_reason == ""),
+                   "excl_reason"] = f"availability: {ev['category'].lower()} ({ev['source']})"
     result.loc[result.player_id.isin(confirmed_inactive), "excl_reason"] = "official inactive"
     inactive_roster = result.get("status", pd.Series("ACT", index=result.index)).fillna("ACT") != "ACT"
     result.loc[inactive_roster & (result.excl_reason == ""), "excl_reason"] = "not on active roster"

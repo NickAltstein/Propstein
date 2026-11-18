@@ -44,6 +44,8 @@ CATEGORY_RANK = {
 }
 
 DEFAULT_MAX_SOURCE_AGE_SECONDS = 36 * 3600
+DEFAULT_CLEAR_AFTER_CONSECUTIVE_ACT_POLLS = 3
+DEFAULT_REVIEW_AGE_DAYS = 7
 
 
 def _parse_utc(value: Any) -> datetime | None:
@@ -170,6 +172,13 @@ def current_sticky_state(events: Sequence[Mapping[str, Any]]) -> dict[str, dict[
         if not pid:
             continue
         cat = str(ev.get("category") or ev.get("new_status") or "UNKNOWN").upper()
+        excluded = cat in STICKY_EXCLUDED_CATEGORIES
+        prev = state.get(pid)
+        first_excluded = (
+            (prev.get("first_excluded_at") or ev.get("observed_at"))
+            if (excluded and prev and prev.get("excluded"))
+            else (ev.get("observed_at") if excluded else None)
+        )
         state[pid] = {
             "player_id": pid,
             "team": ev.get("team"),
@@ -177,7 +186,8 @@ def current_sticky_state(events: Sequence[Mapping[str, Any]]) -> dict[str, dict[
             "new_status": ev.get("new_status"),
             "source": ev.get("source"),
             "observed_at": ev.get("observed_at"),
-            "excluded": cat in STICKY_EXCLUDED_CATEGORIES,
+            "first_excluded_at": first_excluded,
+            "excluded": excluded,
         }
     return state
 
@@ -262,6 +272,8 @@ def run_availability_poll(
     override_paths: Sequence[Path] = (),
     now: datetime | None = None,
     max_source_age_seconds: int = DEFAULT_MAX_SOURCE_AGE_SECONDS,
+    clear_after_clean_polls: int = DEFAULT_CLEAR_AFTER_CONSECUTIVE_ACT_POLLS,
+    review_age_days: int = DEFAULT_REVIEW_AGE_DAYS,
 ) -> dict[str, Any]:
     """Run one idempotent availability poll, append new events, and write compact report."""
     now_dt = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
@@ -276,6 +288,10 @@ def run_availability_poll(
         except Exception:
             prior_report = {}
 
+    clean_streaks: dict[str, int] = {
+        str(k): int(v)
+        for k, v in (prior_report.get("sticky_clean_streaks") or {}).items()
+    }
     last_poll = dict(prior_report.get("last_successful_poll") or {})
     stale_reasons: list[str] = []
     if not chain_valid:
@@ -424,8 +440,11 @@ def run_availability_poll(
 
         # Fail closed: never clear a sticky exclusion if any source fetch failed.
         if fetch_degraded and prev and prev["excluded"] and winner["category"] == "ACTIVE":
+            clean_streaks.pop(pid, None)
             continue
-        # Lagging nflverse_roster ACT cannot clear an exclusion set by espn_injuries/human_override.
+        # Clearing rule:
+        # 1) Explicit ACTIVE from espn_injuries or human_override clears immediately.
+        # 2) Not listed in espn_injuries + nflverse_roster ACT clears after N consecutive clean polls.
         if (
             prev
             and prev["excluded"]
@@ -433,7 +452,15 @@ def run_availability_poll(
             and winner["source"] == "nflverse_roster"
             and prev["source"] != "nflverse_roster"
         ):
-            continue
+            streak = clean_streaks.get(pid, 0) + 1
+            if streak < clear_after_clean_polls:
+                clean_streaks[pid] = streak
+                continue
+            clean_streaks.pop(pid, None)
+            winner = dict(winner)
+            winner["new_status"] = f"ACT_STREAK_{clear_after_clean_polls}"
+        elif winner["category"] != "ACTIVE":
+            clean_streaks.pop(pid, None)
 
         # Only emit when category changes (or first time seeing a non-ACTIVE/UNKNOWN state).
         if prev is None and winner["category"] in {"ACTIVE", "UNKNOWN"}:
@@ -460,6 +487,12 @@ def run_availability_poll(
         prev_hash = _line_sha256(line)
         new_lines.append(line)
         new_events.append(ev)
+        excluded_now = ev["category"] in STICKY_EXCLUDED_CATEGORIES
+        first_excluded = (
+            (prev.get("first_excluded_at") or ev["observed_at"])
+            if (excluded_now and prev and prev.get("excluded"))
+            else (ev["observed_at"] if excluded_now else None)
+        )
         prior_state[pid] = {
             "player_id": pid,
             "team": ev["team"],
@@ -467,7 +500,8 @@ def run_availability_poll(
             "new_status": ev["new_status"],
             "source": ev["source"],
             "observed_at": ev["observed_at"],
-            "excluded": ev["category"] in STICKY_EXCLUDED_CATEGORIES,
+            "first_excluded_at": first_excluded,
+            "excluded": excluded_now,
         }
 
     if new_lines:
@@ -477,12 +511,27 @@ def run_availability_poll(
                 fh.write(line + "\n")
 
     counts_by_category: dict[str, int] = {}
+    excluded_by_source: dict[str, int] = {}
     excluded_ids: list[str] = []
+    stale_exclusions_for_review: list[dict[str, Any]] = []
     for pid, st in sorted(prior_state.items()):
         cat = st["category"]
         counts_by_category[cat] = counts_by_category.get(cat, 0) + 1
         if st["excluded"]:
             excluded_ids.append(pid)
+            src = str(st.get("source") or "unknown")
+            excluded_by_source[src] = excluded_by_source.get(src, 0) + 1
+            first_dt = _parse_utc(st.get("first_excluded_at") or st.get("observed_at"))
+            if first_dt is not None:
+                age_days = (now_dt - first_dt).total_seconds() / 86400.0
+                if age_days >= float(review_age_days):
+                    stale_exclusions_for_review.append({
+                        "player_id": pid,
+                        "category": cat,
+                        "source": src,
+                        "first_excluded_at": first_dt.isoformat(),
+                        "age_days": round(age_days, 2),
+                    })
 
     report = {
         "schema": "propwire.availability_report.v1",
@@ -492,8 +541,11 @@ def run_availability_poll(
         "new_events_count": len(new_events),
         "total_events_count": len(existing_events) + len(new_events),
         "counts_by_category": counts_by_category,
+        "excluded_by_source": excluded_by_source,
         "sticky_excluded_count": len(excluded_ids),
         "excluded_player_ids": excluded_ids,
+        "sticky_clean_streaks": clean_streaks,
+        "stale_exclusions_for_review": stale_exclusions_for_review,
         "disagreements": disagreements,
         "unmatched": unmatched,
         "crosswalk_stats": {

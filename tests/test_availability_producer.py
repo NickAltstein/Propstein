@@ -239,3 +239,80 @@ def test_week10_and_week11_nacua_replay_and_consumer_jsonl(tmp_path):
     assert st_direct.receipts["r-nacua"].state == STATE_AVAILABILITY_VOID
     assert st_direct.receipts["r-kupp"].state == STATE_CONTEXT_DIRTY
     assert st_bus.receipts["r-kupp"].state == STATE_CONTEXT_DIRTY
+
+
+def test_end_to_end_jsonl_sets_excl_reason_and_drops_from_slate_board(tmp_path):
+    import sys
+    import pandas as pd
+
+    if "src" not in sys.path:
+        sys.path.insert(0, "src")
+    from slate import availability_eligible, availability_events_exclusions
+
+    jsonl_path = tmp_path / "availability_events.jsonl"
+    report_path = tmp_path / "availability_report.json"
+    roster = [
+        {"gsis_id": "00-0039075", "espn_id": "4426515", "team": "LA", "status": "ACT", "status_description_abbr": "A01"},
+        {"gsis_id": "00-0033908", "espn_id": "2977187", "team": "LA", "status": "ACT", "status_description_abbr": "A01"},
+    ]
+    run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Puka Nacua", "LAR", "Out", "4426515")]),
+        roster_rows=roster,
+        now=datetime(2026, 11, 18, 15, 0, tzinfo=timezone.utc),
+    )
+
+    slate_df = pd.DataFrame([
+        {"player_id": "00-0039075", "player_display_name": "Puka Nacua", "team": "LA", "status": "ACT"},
+        {"player_id": "00-0033908", "player_display_name": "Cooper Kupp", "team": "LA", "status": "ACT"},
+    ])
+    ev_excl = availability_events_exclusions(str(jsonl_path))
+    eligible = availability_eligible(slate_df, injured=set(), confirmed_inactive=set(), espn={}, availability_events=ev_excl)
+    nacua_row = eligible[eligible["player_id"] == "00-0039075"].iloc[0]
+    assert "out" in nacua_row["excl_reason"]
+    viewer_board = eligible[eligible["excl_reason"] == ""]
+    assert list(viewer_board["player_id"]) == ["00-0033908"]
+
+
+def test_sticky_clearing_rule_and_stale_review_report(tmp_path):
+    jsonl_path = tmp_path / "availability_events.jsonl"
+    report_path = tmp_path / "availability_report.json"
+    roster_act = [{"gsis_id": "00-0036900", "espn_id": "4040715", "team": "CIN", "status": "ACT", "status_description_abbr": "A01"}]
+
+    t0 = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
+    run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Tee Higgins", "CIN", "Out", "4040715")], timestamp=t0.isoformat()),
+        roster_rows=roster_act,
+        now=t0,
+    )
+
+    # Absent from ESPN + roster ACT for 2 polls -> still excluded, streak=1 then 2; after 8 days -> flagged for review
+    t_old = t0 + timedelta(days=8)
+    r1 = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=t_old.isoformat()),
+        roster_rows=roster_act, now=t_old, clear_after_clean_polls=3, review_age_days=7,
+    )
+    assert "00-0036900" in r1["excluded_player_ids"]
+    assert r1["sticky_clean_streaks"]["00-0036900"] == 1
+    assert len(r1["stale_exclusions_for_review"]) == 1
+
+    r2 = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=(t_old + timedelta(hours=2)).isoformat()),
+        roster_rows=roster_act, now=t_old + timedelta(hours=2), clear_after_clean_polls=3,
+    )
+    assert "00-0036900" in r2["excluded_player_ids"]
+    assert r2["sticky_clean_streaks"]["00-0036900"] == 2
+
+    # 3rd consecutive clean poll clears the sticky exclusion
+    r3 = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=(t_old + timedelta(hours=4)).isoformat()),
+        roster_rows=roster_act, now=t_old + timedelta(hours=4), clear_after_clean_polls=3,
+    )
+    assert "00-0036900" not in r3["excluded_player_ids"]
+    assert r3["new_events_count"] == 1
