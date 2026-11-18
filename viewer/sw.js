@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v265-timing-evidence';
+const CACHE_NAME = 'propstein-v268-ice-icons';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/feed-status.css?v=2026_v260',
   '/app.js?v=2026_v265',
   '/design-system.css?v=2026_v230',
-  '/terminal-ui.css?v=2026_v6',
+  '/terminal-ui.css?v=2026_v7',
   '/js/market-status.js?v=2026_v3',
   '/js/instrument-panel.js?v=2026_v1',
   '/widget/line-pricer/widget.css?v=2026_v1',
@@ -35,7 +35,7 @@ const STATIC_ASSETS = [
   '/js/sports/nfl.js?v=2026_v181',
   '/js/sports/nba.js?v=2026_v221',
   // brand marks: PropStein lighter ice-blue logo suite
-  '/propstein-logo.webp?v=2026_v249',
+  '/propstein-header-ice.png?v=2026_v250',
   '/propstein-logo-dark.webp?v=2026_v249',
   '/propstein-logo.svg?v=2026_v179',
   '/propstein-logo-dark.svg?v=2026_v179',
@@ -53,11 +53,13 @@ const STATIC_ASSETS = [
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
-  '/site.webmanifest?v=2027_icon2',
-  '/favicon.svg?v=2027_icon2',
-  '/icon-192.png?v=2027_icon2',
-  '/icon-512.png?v=2027_icon2',
-  '/apple-touch-icon.png?v=2027_icon2'
+  '/site.webmanifest?v=2027_icon3',
+  '/favicon.svg?v=2027_icon3',
+  '/icon-192.png?v=2027_icon3',
+  '/icon-512.png?v=2027_icon3',
+  '/icon-maskable-192.png?v=2027_icon3',
+  '/icon-maskable-512.png?v=2027_icon3',
+  '/apple-touch-icon.png?v=2027_icon3'
 ];
 
 self.addEventListener('install', (event) => {
