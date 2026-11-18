@@ -134,6 +134,33 @@ def test_unknown_time_update_cannot_replace_prior_pre_start_quote(tmp_path):
     assert merged[0]["pre_start"] is True
 
 
+@pytest.mark.parametrize("legacy_quote_time", [None, "not-a-time"])
+def test_legacy_capture_is_retained_as_research_after_tip(tmp_path, legacy_quote_time):
+    games = k.normalize_espn_games(ESPN, DAY)
+    pre_tip_time = "2026-11-14T00:45:00Z"
+    post_tip_time = "2026-11-14T01:30:00Z"
+    legacy = k.build_quotes(DAY, games, EVENTS, MARKETS, pre_tip_time)[0]
+    legacy["quoted_at"] = legacy_quote_time
+    legacy.pop("scheduled_start")
+    legacy["pre_start"] = None
+    (tmp_path / f"nba_odds_{DAY}.json").write_text(json.dumps({"quotes": [legacy]}))
+
+    changed = k.build_quotes(DAY, games, EVENTS, [
+        market("CHIJSMITH25", "Jalen Smith", 10, "0.48", "0.52", "0.52"),
+    ], post_tip_time)
+    changed.append({**changed[0], "player_id": "odds-nba-new-player", "quote_id": "post-tip-new-player"})
+    merged = k.merge_quotes_with_guard(
+        DAY, games, changed, post_tip_time, viewer_dir=tmp_path)
+
+    assert len(merged) == 1
+    assert merged[0]["line"] == 14.5
+    assert merged[0]["observed_at"] == pre_tip_time
+    assert merged[0]["quoted_at"] == legacy_quote_time
+    assert merged[0]["scheduled_start"] == games[0]["tipoff_utc"]
+    assert merged[0]["pre_start"] == "unknown"
+    assert merged[0]["offset_to_scheduled_start_sec"] is None
+
+
 def test_slate_fixture_produces_capture_plan_with_every_game_covered_before_start():
     from src.scheduler.capture_scheduler import generate_capture_plan, parse_utc_dt
 
@@ -182,6 +209,7 @@ def test_run_writes_nothing_without_quotes_and_publishes_through_the_contract(tm
     odds = json.loads((tmp_path / f"nba_odds_{DAY}.json").read_text())
     games = json.loads((tmp_path / f"nba_games_{DAY}.json").read_text())
     assert odds["source"] == "kalshi" and odds["total_quotes"] == 1 and odds["slate"] == DAY
+    assert odds["quotes"][0]["quoted_at"] == odds["quotes"][0]["observed_at"]
     assert len(games) == 2 and (tmp_path / f"nba_odds_{DAY}.manifest.json").exists()
 
     monkeypatch.setattr(k, "get_json", lambda url, params=None: (_ for _ in ()).throw(OSError("down")))

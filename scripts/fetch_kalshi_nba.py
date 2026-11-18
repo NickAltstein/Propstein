@@ -233,8 +233,9 @@ def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
     """Merge newly fetched quotes with existing quotes, preserving prior pre-start quotes.
 
     Rules:
-    1. If an existing quote has pre_start == True, and the game has tipped off at now_iso
-       (now >= tipoff), preserve the prior pre-start quote.
+    1. If an existing quote has valid pre-start quote timing, and the game has
+       tipped off, preserve it. A legacy row with only a pre-start observed_at
+       is preserved as research, but its pre_start verdict remains unknown.
     2. If a game has tipped off and no prior pre-start quote exists, the quote is marked
        pre_start = False.
     3. If a game has not tipped off (now < tipoff), the newly fetched quote updates the
@@ -271,6 +272,24 @@ def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
         q["offset_to_scheduled_start_sec"] = off
         new_by_key[(q.get("game_id"), q.get("player_id"), q.get("market"))] = q
 
+    # Freeze an entire game's archived pre-tip market once it has started.
+    # Legacy rows can be retained for research when observed_at predates tip,
+    # but they remain timing-unknown because quoted_at was never published.
+    protected_keys = set()
+    for key, quote in existing_quotes.items():
+        game = game_by_id.get(key[0])
+        tip_dt = parse_utc_dt(game.get("tipoff_utc")) if game else None
+        observed_dt = parse_utc_dt(quote.get("observed_at"))
+        quote_dt = parse_utc_dt(quote.get("quoted_at"))
+        if quote.get("pre_start") is True or (
+            quote_dt is None
+            and tip_dt is not None
+            and observed_dt is not None
+            and observed_dt < tip_dt
+        ):
+            protected_keys.add(key)
+    protected_games = {key[0] for key in protected_keys}
+
     all_keys = set(existing_quotes.keys()) | set(new_by_key.keys())
     merged = []
 
@@ -285,8 +304,9 @@ def merge_quotes_with_guard(day: str, games: list[dict], new_quotes: list[dict],
         is_post_tip = (now_dt is not None and tip_dt is not None and now_dt >= tip_dt)
 
         if is_post_tip:
-            if existing_q and existing_q.get("pre_start") is True:
-                merged.append(existing_q)
+            if gid in protected_games:
+                if key in protected_keys:
+                    merged.append(existing_q)
             elif new_q:
                 new_q["pre_start"] = False
                 merged.append(new_q)

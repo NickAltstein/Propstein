@@ -49,7 +49,7 @@ jobs:
           elif python3 - "$NBA_DATE" <<'PY'
           import json
           import sys
-          from datetime import datetime
+          from datetime import datetime, timezone
           from pathlib import Path
           from zoneinfo import ZoneInfo
 
@@ -74,7 +74,7 @@ jobs:
                   tips = [datetime.fromisoformat(g['tipoff_utc'].replace('Z', '+00:00')) for g in games if g.get('tipoff_utc')]
                   if tips and all(now_utc >= t for t in tips):
                       raise SystemExit(0)
-              except Exception:
+              except (OSError, ValueError, KeyError, TypeError):
                   pass
           if odds.get('source') == 'kalshi':
               raise SystemExit(1)  # Kalshi quotes move; refresh on every tick

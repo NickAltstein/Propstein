@@ -37,6 +37,7 @@ class OddsQuote(BaseModel):
     under_odds: int = Field(...)
     book: str = Field(..., min_length=1)
     observed_at: str = Field(...)
+    quoted_at: Optional[str] = None
     source: Optional[str] = None
     source_url: Optional[str] = None
     receipt_id: Optional[str] = None
