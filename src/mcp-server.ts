@@ -8,7 +8,7 @@ import {
 import { z } from "zod";
 import crypto from "crypto";
 
-const API_BASE_URL = process.env.PropWire_API_URL || "https://propstein.com/api/v1";
+const API_BASE_URL = process.env.PropWire_API_URL || "";
 const API_KEY = process.env.PropWire_API_KEY;
 
 // Deterministic RFC-8785 serializer for local client-side hash verification
@@ -72,7 +72,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "get_current_edges",
       description:
-        "Fetches ONLY executable, receipt-verified ACTIVE edges from PropWire (e.g., Tucker Kraft +11.7%, A.J. Brown +11.6%, Efton Chism III +11.5%, Colston Loveland +10.9%). Enforces a hard 12.0% anomaly ceiling; quarantined VERIFY quotes (>12% edge) are never returned here.",
+        "Fetches fresh, explicitly verified NFL receiving offers from the canonical /v1/edges decision endpoint. Empty results mean no actionable offers.",
       inputSchema: {
         type: "object",
         properties: {
@@ -134,24 +134,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (request.params.name) {
       case "get_current_edges": {
-        if (!API_KEY) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: "AUTH_ERROR: PropWire_API_KEY is required for executable edge feeds.",
-              },
-            ],
-          };
+        if (!API_BASE_URL) {
+          return { isError: true, content: [{ type: "text", text: "CONFIG_ERROR: PropWire_API_URL must name the live decision API." }] };
         }
         const args = GetEdgesArgsSchema.parse(request.params.arguments);
-        const url = new URL(`${API_BASE_URL}/edges`);
+        const url = new URL("/v1/edges", API_BASE_URL);
         url.searchParams.set("slate", args.slate);
         url.searchParams.set("min_edge", String(args.min_edge));
 
         const res = await fetch(url.toString(), {
-          headers: { "x-api-key": API_KEY },
+          headers: API_KEY ? { "x-api-key": API_KEY } : {},
         });
         const data = await res.json();
         if (!res.ok) {
@@ -232,25 +224,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "inspect_diagnostics": {
-        if (!API_KEY) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: "AUTH_ERROR: PropWire_API_KEY is required for diagnostic feeds.",
-              },
-            ],
-          };
+        if (!API_BASE_URL) {
+          return { isError: true, content: [{ type: "text", text: "CONFIG_ERROR: PropWire_API_URL must name the live decision API." }] };
         }
         const args = InspectDiagnosticsArgsSchema.parse(
           request.params.arguments
         );
-        const url = new URL(`${API_BASE_URL}/diagnostics`);
+        const url = new URL("/v1/diagnostics", API_BASE_URL);
         url.searchParams.set("slate", args.slate);
 
         const res = await fetch(url.toString(), {
-          headers: { "x-api-key": API_KEY },
+          headers: API_KEY ? { "x-api-key": API_KEY } : {},
         });
         const data = await res.json();
         if (!res.ok) {
