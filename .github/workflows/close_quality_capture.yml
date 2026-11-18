@@ -1,0 +1,56 @@
+name: Capture Close-Quality Liquidity (T-60/-30/-15/-5)
+
+on:
+  schedule:
+    # Every 10 minutes on odd minutes across 12:00-05:59 UTC (756 runs/week):
+    # guarantees >=1 tick in each of T-60, T-30, T-15, T-5 for all NFL/NBA starts
+    # including 13:30Z London games through 05:00Z West Coast games.
+    - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: close-quality-capture
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Run additive close-quality capture
+        run: |
+          PYTHONPATH=. python -m src.close_quality_capture
+
+      - name: Commit and push only when new capture records exist
+        run: |
+          git add -N data/close_quality_captures.jsonl 2>/dev/null || true
+          if git diff --quiet data/close_quality_captures.jsonl; then
+            echo "No new close-quality capture records — skipping commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/close_quality_captures.jsonl data/close_quality_capture_status.json
+          git commit -m "chore(data): append close-quality captures [skip ci]"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Concurrent push conflict (attempt $attempt/3); retrying..."
+            git rebase --abort 2>/dev/null || true
+            sleep 3
+          done
+          exit 1
