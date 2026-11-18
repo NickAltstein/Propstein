@@ -2,19 +2,27 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-17T00:43:14Z",
-      "last_success_quotes": 110,
+      "last_success_at": "2026-11-18T11:31:57Z",
+      "last_success_quotes": 106,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-17T05:12:08Z",
-      "last_attempt_at": "2026-11-17T05:12:08Z",
+      "last_error_at": "2026-11-18T02:40:20Z",
+      "last_attempt_at": "2026-11-18T11:31:57Z",
       "schedule": {
-        "observed_at": "2026-11-17T05:12:08Z",
+        "observed_at": "2026-11-18T11:31:57Z",
         "state": "pending",
         "starts": [
-          "2026-11-20T01:00:00Z",
-          "2026-11-20T01:00:00Z",
-          "2026-11-20T01:00:00Z",
-          "2026-11-20T01:00:00Z"
+          "2026-11-19T00:00:00Z",
+          "2026-11-19T00:00:00Z",
+          "2026-11-19T00:00:00Z",
+          "2026-11-19T00:00:00Z",
+          "2026-11-19T00:30:00Z",
+          "2026-11-19T00:30:00Z",
+          "2026-11-19T01:00:00Z",
+          "2026-11-19T01:00:00Z",
+          "2026-11-19T01:00:00Z",
+          "2026-11-19T02:30:00Z",
+          "2026-11-19T03:00:00Z",
+          "2026-11-19T03:00:00Z"
         ]
       }
     },
@@ -22,8 +30,8 @@
       "last_success_at": "2026-11-17T03:40:47Z",
       "last_success_quotes": 11,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
-      "last_error_at": "2026-11-17T05:12:13Z",
-      "last_attempt_at": "2026-11-17T05:12:13Z",
+      "last_error_at": "2026-11-18T02:40:32Z",
+      "last_attempt_at": "2026-11-18T02:40:32Z",
       "schedule": {
         "observed_at": null,
         "state": null,

@@ -129,7 +129,10 @@ def test_nba_daily_schedule_avoids_the_top_and_bottom_of_the_hour():
     assert "group: nba-daily-market-slate" in text
     assert "cancel-in-progress: false" in text
     crons = [line.split("'", 2)[1] for line in text.splitlines() if line.strip().startswith("- cron:")]
-    assert crons == ["7 16 * * *", "23 17 * * *", "37 20 * * *", "53 22 * * *"]
+    assert crons == [
+        "7 16 * * *", "23 17 * * *", "37 20 * * *", "53 22 * * *",
+        "43 23 * * *", "17 0 * * *", "43 0 * * *", "43 1 * * *", "43 2 * * *", "13 3 * * *"
+    ]
     for expr in crons:
         minute = int(expr.split()[0])
         assert minute % 30 != 0

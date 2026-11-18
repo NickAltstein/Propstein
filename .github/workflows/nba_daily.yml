@@ -13,6 +13,13 @@ on:
     # on every tick.
     - cron: '37 20 * * *'
     - cron: '53 22 * * *'
+    # Pre-tip capture windows (15-30m prior to 19:00, 19:30, 20:00, 21:00, 22:00, 22:30 ET).
+    - cron: '43 23 * * *'
+    - cron: '17 0 * * *'
+    - cron: '43 0 * * *'
+    - cron: '43 1 * * *'
+    - cron: '43 2 * * *'
+    - cron: '13 3 * * *'
   workflow_dispatch:
 
 # Keep NBA publishing independent from the NFL autopilot and news watcher.
@@ -42,13 +49,14 @@ jobs:
           elif python3 - "$NBA_DATE" <<'PY'
           import json
           import sys
-          from datetime import datetime
+          from datetime import datetime, timezone
           from pathlib import Path
           from zoneinfo import ZoneInfo
 
           day = sys.argv[1]
           odds_path = Path('viewer') / f'nba_odds_{day}.json'
           slate_path = Path('viewer') / f'nba_slate_{day}.json'
+          games_path = Path('viewer') / f'nba_games_{day}.json'
           if not odds_path.is_file() or not slate_path.is_file():
               raise SystemExit(1)
           try:
@@ -58,6 +66,16 @@ jobs:
               raise SystemExit(1)
           if odds.get('slate') != day or odds.get('total_quotes', 0) < 1:
               raise SystemExit(1)
+          # If all scheduled games for today have already tipped off, skip duplicate runs
+          if games_path.is_file():
+              try:
+                  games = json.loads(games_path.read_text())
+                  now_utc = datetime.now(timezone.utc)
+                  tips = [datetime.fromisoformat(g['tipoff_utc'].replace('Z', '+00:00')) for g in games if g.get('tipoff_utc')]
+                  if tips and all(now_utc >= t for t in tips):
+                      raise SystemExit(0)
+              except (OSError, ValueError, KeyError, TypeError):
+                  pass
           if odds.get('source') == 'kalshi':
               raise SystemExit(1)  # Kalshi quotes move; refresh on every tick
           raise SystemExit(0 if observed.astimezone(ZoneInfo('America/New_York')).date().isoformat() == day else 1)

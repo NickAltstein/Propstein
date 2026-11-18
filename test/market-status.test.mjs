@@ -15,6 +15,7 @@ const policy = (extra = {}) => ({ verificationWindows: windows, gameStates, mark
   qualifications: { '00-0039064::receiving_yards': true, '00-0038544::receiving_yards': true }, ...extra });
 const quote = (overrides = {}) => ({ player_id: 'p1', game_id: 'g1', market,
   quoted_at: '2026-11-17T00:00:00Z', observed_at: '2026-11-17T00:00:00Z',
+  scheduled_start: '2026-11-17T03:15:00Z',
   verified: true, verification_status: 'VERIFIED', verification_receipt_id: 'r1', ...overrides });
 
 test('real 9:50 PM fixture resolves to event started and zero opportunities', () => {
@@ -109,4 +110,59 @@ test('started, unavailable, checking, snapshot, verified, none precedence is sin
     policy({ ...common, gameStates: upcoming })).presentation, 'snapshot');
   assert.equal(deriveMarketStatus(base, now, policy({ ...common, gameStates: upcoming })).presentation, 'opportunities');
   assert.equal(deriveMarketStatus(base, now, policy({ gameStates: upcoming })).presentation, 'none');
+});
+
+test('viewer derived state never renders post-start quote as actionable opportunity', () => {
+  // 1. Explicit pre_start: false
+  const qPost = quote({ player_id: 'p1', pre_start: false });
+  const payload1 = { updated_at: '2026-11-17T00:00:00Z', quotes: [qPost] };
+  const p1 = policy({
+    gameStates: { g1: { lifecycle: 'upcoming', startAt: '2026-11-17T03:15:00Z' } },
+    qualifications: { 'p1::receiving_yards': true },
+    allCount: 1
+  });
+  const res1 = deriveMarketStatus(payload1, Date.parse('2026-11-17T00:10:00Z'), p1);
+  assert.equal(res1.verifiedCount, 0);
+  assert.equal(res1.offers[0].opportunity, false);
+  assert.equal(res1.presentation, 'none');
+
+  // 2. Quote timestamp after game start timestamp
+  const qLate = quote({
+    player_id: 'p2',
+    quoted_at: '2026-11-17T03:30:00Z',
+    observed_at: '2026-11-17T03:30:00Z',
+  });
+  const payload2 = { updated_at: '2026-11-17T03:30:00Z', quotes: [qLate] };
+  const p2 = policy({
+    gameStates: { g1: { lifecycle: 'upcoming', startAt: '2026-11-17T03:15:00Z' } },
+    qualifications: { 'p2::receiving_yards': true },
+    allCount: 1
+  });
+  const res2 = deriveMarketStatus(payload2, Date.parse('2026-11-17T03:31:00Z'), p2);
+  assert.equal(res2.verifiedCount, 0);
+  assert.equal(res2.offers[0].opportunity, false);
+});
+
+test('timing evidence must be complete and strictly before start for an opportunity', () => {
+  const p = policy({ gameStates: { g1: { lifecycle: 'upcoming', startAt: '2026-11-17T03:15:00Z' } },
+    qualifications: { 'p1::receiving_yards': true }, allCount: 1 });
+  const cases = [
+    [{ quoted_at: undefined, scheduled_start: undefined, pre_start: true }, false],
+    [{ quoted_at: undefined, pre_start: true }, false],
+    [{ scheduled_start: undefined, pre_start: true }, false],
+    [{ quoted_at: 'bad', pre_start: true }, false],
+    [{ scheduled_start: 'bad', pre_start: true }, false],
+    [{ quoted_at: '2026-11-17T03:15:00Z' }, false],
+    [{ quoted_at: '2026-11-17T03:16:00Z' }, false],
+    [{ quoted_at: '2026-11-17T00:00:00Z' }, true],
+  ];
+  for (const [overrides, expected] of cases) {
+    const result = deriveMarketStatus({ updated_at: '2026-11-17T00:00:00Z', quotes: [quote(overrides)] },
+      Date.parse('2026-11-17T00:10:00Z'), p);
+    assert.equal(result.offers[0].opportunity, expected, JSON.stringify(overrides));
+    if (Object.hasOwn(overrides, 'quoted_at') && Object.hasOwn(overrides, 'scheduled_start')
+      && overrides.quoted_at === undefined && overrides.scheduled_start === undefined)
+      assert.deepEqual(result.offers[0].timingDiagnostics,
+        ['QUOTE_TIME_MISSING_OR_INVALID', 'START_TIME_MISSING_OR_INVALID']);
+  }
 });
