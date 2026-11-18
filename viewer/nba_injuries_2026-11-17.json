@@ -1,10 +1,17 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-17",
-  "as_of": "2026-11-17T23:54:01Z",
+  "as_of": "2026-11-18T02:34:16Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
+    {
+      "player_name": "Grayson Allen",
+      "team": "CHA",
+      "report_status": "Out",
+      "reported_at": "2026-11-18T02:19Z",
+      "comment": "Allen (concussion-like symptoms) has been ruled out for Tuesday's game against the Lakers."
+    },
     {
       "player_name": "Kon Knueppel",
       "team": "CHA",
@@ -134,9 +141,9 @@
     {
       "player_name": "Deni Avdija",
       "team": "POR",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-17T19:20Z",
-      "comment": "Avdija (foot) is questionable for Tuesday's game against the Timberwolves."
+      "report_status": "Out",
+      "reported_at": "2026-11-18T00:28Z",
+      "comment": "Avdija (foot) won't play Tuesday versus Minnesota."
     },
     {
       "player_name": "Chris Youngblood",
