@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v269-single-venue-board';
+const CACHE_NAME = 'propstein-v270-single-venue-board';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -9,7 +9,7 @@ const STATIC_ASSETS = [
   '/app.js?v=2026_v266',
   '/design-system.css?v=2026_v230',
   '/terminal-ui.css?v=2026_v8',
-  '/js/market-status.js?v=2026_v4',
+  '/js/market-status.js?v=2026_v5',
   '/js/instrument-panel.js?v=2026_v1',
   '/widget/line-pricer/widget.css?v=2026_v1',
   '/widget/line-pricer/widget.js?v=2026_v2',

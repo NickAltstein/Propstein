@@ -161,7 +161,8 @@ for (const widthCase of [
     app.updateFeedHealthUI();
 
     const postStartHeadline = registry.get('.terminal-snapshot-status').textContent;
-    assert.match(postStartHeadline, /^Event started · Polymarket · Quoted 10m ago · 0 qualified/);
+    assert.match(postStartHeadline, /^Event started · Polymarket · Quoted 10m ago/);
+    assert.doesNotMatch(postStartHeadline, /qualified|No qualifying offers/);
     const postStartHtml = registry.get(widthCase.selector).innerHTML;
     assert.doesNotMatch(postStartHtml, /offer-qualified-green/);
     assert.doesNotMatch(postStartHtml, /row-state-actionable/);
@@ -202,7 +203,8 @@ for (const widthCase of [
     });
 
     const headline = registry.get('.terminal-snapshot-status').textContent;
-    assert.match(headline, /Snapshot only · Polymarket · Provider quote time unknown\. · 0 qualified/);
+    assert.match(headline, /Snapshot only · Polymarket · Provider quote time unknown\./);
+    assert.doesNotMatch(headline, /qualified|No qualifying offers/);
     assert.match(headline, /Model context has no pre-pricing capture timestamps/);
     assert.match(registry.get('#terminalFeedDetailsContent').innerHTML, /Ingested:/);
 
@@ -279,6 +281,7 @@ test('model-less NBA row shows Model unavailable in headline and quote details d
   const headline = registry.get('.terminal-snapshot-status').textContent;
   assert.match(headline, /Model unavailable/);
   assert.doesNotMatch(headline, /No qualifying offers/);
+  assert.doesNotMatch(headline, /qualified/);
 
   const emptyHtml = registry.get('#emptyState').innerHTML;
   assert.match(emptyHtml, /View quote details/);

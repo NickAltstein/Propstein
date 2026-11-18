@@ -132,10 +132,12 @@
       opportunities: 'Live',
       none: evaluable ? 'Live' : 'Blocked'
     }[presentation];
-    const qualifiedPart = (presentation === 'none' && evaluable && (!blockReason || blockReason === 'No qualifying offers') && latestProviderMs !== null)
-      ? 'No qualifying offers'
-      : `${count} qualified`;
-    const headlineParts = [stateTag, venue, providerRelativeAge, qualifiedPart];
+    const qualifiedPart = presentation === 'opportunities' && evaluable
+      ? `${count} qualified`
+      : presentation === 'none' && evaluable && (!blockReason || blockReason === 'No qualifying offers') && latestProviderMs !== null
+        ? 'No qualifying offers'
+        : null;
+    const headlineParts = [stateTag, venue, providerRelativeAge, qualifiedPart].filter(Boolean);
     if (blockReason && blockReason !== 'No qualifying offers' && blockReason !== providerRelativeAge && blockReason !== stateTag) {
       headlineParts.push(blockReason);
     }
