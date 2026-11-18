@@ -167,6 +167,14 @@ for (const widthCase of [
     assert.doesNotMatch(postStartHtml, /offer-qualified-green/);
     assert.doesNotMatch(postStartHtml, /row-state-actionable/);
     assert.match(postStartHtml, /CLOSED|EVENT STARTED/);
+
+    // Open detail panel must refresh in place without closing & reopening.
+    assert.equal(registry.get('#detailDialog').open, true);
+    const postStartDetailHtml = registry.get('#detailContent').innerHTML;
+    assert.doesNotMatch(postStartDetailHtml, /offer-qualified-green/);
+    assert.doesNotMatch(postStartDetailHtml, /pd-badge-verified/);
+    assert.match(postStartDetailHtml, /Event started/);
+    assert.match(registry.get('#detailSummary').textContent, /Game started/);
   });
 
   test(`${widthCase.label}: fresh fixture with zero qualifying offers shows No qualifying offers and zero green`, async () => {
@@ -287,7 +295,21 @@ test('model-less NBA row shows Model unavailable in headline and quote details d
   assert.match(emptyHtml, /View quote details/);
   assert.match(emptyHtml, /Kalshi · 5m ago/);
 
-  sandbox.window.PropSteinTest.openQuoteDetail('nba_kalshi_test_1');
+  // Verify the actual DOM click path inside #emptyState opens #detailDialog (regression guard).
+  registry.get('#emptyState').dispatchEvent({
+    type: 'click',
+    preventDefault() {},
+    stopPropagation() {},
+    target: {
+      closest(selector) {
+        if (selector === '[data-inspect-quote]') {
+          return { dataset: { inspectQuote: 'nba_kalshi_test_1' } };
+        }
+        return null;
+      },
+    },
+  });
+  assert.equal(registry.get('#detailDialog').open, true);
   const detailHtml = registry.get('#detailContent').innerHTML;
   assert.match(detailHtml, /Kalshi/);
   assert.match(detailHtml, /Provider timestamp/);

@@ -200,6 +200,8 @@
     view: 'cards',
     deferredInstall: null,
     selectedPlayerId: null,
+    selectedQuoteKey: null,
+    detailReturnFocusSelector: null,
     selectedExecutionPlayerId: null,
     focusedIndex: -1,
     scenarioTargetShare: null,
@@ -752,10 +754,32 @@
     }, { passive: true });
   }
 
+  function kickoffTransitionSignature() {
+    const games = state.games || [];
+    if (!games.length) return '';
+    const gameStates = marketGameStates();
+    return games.map((g) => {
+      const startIso = scheduledStart(g);
+      const started = Boolean((startIso && Date.parse(startIso) <= Date.now()) || ['started', 'final'].includes(gameStates[g.game_id]?.lifecycle));
+      return `${g.game_id}:${started ? '1' : '0'}`;
+    }).join('|');
+  }
+
+  let lastKickoffSignature = '';
+
   function initPollingTimer() {
     updatePollingDisplay();
+    lastKickoffSignature = kickoffTransitionSignature();
     if (pollIntervalId) clearInterval(pollIntervalId);
     pollIntervalId = setInterval(() => {
+      const nextSig = kickoffTransitionSignature();
+      if (nextSig && lastKickoffSignature && nextSig !== lastKickoffSignature) {
+        lastKickoffSignature = nextSig;
+        renderAll();
+        updateFeedHealthUI();
+      } else {
+        lastKickoffSignature = nextSig;
+      }
       state.nextPollSeconds--;
       if (state.nextPollSeconds <= 0) {
         triggerOddsPoll(true);
@@ -1715,6 +1739,29 @@
       const status = $('#boardPageStatus');
       if (status) status.textContent = `${cards.querySelectorAll('.mobile-quant-row').length} player cards shown.`;
     });
+
+    ensureEmptyStateInspectListeners();
+
+    const detailDialogEl = $('#detailDialog');
+    if (detailDialogEl) {
+      detailDialogEl.addEventListener('close', () => {
+        const returnSelector = state.detailReturnFocusSelector;
+        state.selectedPlayerId = null;
+        state.selectedQuoteKey = null;
+        state.detailReturnFocusSelector = null;
+        if (returnSelector) {
+          const targetEl = document.querySelector(returnSelector);
+          if (targetEl) {
+            if (typeof targetEl.scrollIntoView === 'function') {
+              targetEl.scrollIntoView({ block: 'nearest' });
+            }
+            if (typeof targetEl.focus === 'function') {
+              targetEl.focus({ preventScroll: true });
+            }
+          }
+        }
+      });
+    }
 
     // v175 fail-closed heartbeat probe: re-fetches the odds feed with
     // cache:'no-store' (via triggerOddsPoll) and reports the OBSERVED feed
@@ -2710,6 +2757,10 @@
   }
 
   function scheduledStart(game) {
+    const explicitIso = game?.tipoff_utc || game?.startAt || game?.scheduled_start;
+    if (typeof explicitIso === 'string' && Number.isFinite(Date.parse(explicitIso))) {
+      return new Date(Date.parse(explicitIso)).toISOString();
+    }
     if (!game?.gameday || !game?.gametime) return null;
     const wall = Date.parse(`${game.gameday}T${game.gametime}:00Z`);
     if (!Number.isFinite(wall)) return null;
@@ -3821,6 +3872,19 @@
     updateStickyContext(displayRows);
     updateActiveFilterBadge();
     renderPickFlow();
+    syncOpenDetailModal();
+  }
+
+  function syncOpenDetailModal() {
+    if (!state.selectedPlayerId && !state.selectedQuoteKey) return;
+    const dlg = $('#detailDialog');
+    if (!dlg || !dlg.open) return;
+    if (state.selectedQuoteKey) {
+      renderQuoteDetailModal(state.selectedQuoteKey);
+      return;
+    }
+    const row = state.slate.find((item) => item.player_id === state.selectedPlayerId);
+    if (row) renderDetailModal(row);
   }
 
   function syncSimulatorSheet(isMobile) {
@@ -3901,6 +3965,24 @@
         : rows.length ? `<div class="nba-market-list">${quotesHtml}</div>`
         : `<p>${state.filters.market === 'points' ? 'No player points lines match this filter.' : 'Only player points quotes are available for this date.'}</p>`}`;
     $('#nbaBrowseLines')?.addEventListener('click', () => setPlayMode('all'));
+    ensureEmptyStateInspectListeners();
+    syncOpenDetailModal();
+  }
+
+  function ensureEmptyStateInspectListeners() {
+    const emptyStateEl = $('#emptyState');
+    if (!emptyStateEl || emptyStateEl.dataset?.inspectBound === '1') return;
+    if (emptyStateEl.dataset) emptyStateEl.dataset.inspectBound = '1';
+    emptyStateEl.addEventListener('click', inspectFromEvent);
+    emptyStateEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (event.target.closest('button, a, input, summary')) return;
+      const quoteCard = event.target.closest('article[data-quote-key]');
+      if (quoteCard && quoteCard.dataset.quoteKey) {
+        event.preventDefault();
+        openQuoteDetail(quoteCard.dataset.quoteKey);
+      }
+    });
   }
 
   const HOME_EDGE_LIMIT = 8;
@@ -9161,7 +9243,9 @@
     const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
     const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
-    const oddsVal = existingBet ? oddsText(existingBet.odds) : oddsText(evaluation.odds || -110);
+    const oddsVal = existingBet
+      ? oddsText(existingBet.odds)
+      : (evaluation.odds == null ? formatOfferPrice(evaluation.quote, side) : oddsText(evaluation.odds));
     const stakeVal = existingBet && existingBet.stake_amount ? existingBet.stake_amount : wagerDollars;
 
     return `
@@ -9200,17 +9284,17 @@
 
   // ── §21. Detail modal & scenario modeling ─────────────────────────────
 
-  function openQuoteDetail(quoteKey) {
+  function renderQuoteDetailModal(quoteKey) {
     const q = (state.odds?.quotes || []).find((item) =>
       (item.quote_id && item.quote_id === quoteKey)
       || `${item.player_name || ''}::${item.line ?? ''}` === quoteKey
       || item.player_id === quoteKey
     );
-    if (!q) return;
+    if (!q) return false;
+    state.selectedQuoteKey = quoteKey;
     state.selectedPlayerId = q.player_id || quoteKey;
     const game = (state.games || []).find((g) => g.game_id === q.game_id);
     const started = Boolean((game?.tipoff_utc && Date.parse(game.tipoff_utc) <= Date.now()) || q.pre_start === false);
-    const side = String(q.evaluation?.best_side || 'OVER').toUpperCase();
     const overPrice = formatOfferPrice(q, 'OVER');
     const underPrice = formatOfferPrice(q, 'UNDER');
     const providerStamp = offerTimestampLabel(q);
@@ -9248,17 +9332,29 @@
           ${q.source_url ? `<div class="quote-lead-row"><span class="quote-lead-k">Source link</span><span class="quote-lead-v">${esc(q.source_url)}</span></div>` : ''}
         </div>
       </details>`;
-    $('#detailDialog').showModal();
+    return true;
+  }
+
+  function openQuoteDetail(quoteKey) {
+    state.detailReturnFocusSelector = `[data-quote-key="${String(quoteKey).replace(/"/g, '\\"')}"]`;
+    if (!renderQuoteDetailModal(quoteKey)) return;
+    const dlg = $('#detailDialog');
+    if (dlg && !dlg.open) dlg.showModal();
   }
 
   function openDetail(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
+    state.selectedQuoteKey = null;
     state.selectedPlayerId = playerId;
+    state.detailReturnFocusSelector = state.view === 'table'
+      ? `tr[data-player-id="${String(playerId).replace(/"/g, '\\"')}"]`
+      : `article[data-player-id="${String(playerId).replace(/"/g, '\\"')}"]`;
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     state.scenarioTargetShare = baseShare;
     renderDetailModal(row);
-    $('#detailDialog').showModal();
+    const dlg = $('#detailDialog');
+    if (dlg && !dlg.open) dlg.showModal();
   }
 
   function renderDetailModal(row) {
@@ -9856,11 +9952,14 @@
     }).join('');
 
     const badge = !hasQuote ? ''
-      : evaluation.state === 'verified'
-        ? `<span class="pd-badge pd-badge-verified">${PD_ICONS.check} Verified</span>`
-        : '<span class="pd-badge pd-badge-unverified">Unverified</span>';
+      : evaluation.closed
+        ? '<span class="pd-badge pd-badge-unverified">Event started</span>'
+        : evaluation.state === 'verified'
+          ? `<span class="pd-badge pd-badge-verified">${PD_ICONS.check} Verified</span>`
+          : '<span class="pd-badge pd-badge-unverified">Unverified</span>';
+    const heroPriceText = formatOfferPrice(q, 'OVER', q && finite(q.over_odds) ? q.over_odds : evaluation.odds);
     const marketTile = hasQuote
-      ? `<div class="pd-market-line"><b>${marketLine.toFixed(1)}</b><span>${esc(oddsText(q && finite(q.over_odds) ? q.over_odds : evaluation.odds))}</span></div>${badge}<small class="pd-tile-foot">Over price · ${esc(bookShort(evaluation.book))}</small>`
+      ? `<div class="pd-market-line"><b>${marketLine.toFixed(1)}</b><span>${esc(heroPriceText)}</span></div>${badge}<small class="pd-tile-foot">Over price · ${esc(bookShort(evaluation.book))}</small>`
       : '<div class="pd-market-none">No live quote</div><small class="pd-tile-foot">Model only</small>';
 
     const dist = pdDistribution(row, market);
@@ -10111,8 +10210,8 @@
           <span class="sticky-verdict">${esc(stickyTerms)}</span>
           <span class="sticky-edge ${qualifiedGreen && evaluation.edge > 0 ? 'text-accent offer-qualified-green' : 'text-dim'}">${signedPct(evaluation.edge)} edge</span>
         </div>
-        <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
-          Review ticket
+        <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn"${evaluation.closed ? ' disabled aria-disabled="true"' : ''}>
+          ${evaluation.closed ? 'Event started' : 'Review ticket'}
         </button>
       </div>
     `;
