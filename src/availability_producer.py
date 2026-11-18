@@ -44,7 +44,7 @@ CATEGORY_RANK = {
 }
 
 DEFAULT_MAX_SOURCE_AGE_SECONDS = 36 * 3600
-DEFAULT_CLEAR_AFTER_CONSECUTIVE_ACT_POLLS = 3
+DEFAULT_MIN_EXCLUSION_AGE_HOURS = 48.0
 DEFAULT_REVIEW_AGE_DAYS = 7
 
 
@@ -272,7 +272,8 @@ def run_availability_poll(
     override_paths: Sequence[Path] = (),
     now: datetime | None = None,
     max_source_age_seconds: int = DEFAULT_MAX_SOURCE_AGE_SECONDS,
-    clear_after_clean_polls: int = DEFAULT_CLEAR_AFTER_CONSECUTIVE_ACT_POLLS,
+    min_exclusion_age_hours: float = DEFAULT_MIN_EXCLUSION_AGE_HOURS,
+    slate_end_utc: datetime | None = None,
     review_age_days: int = DEFAULT_REVIEW_AGE_DAYS,
 ) -> dict[str, Any]:
     """Run one idempotent availability poll, append new events, and write compact report."""
@@ -288,9 +289,8 @@ def run_availability_poll(
         except Exception:
             prior_report = {}
 
-    clean_streaks: dict[str, int] = {
-        str(k): int(v)
-        for k, v in (prior_report.get("sticky_clean_streaks") or {}).items()
+    roster_non_act_observed: set[str] = {
+        str(pid) for pid in (prior_report.get("roster_non_act_observed") or ())
     }
     last_poll = dict(prior_report.get("last_successful_poll") or {})
     stale_reasons: list[str] = []
@@ -376,6 +376,8 @@ def run_availability_poll(
                 "source_published_at": None,
                 "raw_payload_sha256": roster_hash,
             })
+            if cat in STICKY_EXCLUDED_CATEGORIES:
+                roster_non_act_observed.add(pid)
 
     overrides_applied: list[dict[str, Any]] = []
     for ov_path in override_paths:
@@ -413,6 +415,27 @@ def run_availability_poll(
                 "category": cat,
                 "source_url": src_url,
             })
+        for p in ov_data.get("active_players") or ():
+            pid = str(p.get("player_id") or "").strip()
+            if not pid:
+                continue
+            team = str(p.get("team") or "").strip().upper()
+            observations.setdefault(pid, []).append({
+                "player_id": pid,
+                "team": team,
+                "new_status": "ACTIVE",
+                "category": "ACTIVE",
+                "source": "human_override",
+                "source_url": src_url,
+                "source_published_at": pub_at,
+                "raw_payload_sha256": ov_hash,
+            })
+            overrides_applied.append({
+                "file": ov_path.name,
+                "player_id": pid,
+                "category": "ACTIVE",
+                "source_url": src_url,
+            })
 
     # Resolve disagreements per player: most restrictive category wins.
     disagreements: list[dict[str, Any]] = []
@@ -440,27 +463,25 @@ def run_availability_poll(
 
         # Fail closed: never clear a sticky exclusion if any source fetch failed.
         if fetch_degraded and prev and prev["excluded"] and winner["category"] == "ACTIVE":
-            clean_streaks.pop(pid, None)
             continue
-        # Clearing rule:
-        # 1) Explicit ACTIVE from espn_injuries or human_override clears immediately.
-        # 2) Not listed in espn_injuries + nflverse_roster ACT clears after N consecutive clean polls.
-        if (
-            prev
-            and prev["excluded"]
-            and winner["category"] == "ACTIVE"
-            and winner["source"] == "nflverse_roster"
-            and prev["source"] != "nflverse_roster"
-        ):
-            streak = clean_streaks.get(pid, 0) + 1
-            if streak < clear_after_clean_polls:
-                clean_streaks[pid] = streak
+        # Positive-evidence-only clearing rule with 48h minimum exclusion age:
+        # Never clear on absence from a feed or on an unchanged stale ACT.
+        if prev and prev["excluded"] and winner["category"] == "ACTIVE":
+            first_dt = _parse_utc(prev.get("first_excluded_at") or prev.get("observed_at"))
+            if first_dt is not None and (now_dt - first_dt).total_seconds() < float(min_exclusion_age_hours) * 3600.0:
                 continue
-            clean_streaks.pop(pid, None)
-            winner = dict(winner)
-            winner["new_status"] = f"ACT_STREAK_{clear_after_clean_polls}"
-        elif winner["category"] != "ACTIVE":
-            clean_streaks.pop(pid, None)
+            if prev["source"] == "human_override":
+                slate_expired = slate_end_utc is not None and now_dt >= slate_end_utc.astimezone(timezone.utc)
+                if winner["source"] != "human_override" and not slate_expired:
+                    continue
+            else:
+                roster_transitioned = (
+                    winner["source"] == "nflverse_roster"
+                    and (prev["source"] == "nflverse_roster" or pid in roster_non_act_observed)
+                )
+                if winner["source"] not in {"espn_injuries", "human_override"} and not roster_transitioned:
+                    continue
+            roster_non_act_observed.discard(pid)
 
         # Only emit when category changes (or first time seeing a non-ACTIVE/UNKNOWN state).
         if prev is None and winner["category"] in {"ACTIVE", "UNKNOWN"}:
@@ -544,7 +565,7 @@ def run_availability_poll(
         "excluded_by_source": excluded_by_source,
         "sticky_excluded_count": len(excluded_ids),
         "excluded_player_ids": excluded_ids,
-        "sticky_clean_streaks": clean_streaks,
+        "roster_non_act_observed": sorted(roster_non_act_observed),
         "stale_exclusions_for_review": stale_exclusions_for_review,
         "disagreements": disagreements,
         "unmatched": unmatched,

@@ -278,41 +278,83 @@ def test_end_to_end_jsonl_sets_excl_reason_and_drops_from_slate_board(tmp_path):
 def test_sticky_clearing_rule_and_stale_review_report(tmp_path):
     jsonl_path = tmp_path / "availability_events.jsonl"
     report_path = tmp_path / "availability_report.json"
-    roster_act = [{"gsis_id": "00-0036900", "espn_id": "4040715", "team": "CIN", "status": "ACT", "status_description_abbr": "A01"}]
+    roster_nacua_act = [{"gsis_id": "00-0039075", "espn_id": "4426515", "team": "LA", "status": "ACT", "status_description_abbr": "A01"}]
 
-    t0 = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
-    run_availability_poll(
+    # 1. Nacua-style sequence: REPORTED_OUT, ESPN absent, roster ACT for 10 polls (>48h) -> stays excluded
+    w10_override = Path("viewer/official_inactives_2026_w10.json")
+    t0 = datetime(2026, 11, 10, 18, 0, tzinfo=timezone.utc)
+    r0 = run_availability_poll(
         jsonl_path=jsonl_path,
         report_path=report_path,
-        espn_payload=_espn_payload([_espn_entry("Tee Higgins", "CIN", "Out", "4040715")], timestamp=t0.isoformat()),
-        roster_rows=roster_act,
+        espn_payload=_espn_payload([], timestamp=t0.isoformat()),
+        roster_rows=roster_nacua_act,
+        override_paths=[w10_override],
         now=t0,
     )
+    assert "00-0039075" in r0["excluded_player_ids"]
 
-    # Absent from ESPN + roster ACT for 2 polls -> still excluded, streak=1 then 2; after 8 days -> flagged for review
-    t_old = t0 + timedelta(days=8)
-    r1 = run_availability_poll(
-        jsonl_path=jsonl_path, report_path=report_path,
-        espn_payload=_espn_payload([], timestamp=t_old.isoformat()),
-        roster_rows=roster_act, now=t_old, clear_after_clean_polls=3, review_age_days=7,
-    )
-    assert "00-0036900" in r1["excluded_player_ids"]
-    assert r1["sticky_clean_streaks"]["00-0036900"] == 1
-    assert len(r1["stale_exclusions_for_review"]) == 1
+    for i in range(1, 11):
+        ti = t0 + timedelta(hours=12 * i)
+        ri = run_availability_poll(
+            jsonl_path=jsonl_path,
+            report_path=report_path,
+            espn_payload=_espn_payload([], timestamp=ti.isoformat()),
+            roster_rows=roster_nacua_act,
+            now=ti,
+        )
+        assert "00-0039075" in ri["excluded_player_ids"]
 
-    r2 = run_availability_poll(
-        jsonl_path=jsonl_path, report_path=report_path,
-        espn_payload=_espn_payload([], timestamp=(t_old + timedelta(hours=2)).isoformat()),
-        roster_rows=roster_act, now=t_old + timedelta(hours=2), clear_after_clean_polls=3,
+    # After 8 days -> flagged in stale_exclusions_for_review
+    r_old = run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=(t0 + timedelta(days=8)).isoformat()),
+        roster_rows=roster_nacua_act,
+        now=t0 + timedelta(days=8),
+        review_age_days=7,
     )
-    assert "00-0036900" in r2["excluded_player_ids"]
-    assert r2["sticky_clean_streaks"]["00-0036900"] == 2
+    assert any(item["player_id"] == "00-0039075" for item in r_old["stale_exclusions_for_review"])
 
-    # 3rd consecutive clean poll clears the sticky exclusion
-    r3 = run_availability_poll(
+    # 2. Roster RES -> ACT transition clears ONLY after 48h minimum age
+    roster_res = [{"gsis_id": "00-0036900", "espn_id": "4040715", "team": "CIN", "status": "RES", "status_description_abbr": "R01"}]
+    roster_act = [{"gsis_id": "00-0036900", "espn_id": "4040715", "team": "CIN", "status": "ACT", "status_description_abbr": "A01"}]
+    t_res = t0 + timedelta(days=9)
+    run_availability_poll(
         jsonl_path=jsonl_path, report_path=report_path,
-        espn_payload=_espn_payload([], timestamp=(t_old + timedelta(hours=4)).isoformat()),
-        roster_rows=roster_act, now=t_old + timedelta(hours=4), clear_after_clean_polls=3,
+        espn_payload=_espn_payload([], timestamp=t_res.isoformat()),
+        roster_rows=roster_res, now=t_res,
     )
-    assert "00-0036900" not in r3["excluded_player_ids"]
-    assert r3["new_events_count"] == 1
+    # Before 48h -> stays excluded even on RES -> ACT transition
+    r_early = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=(t_res + timedelta(hours=24)).isoformat()),
+        roster_rows=roster_act, now=t_res + timedelta(hours=24),
+    )
+    assert "00-0036900" in r_early["excluded_player_ids"]
+    # After 48h -> RES -> ACT transition clears
+    r_cleared_roster = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=(t_res + timedelta(hours=49)).isoformat()),
+        roster_rows=roster_act, now=t_res + timedelta(hours=49),
+    )
+    assert "00-0036900" not in r_cleared_roster["excluded_player_ids"]
+
+    # 3. ESPN explicit ACTIVE clears ONLY after 48h minimum age
+    t_espn = t_res + timedelta(days=3)
+    run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Tee Higgins", "CIN", "Out", "4040715")], timestamp=t_espn.isoformat()),
+        roster_rows=roster_act, now=t_espn,
+    )
+    r_espn_early = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Tee Higgins", "CIN", "Active", "4040715")], timestamp=(t_espn + timedelta(hours=12)).isoformat()),
+        roster_rows=roster_act, now=t_espn + timedelta(hours=12),
+    )
+    assert "00-0036900" in r_espn_early["excluded_player_ids"]
+    r_espn_cleared = run_availability_poll(
+        jsonl_path=jsonl_path, report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Tee Higgins", "CIN", "Active", "4040715")], timestamp=(t_espn + timedelta(hours=49)).isoformat()),
+        roster_rows=roster_act, now=t_espn + timedelta(hours=49),
+    )
+    assert "00-0036900" not in r_espn_cleared["excluded_player_ids"]
