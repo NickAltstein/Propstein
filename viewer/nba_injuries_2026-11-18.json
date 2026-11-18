@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-18",
-  "as_of": "2026-11-18T22:55:47Z",
+  "as_of": "2026-11-18T23:26:57Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -81,13 +81,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-17T22:18Z",
       "comment": "Tomlin (back) will remain on the inactive list for Wednesday's game against the Grizzlies."
-    },
-    {
-      "player_name": "Sam Merrill",
-      "team": "CLE",
-      "report_status": "Out",
-      "reported_at": "2026-11-17T22:15Z",
-      "comment": "Merrill (elbow) is questionable to face the Grizzlies on Wednesday."
     },
     {
       "player_name": "Evan Mobley",
@@ -256,13 +249,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-18T22:27Z",
       "comment": "Nembhard (hip) won't play in Wednesday's game against the Rockets, Tony East of Forbes.com reports."
-    },
-    {
-      "player_name": "T.J. McConnell",
-      "team": "IND",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-17T22:24Z",
-      "comment": "McConnell (hamstring) is probable to play Wednesday against the Rockets."
     },
     {
       "player_name": "Tyrese Haliburton",
@@ -447,6 +433,13 @@
       "comment": "Banchero is expected to be sidelined for the next four-to-six weeks due to a right high-ankle sprain, Shams Charania of ESPN reports."
     },
     {
+      "player_name": "Tyrese Maxey",
+      "team": "PHI",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-18T22:59Z",
+      "comment": "Maxey is questionable for Wednesday's game in Orlando due to right foot soreness, Gina Mizell of The Philadelphia Inquirer reports."
+    },
+    {
       "player_name": "Jaylen Brown",
       "team": "PHI",
       "report_status": "Out",
@@ -506,8 +499,8 @@
       "player_name": "RJ Barrett",
       "team": "TOR",
       "report_status": "Out",
-      "reported_at": "2026-11-18T22:51Z",
-      "comment": "Barrett is questionable for Wednesday's game against the Wizards due to hamstring tightness, Esfandiar Baraheni of The Athletic reports."
+      "reported_at": "2026-11-18T22:55Z",
+      "comment": "Barrett (hamstring) is out for Wednesday's game against the Wizards, Michael Grange of Sportsnet.ca reports."
     },
     {
       "player_name": "Scottie Barnes",
