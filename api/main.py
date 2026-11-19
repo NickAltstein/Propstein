@@ -666,6 +666,7 @@ def get_v1_edges(
     limit: int = Query(50, ge=1, le=500),
 ):
     """Serve only fresh, explicitly verified source quotes that passed policy."""
+    from src.contracts.qualification_policy import build_qualification_policy
     from src.services.actionable_edges import decide_feed
 
     path = resolve_file("LIVE_ODDS_FEED_PATH", "live_odds_feed.json")
@@ -684,7 +685,22 @@ def get_v1_edges(
         edges = [edge for edge in edges if edge["market"] == market]
     edges = edges[:limit]
     return {"status": "success", "source": "verified_feed", "count": len(edges),
-            "slate": feed.get("slate"), "data": edges}
+            "slate": feed.get("slate"), "qualification_policy": build_qualification_policy(),
+            "data": edges}
+
+
+@app.get("/api/v1/slate")
+def get_v1_slate(slate: str = Query("2026_w7", description="Slate key (e.g. 2026_w7 or 2026_w1)")):
+    """Returns slate rows wrapped with canonical qualification_policy + policy_spec_hash."""
+    from src.contracts.qualification_policy import build_qualification_policy, fail_closed_action_fields
+    q_policy = build_qualification_policy()
+    raw = get_slate(slate=slate)
+    rows = raw if isinstance(raw, list) else []
+    return {
+        "slate": slate,
+        "qualification_policy": q_policy,
+        "rows": [fail_closed_action_fields(r, q_policy) if isinstance(r, dict) else r for r in rows],
+    }
 
 
 @app.get("/v1/diagnostics")

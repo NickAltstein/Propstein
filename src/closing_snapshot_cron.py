@@ -155,6 +155,62 @@ def closing_receipt_payload(row: Dict[str, Any], captured_at: str, kickoff_at: s
     }
 
 
+def closing_receipt_payload_v2(
+    *,
+    event_id: str,
+    player_id: str,
+    book: str,
+    market: str,
+    close_state: str,
+    entry_line: float,
+    closing_line: float,
+    closing_over_odds: int,
+    closing_under_odds: int,
+    closing_devig_pair: list[float],
+    translated_close_devig_p: float | None,
+    low_rung: Dict[str, Any] | None,
+    high_rung: Dict[str, Any] | None,
+    interpolation_weight: float | None,
+    raw_provider_payload_sha256: str,
+    captured_at: str,
+    kickoff_at: str,
+    derived: bool | None = None,
+    translation_method_hash: str | None = None,
+) -> Dict[str, Any]:
+    """Canonical schema propwire.closing_snapshot.v2 without altering v1 verification."""
+    is_derived = (close_state == "CLOSE_TRANSLATED") if derived is None else bool(derived)
+    return {
+        "schema": "propwire.closing_snapshot.v2",
+        "event_id": event_id,
+        "player_id": player_id,
+        "book": book,
+        "market": market,
+        "close_state": close_state,
+        "derived": is_derived,
+        "translation_method_hash": translation_method_hash,
+        "entry_line": round(float(entry_line), 4),
+        "closing_line": round(float(closing_line), 4),
+        "closing_over_odds": int(closing_over_odds),
+        "closing_under_odds": int(closing_under_odds),
+        "closing_devig_pair": [round(float(closing_devig_pair[0]), 6), round(float(closing_devig_pair[1]), 6)],
+        "translated_close_devig_p": round(float(translated_close_devig_p), 6) if translated_close_devig_p is not None else None,
+        "low_rung": low_rung,
+        "high_rung": high_rung,
+        "interpolation_weight": round(float(interpolation_weight), 6) if interpolation_weight is not None else None,
+        "raw_provider_payload_sha256": raw_provider_payload_sha256,
+        "captured_at": captured_at,
+        "kickoff_at": kickoff_at,
+    }
+
+
+def verify_closing_receipt_hash(payload: Dict[str, Any], expected_sha256: str) -> bool:
+    """Verify both propwire.closing_snapshot.v1 and propwire.closing_snapshot.v2 hashes."""
+    schema = payload.get("schema")
+    if schema not in {"propwire.closing_snapshot.v1", "propwire.closing_snapshot.v2"}:
+        return False
+    return canonical_json_sha256(payload) == expected_sha256
+
+
 def lock_imminent_closing_snapshots_postgres(db_conn) -> Dict[str, int]:
     """Locks T-0 closing snapshots in Postgres. Does not update existing rows."""
     ensure_closing_schema(db_conn, is_postgres=True)

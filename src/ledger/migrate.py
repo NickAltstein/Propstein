@@ -15,7 +15,23 @@ MIGRATIONS = (
     ("001_ledger_foundation", _MIGRATIONS / "001_ledger_foundation.sql"),
     ("002_amend001_nfl_event_key", _MIGRATIONS / "002_amend001_nfl_event_key.sql"),
     ("003_quote_source", _MIGRATIONS / "003_quote_source.sql"),
+    ("004_clv_amendment_v2", _MIGRATIONS / "004_clv_amendment_v2.sql"),
 )
+
+
+def guard_historical_close_rows(conn, row_ids: list[str] | None = None) -> None:
+    """Fail closed if any caller attempts to rewrite historical LINE_CHANGED rows."""
+    with conn.cursor() as cur:
+        if row_ids:
+            cur.execute(
+                "SELECT id FROM closing_references WHERE id = ANY(%s) AND reason_code = 'LINE_CHANGED'",
+                (row_ids,),
+            )
+            locked = cur.fetchall()
+            if locked:
+                raise RuntimeError(
+                    f"amendment guard: refusing to mutate historical LINE_CHANGED close row(s): {len(locked)}"
+                )
 
 
 def split_sql(script: str) -> list[str]:
