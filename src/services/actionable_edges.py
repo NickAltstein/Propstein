@@ -104,6 +104,8 @@ def decide_quote(quote: dict[str, Any], now: datetime) -> tuple[dict[str, Any] |
     if (expected_return is None or expected_return <= 0 or edge is None or edge <= 0
             or prob_edge is None or prob_edge < EDGE_HURDLE or stake is None or stake <= 0):
         return None, "QUALIFICATION_VALUES_MISSING_OR_INVALID"
+    side_token_id = quote.get("over_token_id" if side == "OVER" else "under_token_id")
+    source_url = quote.get("source_url")
     return {
         "quote_id": quote["quote_id"], "game_id": quote["game_id"],
         "player_id": quote["player_id"], "player_name": quote["player_name"],
@@ -112,10 +114,14 @@ def decide_quote(quote: dict[str, Any], now: datetime) -> tuple[dict[str, Any] |
         "edge_pct": round(edge * 100, 4),
         "expected_return_pct": round(expected_return * 100, 4),
         "quoted_at": quoted_at.isoformat(), "expires_at": expires_at.isoformat(),
+        "scheduled_start": start.isoformat(),
         "qualification_policy_version": POLICY_VERSION,
         "verification_engine": VERIFICATION_ENGINE,
         "verified": True, "verification_status": "VERIFIED",
         "receipt_id": quote.get("verification_receipt_id"),
+        # Provider identifiers let the pilot re-read the exact offered side at open.
+        "side_token_id": side_token_id if isinstance(side_token_id, str) else None,
+        "source_url": source_url if isinstance(source_url, str) else None,
     }, None
 
 

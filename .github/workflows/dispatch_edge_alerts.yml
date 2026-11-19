@@ -23,16 +23,16 @@ permissions:
 
 jobs:
   disabled_notice:
-    if: vars.PROPSTEIN_EDGES_URL == ''
+    if: vars.PROPSTEIN_EDGES_URL == '' || vars.PROPSTEIN_PILOT_GAME_ID == '' || vars.PROPSTEIN_PILOT_PLAYER_ID == '' || vars.PROPSTEIN_PILOT_MARKET == '' || vars.PROPSTEIN_PILOT_BOOK == ''
     runs-on: ubuntu-latest
     steps:
       - name: Report disabled alert dispatch
         run: |
-          echo "::notice::alert dispatch disabled: PROPSTEIN_EDGES_URL unset"
-          echo "alert dispatch disabled: PROPSTEIN_EDGES_URL unset" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::alert dispatch disabled: edge URL or one-market pilot scope unset"
+          echo "alert dispatch disabled: edge URL or one-market pilot scope unset" >> "$GITHUB_STEP_SUMMARY"
 
   dispatch:
-    if: vars.PROPSTEIN_EDGES_URL != ''
+    if: vars.PROPSTEIN_EDGES_URL != '' && vars.PROPSTEIN_PILOT_GAME_ID != '' && vars.PROPSTEIN_PILOT_PLAYER_ID != '' && vars.PROPSTEIN_PILOT_MARKET != '' && vars.PROPSTEIN_PILOT_BOOK != ''
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -46,7 +46,9 @@ jobs:
       - name: Restore SHA-256 sent alerts deduplication cache
         uses: actions/cache/restore@v4
         with:
-          path: .cache/sent_edge_alerts.json
+          path: |
+            .cache/sent_edge_alerts.json
+            .cache/alert_pilot_dispatches.jsonl
           key: propstein-edge-alerts-${{ github.run_id }}
           restore-keys: |
             propstein-edge-alerts-
@@ -57,6 +59,10 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PROPSTEIN_EDGES_URL: ${{ vars.PROPSTEIN_EDGES_URL }}
+          PROPSTEIN_PILOT_GAME_ID: ${{ vars.PROPSTEIN_PILOT_GAME_ID }}
+          PROPSTEIN_PILOT_PLAYER_ID: ${{ vars.PROPSTEIN_PILOT_PLAYER_ID }}
+          PROPSTEIN_PILOT_MARKET: ${{ vars.PROPSTEIN_PILOT_MARKET }}
+          PROPSTEIN_PILOT_BOOK: ${{ vars.PROPSTEIN_PILOT_BOOK }}
         run: |
           MIN_EV="${{ github.event.inputs.min_ev || '5.0' }}"
           python3 scripts/dispatch_edge_alerts.py \
@@ -66,5 +72,16 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: .cache/sent_edge_alerts.json
+          path: |
+            .cache/sent_edge_alerts.json
+            .cache/alert_pilot_dispatches.jsonl
           key: propstein-edge-alerts-${{ github.run_id }}
+
+      - name: Preserve pilot dispatch records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alert-pilot-dispatches
+          path: .cache/alert_pilot_dispatches.jsonl
+          if-no-files-found: ignore
+          retention-days: 30

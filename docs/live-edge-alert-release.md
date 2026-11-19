@@ -14,6 +14,14 @@ substitution are gone. A configured endpoint must identify itself as
 `source: verified_feed`; the dispatcher independently checks the returned
 verification, policy, quote terms, and expiry before sending anything.
 
+The pilot also requires all four GitHub Actions variables
+`PROPSTEIN_PILOT_GAME_ID`, `PROPSTEIN_PILOT_PLAYER_ID`,
+`PROPSTEIN_PILOT_MARKET=receiving_yards`, and
+`PROPSTEIN_PILOT_BOOK=Polymarket`. An edge for any other player, game, market,
+or book is discarded. The alert must carry the provider's side token and
+scheduled start so its offered terms can be checked later. Leaving any variable
+unset keeps the dispatch workflow disabled.
+
 ## One-market pilot hold
 
 The checked-in `viewer/live_odds_feed.json` currently has 11 Polymarket rows,
@@ -32,3 +40,17 @@ provider errors and missing open events are `unknown`, never `exact`.
 Report `exact / (exact + moved + suspended)` with the numerator, denominator,
 unknown count, and book. Do not add a second book until this metric has a
 real observed sample and an approved release threshold.
+
+Successful webhook sends now write offered terms to
+`.cache/alert_pilot_dispatches.jsonl`, retained as a workflow artifact. At an
+observed pilot recipient open, run
+`python3 -m scripts.measure_alert_availability --quote-id <quote_id>` with
+that dispatch log available locally. It re-reads the alerted Polymarket CLOB
+side token and records the result in `.cache/alert_pilot_opens.jsonl`; use
+`--report` for the exact-price rate. The token is tied to the captured market
+line, so a live ask on that same token tests both the original line and its
+price. A missing token, bad timing evidence, or provider error records
+`unknown`; a started event or empty book records `suspended`. This is a manual
+open probe: it does not infer that a recipient opened an alert, and it does
+not add an operator link. The pilot is not complete until a real recipient
+open is observed and probed.

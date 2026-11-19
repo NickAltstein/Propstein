@@ -10,13 +10,23 @@ import pytest
 
 from src.services.actionable_edges import POLICY_VERSION, decide_feed
 from scripts import dispatch_edge_alerts as dispatcher
+from scripts import measure_alert_availability as availability
+
+
+@pytest.fixture(autouse=True)
+def one_market_pilot_scope(monkeypatch):
+    monkeypatch.setenv("PROPSTEIN_PILOT_GAME_ID", "2026_11_BAL_LAC")
+    monkeypatch.setenv("PROPSTEIN_PILOT_PLAYER_ID", "player-1")
+    monkeypatch.setenv("PROPSTEIN_PILOT_MARKET", "receiving_yards")
+    monkeypatch.setenv("PROPSTEIN_PILOT_BOOK", "Polymarket")
 
 
 def complete_quote(now: datetime) -> dict:
     return {
         "quote_id": "book-quote-1", "game_id": "2026_11_BAL_LAC",
         "player_id": "player-1", "player_name": "Test Receiver",
-        "book": "TestBook", "market": "receiving_yards", "line": 49.5,
+        "book": "Polymarket", "market": "receiving_yards", "line": 49.5,
+        "over_token_id": "token-1", "under_token_id": "token-2",
         "over_odds": -150, "under_odds": 120,
         "quoted_at": (now - timedelta(seconds=20)).isoformat(),
         "scheduled_start": (now + timedelta(hours=2)).isoformat(),
@@ -40,6 +50,12 @@ def test_dispatcher_policy_version_matches_decision_source():
     assert dispatcher.POLICY_VERSION == POLICY_VERSION
 
 
+def test_dispatcher_requires_named_pilot_market(monkeypatch):
+    monkeypatch.delenv("PROPSTEIN_PILOT_PLAYER_ID")
+    with pytest.raises(RuntimeError, match="One PROPSTEIN_PILOT"):
+        dispatcher.collect_active_edges(edges_url="https://example.test/v1/edges")
+
+
 @pytest.fixture
 def now() -> datetime:
     return datetime.now(timezone.utc).replace(microsecond=0)
@@ -61,6 +77,51 @@ def test_complete_quote_produces_one_edge_and_one_alert(now, monkeypatch):
     alerts = dispatcher.collect_active_edges(edges_url="https://example.test/v1/edges")
     assert len(alerts) == 1
     assert alerts[0]["odds"] == -150
+
+
+def test_pilot_scope_discards_other_market(now, monkeypatch):
+    edges, _ = decide_feed({"quotes": [complete_quote(now)]}, now)
+    edges[0]["player_id"] = "another-player"
+
+    class Response(io.BytesIO):
+        def __enter__(self): return self
+        def __exit__(self, *_): self.close()
+
+    monkeypatch.setattr(dispatcher, "urlopen", lambda *_args, **_kwargs: Response(json.dumps({
+        "status": "success", "source": "verified_feed", "data": edges,
+    }).encode()))
+    assert dispatcher.collect_active_edges(edges_url="https://example.test/v1/edges") == []
+
+
+def test_open_probe_classifies_exact_moved_suspended_and_unknown(tmp_path):
+    dispatch = {"quote_id": "q1", "game_id": "g1", "player_id": "p1",
+                "book": "Polymarket", "market": "receiving_yards", "side": "OVER",
+                "line": 49.5, "odds": -150, "side_token_id": "token-1",
+                "quoted_at": "2026-11-19T12:00:00Z", "sent_at": "2026-11-19T12:00:01Z",
+                "scheduled_start": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()}
+    assert availability.classify_open(dispatch, lambda _: {"ask_price": 0.60})["status"] == "exact"
+    assert availability.classify_open(dispatch, lambda _: {"ask_price": 0.61})["status"] == "moved"
+
+    def empty_book(_):
+        raise ValueError("CLOB book has no valid ask")
+
+    def failed_read(_):
+        raise TimeoutError("provider unavailable")
+
+    assert availability.classify_open(dispatch, empty_book)["status"] == "suspended"
+    assert availability.classify_open(dispatch, failed_read)["status"] == "unknown"
+    assert availability.classify_open({**dispatch, "side_token_id": None}, failed_read)["status"] == "unknown"
+    dispatch_path = tmp_path / "dispatches.jsonl"
+    dispatch_path.write_text(json.dumps(dispatch) + "\n")
+    assert availability.find_dispatch("q1", dispatch_path) == dispatch
+    results = tmp_path / "opens.jsonl"
+    for index, status in enumerate(("exact", "moved", "suspended", "unknown")):
+        availability.append_open({"status": status, "quote_id": f"q{index}", "sent_at": f"s{index}"}, results)
+    summary = availability.summarize(results, tmp_path / "nonexistent-dispatches.jsonl")
+    assert summary == {"exact": 1, "moved": 1, "suspended": 1,
+                       "unknown": 1, "denominator": 3, "exact_rate": 1 / 3}
+    missing_open_log = tmp_path / "no-opens.jsonl"
+    assert availability.summarize(missing_open_log, dispatch_path)["unknown"] == 1
 
 
 @pytest.mark.parametrize("path", [
@@ -123,7 +184,8 @@ def test_dispatcher_rejects_missing_verification_or_price(now, monkeypatch):
             self.close()
 
     for key in ("verified", "verification_status", "verification_engine", "receipt_id",
-                "qualification_policy_version", "odds", "quoted_at", "line"):
+                "qualification_policy_version", "odds", "quoted_at", "line",
+                "side_token_id", "scheduled_start"):
         malformed = dict(edges[0])
         malformed.pop(key)
         payload = {"status": "success", "source": "verified_feed", "data": [malformed]}
