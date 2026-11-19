@@ -1,26 +1,26 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-18T21:28:23Z",
+  "generated_at": "2026-11-19T02:50:45Z",
   "sports": {
     "nba": {
-      "level": "degraded",
+      "level": "ok",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-18T11:31:57Z",
-      "age_hours": 9.94,
+      "stale_since": "2026-11-19T01:58:22Z",
+      "age_hours": 0.87,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "quotes": 106,
+      "quotes": 172,
       "slate": "pending"
     },
     "nfl": {
-      "level": "suppressed",
-      "fail_closed": false,
-      "show_edges": true,
+      "level": "critical",
+      "fail_closed": true,
+      "show_edges": false,
       "stale_since": "2026-11-17T03:40:47Z",
-      "age_hours": 41.79,
+      "age_hours": 47.17,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "quotes": 11,
-      "slate": "none"
+      "slate": "pending"
     }
   }
 }
