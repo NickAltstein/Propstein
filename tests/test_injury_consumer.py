@@ -106,21 +106,21 @@ def test_out_voids_open_receipts_ignores_caller_vacated_and_reruns_beneficiaries
     assert voided.can_execute is False
     assert voided.excluded_from_n is True
 
-    # Beneficiary passing gate (8.5 + 0.10*25 = 11.0 in [10, 12]) gets new hash
+    # Every teammate receipt gets CONTEXT_DIRTY with active=False, can_execute=False,
+    # and NO edge bump or receipt_hash rewrite (quarantine-only).
     wr2 = res.receipts["rcpt-wr2"]
     assert wr2.state == STATE_CONTEXT_DIRTY
-    assert wr2.active is True
-    assert wr2.can_execute is True
-    assert wr2.receipt_hash != "hash-wr2-pre"
+    assert wr2.active is False
+    assert wr2.can_execute is False
+    assert wr2.base_edge_pp == 8.5
+    assert wr2.receipt_hash == "hash-wr2-pre"
 
-    # Oversized role-surge (10.0 + 0.16*25 = 14.0 > 12.0) goes to diagnostics as ROLE_SURGE_UNCONFIRMED
     surge = res.receipts["rcpt-surge"]
+    assert surge.state == STATE_CONTEXT_DIRTY
     assert surge.active is False
     assert surge.can_execute is False
-    assert any(
-        d["receipt_id"] == "rcpt-surge" and d["code"] == DIAG_ROLE_SURGE_UNCONFIRMED
-        for d in res.diagnostics
-    )
+    assert surge.base_edge_pp == 10.0
+    assert surge.receipt_hash == "hash-surge-pre"
 
 
 def test_questionable_limited_produces_availability_uncertain_without_rerunning_model():
@@ -178,7 +178,7 @@ def test_questionable_limited_produces_availability_uncertain_without_rerunning_
     assert res_old_tape.receipts["rcpt-q"].can_execute is False
     assert res_old_tape.receipts["rcpt-q"].receipt_hash == "hash-q-orig"
 
-    # Fresh tape row AFTER status_ts unlocks with new hash
+    # Fresh tape row AFTER status_ts still leaves quarantine-only consumer non-actionable & hash untouched
     fresh_tape = {**stale_tape, "source_ts": (status_ts + timedelta(minutes=2)).isoformat(), "raw_payload_sha256": "f" * 64}
     res_fresh_tape = consume_injury_events(
         [{"player_id": "p-q", "team": "KC", "status": "QUESTIONABLE", "status_ts": status_ts.isoformat()}],
@@ -190,8 +190,8 @@ def test_questionable_limited_produces_availability_uncertain_without_rerunning_
         tape_rows=[fresh_tape],
         now=now,
     )
-    assert res_fresh_tape.receipts["rcpt-q"].can_execute is True
-    assert res_fresh_tape.receipts["rcpt-q"].receipt_hash != "hash-q-orig"
+    assert res_fresh_tape.receipts["rcpt-q"].can_execute is False
+    assert res_fresh_tape.receipts["rcpt-q"].receipt_hash == "hash-q-orig"
 
 
 def test_week_misalignment_pauses_gate_with_stale_context():
@@ -241,4 +241,19 @@ def test_real_stream_bus_ingests_official_report_and_ignores_caller_vacated(tmp_
     )
     assert res.receipts["rcpt-out"].state == STATE_AVAILABILITY_VOID
     assert res.receipts["rcpt-wr2"].state == STATE_CONTEXT_DIRTY
-    assert res.receipts["rcpt-wr2"].base_edge_pp == 11.0  # from model_usage_table, NOT caller's 0.90
+    assert res.receipts["rcpt-wr2"].active is False
+    assert res.receipts["rcpt-wr2"].can_execute is False
+    assert res.receipts["rcpt-wr2"].base_edge_pp == 8.5  # unchanged; quarantine-only
+    assert res.receipts["rcpt-wr2"].receipt_hash == "hash-wr2-pre"
+
+
+def test_injury_consumer_source_has_no_edge_arithmetic_or_rehash():
+    from pathlib import Path
+
+    source = Path("src/agents/injury_consumer.py").read_text(encoding="utf-8")
+    assert "added_share" not in source
+    assert "* 25.0" not in source
+    assert "new_edge_pp" not in source
+    assert "rec.base_edge_pp =" not in source
+    assert "rec.receipt_hash =" not in source
+    assert "canonical_json_sha256" not in source

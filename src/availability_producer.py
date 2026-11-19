@@ -613,28 +613,48 @@ def run_availability_poll(
                     })
 
     all_events = [*existing_events, *new_events]
-    loaded_receipts: Sequence[ReceiptRecord | Mapping[str, Any]] = ()
-    if open_receipts is not None:
-        loaded_receipts = open_receipts
-    elif receipts_path is not None and receipts_path.exists():
-        loaded_receipts = json.loads(receipts_path.read_text(encoding="utf-8"))
-
-    consumer_state = apply_availability_to_open_receipts(
-        all_events,
-        open_receipts=loaded_receipts,
-        stale_context=bool(stale_reasons),
-        model_usage_table=model_usage_table,
-        news_week=news_week,
-        board_week=board_week,
-        capture_week=capture_week,
-        now=now_dt,
-    )
-    if receipts_path is not None and (open_receipts is not None or receipts_path.exists()):
-        receipts_path.parent.mkdir(parents=True, exist_ok=True)
-        receipts_path.write_text(
-            json.dumps([vars(r) for r in consumer_state.receipts.values()], indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
+    has_receipt_source = open_receipts is not None or (receipts_path is not None and receipts_path.exists())
+    if not has_receipt_source:
+        receipt_consumer_summary: dict[str, Any] = {
+            "status": "NO_RECEIPT_SOURCE",
+            "healthy": False,
+            "gate_paused": True,
+            "pause_reason": "NO_RECEIPT_SOURCE",
+            "voided_receipt_ids": [],
+            "dirty_receipt_ids": [],
+            "uncertain_receipt_ids": [],
+        }
+    else:
+        loaded_receipts: Sequence[ReceiptRecord | Mapping[str, Any]] = (
+            open_receipts
+            if open_receipts is not None
+            else json.loads(receipts_path.read_text(encoding="utf-8"))  # type: ignore[union-attr]
         )
+        consumer_state = apply_availability_to_open_receipts(
+            all_events,
+            open_receipts=loaded_receipts,
+            stale_context=bool(stale_reasons),
+            model_usage_table=model_usage_table,
+            news_week=news_week,
+            board_week=board_week,
+            capture_week=capture_week,
+            now=now_dt,
+        )
+        if receipts_path is not None:
+            receipts_path.parent.mkdir(parents=True, exist_ok=True)
+            receipts_path.write_text(
+                json.dumps([vars(r) for r in consumer_state.receipts.values()], indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+        receipt_consumer_summary = {
+            "status": "PAUSED_STALE_CONTEXT" if consumer_state.gate_paused else "OK",
+            "healthy": not consumer_state.gate_paused,
+            "gate_paused": consumer_state.gate_paused,
+            "pause_reason": consumer_state.pause_reason,
+            "voided_receipt_ids": sorted(consumer_state.voided_receipt_ids),
+            "dirty_receipt_ids": sorted(consumer_state.dirty_receipt_ids),
+            "uncertain_receipt_ids": sorted(consumer_state.uncertain_receipt_ids),
+        }
 
     report = {
         "schema": "propwire.availability_report.v1",
@@ -643,13 +663,7 @@ def run_availability_poll(
         "stale_reasons": stale_reasons,
         "new_events_count": len(new_events),
         "total_events_count": len(all_events),
-        "receipt_consumer": {
-            "gate_paused": consumer_state.gate_paused,
-            "pause_reason": consumer_state.pause_reason,
-            "voided_receipt_ids": sorted(consumer_state.voided_receipt_ids),
-            "dirty_receipt_ids": sorted(consumer_state.dirty_receipt_ids),
-            "uncertain_receipt_ids": sorted(consumer_state.uncertain_receipt_ids),
-        },
+        "receipt_consumer": receipt_consumer_summary,
         "counts_by_category": counts_by_category,
         "excluded_by_source": excluded_by_source,
         "sticky_excluded_count": len(excluded_ids),
