@@ -1,8 +1,14 @@
-"""Shadow dispersion backtest on nflverse receiving data (P11 Part D).
+"""Shadow dispersion backtest on nflverse receiving data (P12 / P11-D).
 
-Compares frozen NegBin(receptions) x Gamma(yards-per-catch) baseline with pooled
-dispersion against `shadow_v1` (dispersion conditioned on point-in-time prior_adot
-and prior_ay_share). Never called by production code; no swap.
+Baseline uses the frozen production `ReceivingModel` (`src/model.py`).
+`shadow_v1` keeps the same `mu_rec`, `alpha`, `mu_ypr` and conditions only the
+Gamma yards-per-catch dispersion `k` on point-in-time `prior_adot` and `prior_ay_share`.
+
+Split (never re-run 2025 holdout):
+  - Fit baseline + initial dispersion: 2021-2022
+  - Tune shadow_v1 dispersion weights: 2023
+  - Validation check: 2024
+  - Final holdout (touched once): 2025
 """
 
 from __future__ import annotations
@@ -19,8 +25,14 @@ import pandas as pd
 from scipy.optimize import minimize
 from scipy.special import gammaln, gammainc
 
+from src.model import ReceivingModel
+
 TRAIN_SEASONS = (2021, 2022)
-TEST_SEASONS = (2023, 2024)
+TUNE_SEASON = 2023
+CHECK_SEASON = 2024
+HOLDOUT_SEASON = 2025
+
+MODEL_COLS = ["prior_rec_mean", "prior_ypc_mean", "prior_adot", "prior_ay_share"]
 ROLLING_WINDOW = 8
 MIN_PRIOR_GAMES = 3
 BUCKETS = [
@@ -32,13 +44,20 @@ BUCKETS = [
 ]
 
 
-def load_nflverse_receiving(seasons: Sequence[int]) -> tuple[pd.DataFrame, dict[int, dict[str, int]]]:
-    """Load nflverse player_stats for WR/TE/RB and record missingness per season."""
+def _season_url(season: int) -> str:
+    if season >= 2025:
+        return f"https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_{season}.parquet"
+    return f"https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_{season}.parquet"
+
+
+def load_nflverse_receiving(seasons: Sequence[int]) -> tuple[pd.DataFrame, dict[int, dict[str, Any]]]:
+    """Load nflverse receiving stats for WR/TE/RB and record missingness per season."""
     frames: list[pd.DataFrame] = []
-    missing_report: dict[int, dict[str, int]] = {}
+    missing_report: dict[int, dict[str, Any]] = {}
     for s in seasons:
-        url = f"https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_{s}.parquet"
-        df = pd.read_parquet(url)
+        df = pd.read_parquet(_season_url(int(s)))
+        if "recent_team" not in df.columns and "team" in df.columns:
+            df["recent_team"] = df["team"]
         df = df[df["position"].isin(["WR", "TE", "RB"])].copy()
         missing_report[int(s)] = {
             "rows": int(len(df)),
@@ -55,7 +74,6 @@ def build_point_in_time_features(df: pd.DataFrame, *, window: int = ROLLING_WIND
     work = df.copy()
     work = work.sort_values(["season", "week", "recent_team", "player_id"]).reset_index(drop=True)
 
-    # Team-week total receiving_air_yards, shifted by 1 week per team so game t never sees week t
     team_week = (
         work.groupby(["recent_team", "season", "week"], as_index=False)["receiving_air_yards"]
         .sum()
@@ -100,10 +118,10 @@ def build_point_in_time_features(df: pd.DataFrame, *, window: int = ROLLING_WIND
     return work
 
 
-def _negbin_pmf_grid(mu: np.ndarray, r_disp: float, max_r: int = 22) -> np.ndarray:
-    """Exact NegBin PMF for r = 0..max_r; shape (N, max_r + 1)."""
+def _negbin_pmf_grid(mu: np.ndarray, alpha: float, max_r: int = 36) -> np.ndarray:
+    r_disp = 1.0 / max(alpha, 1e-6)
     r_vals = np.arange(max_r + 1, dtype=np.float64)[None, :]
-    mu_c = np.clip(mu[:, None], 0.05, 20.0)
+    mu_c = np.clip(mu[:, None], 0.05, 25.0)
     p = r_disp / (r_disp + mu_c)
     log_pmf = (
         gammaln(r_vals + r_disp)
@@ -119,14 +137,14 @@ def _negbin_pmf_grid(mu: np.ndarray, r_disp: float, max_r: int = 22) -> np.ndarr
 
 def compound_surv_probs(
     mu_rec: np.ndarray,
-    r_rec: float,
+    alpha_nb: float,
     mu_ypc: np.ndarray,
     k_ypc: np.ndarray,
     line: np.ndarray,
-    max_r: int = 22,
+    max_r: int = 36,
 ) -> np.ndarray:
-    """Exact P(Y > line) under NegBin(mu_rec, r_rec) x Gamma(shape=k_ypc, mean=mu_ypc)."""
-    pmf = _negbin_pmf_grid(mu_rec, r_rec, max_r=max_r)
+    """Exact P(Y > line) under NegBin(mu_rec, alpha_nb) x Gamma(shape=k_ypc, mean=mu_ypc)."""
+    pmf = _negbin_pmf_grid(mu_rec, alpha_nb, max_r=max_r)
     surv = np.zeros(len(mu_rec), dtype=np.float64)
     pos_line = np.maximum(line, 0.0)
     for r in range(1, max_r + 1):
@@ -139,34 +157,43 @@ def compound_surv_probs(
 
 def compound_crps(
     mu_rec: np.ndarray,
-    r_rec: float,
+    alpha_nb: float,
     mu_ypc: np.ndarray,
     k_ypc: np.ndarray,
     y_actual: np.ndarray,
-    y_grid: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Compute CRPS via numerical integration over y_grid (0..220 yards)."""
-    if y_grid is None:
-        y_grid = np.linspace(0.0, 220.0, 111)
+    """Compute CRPS via numerical integration over 0..220 yards."""
+    y_grid = np.linspace(0.0, 220.0, 111)
     dy = float(y_grid[1] - y_grid[0])
-    pmf = _negbin_pmf_grid(mu_rec, r_rec, max_r=22)
-
-    # F(y) shape: (N, G)
+    pmf = _negbin_pmf_grid(mu_rec, alpha_nb, max_r=36)
     cdf = np.broadcast_to(pmf[:, 0:1], (len(mu_rec), len(y_grid))).copy()
-    for r in range(1, 23):
+    for r in range(1, 37):
         shape = (r * k_ypc)[:, None]
         scale = (mu_ypc / np.maximum(k_ypc, 0.1))[:, None]
         cdf += pmf[:, r : r + 1] * gammainc(shape, y_grid[None, :] / np.maximum(scale, 1e-6))
-
     indicator = (y_grid[None, :] >= y_actual[:, None]).astype(np.float64)
     return np.sum((cdf - indicator) ** 2, axis=1) * dy
 
 
+def holm_adjust(p_values: Sequence[float]) -> list[float]:
+    """Holm-Bonferroni step-down multiple-comparison adjustment."""
+    m = len(p_values)
+    if m == 0:
+        return []
+    indexed = sorted(enumerate(p_values), key=lambda kv: kv[1])
+    adjusted = [0.0] * m
+    running_max = 0.0
+    for rank, (orig_idx, pval) in enumerate(indexed):
+        adj = min(1.0, (m - rank) * float(pval))
+        running_max = max(running_max, adj)
+        adjusted[orig_idx] = round(running_max, 6)
+    return adjusted
+
+
 @dataclass(frozen=True)
 class FittedShadowParams:
-    r_rec: float
-    k_baseline: float
-    alpha: float
+    baseline_model: ReceivingModel
+    alpha_k: float
     beta_adot: float
     beta_ay_share: float
     adot_mean: float
@@ -175,52 +202,38 @@ class FittedShadowParams:
     ays_std: float
 
 
-def fit_models(train_df: pd.DataFrame) -> FittedShadowParams:
-    """Fit baseline pooled k and shadow_v1 k(adot, ay_share) strictly on train_df."""
-    mu_rec = np.clip(train_df["prior_rec_mean"].to_numpy(), 0.2, 15.0)
-    y_rec = train_df["receptions"].to_numpy()
-    # Method-of-moments estimate for NegBin receptions dispersion r_rec
-    var_rec = float(np.mean((y_rec - mu_rec) ** 2))
-    mean_mu = float(np.mean(mu_rec))
-    excess = max(0.25, var_rec - mean_mu)
-    r_rec = float(np.clip((mean_mu ** 2) / excess, 1.5, 25.0))
+def fit_and_tune(train_df: pd.DataFrame, tune_df: pd.DataFrame) -> FittedShadowParams:
+    """Fit frozen production ReceivingModel on train_df (2021-2022), tune shadow_v1 k on tune_df (2023)."""
+    baseline = ReceivingModel.fit(train_df, cols=MODEL_COLS)
 
-    mu_ypc = np.clip(train_df["prior_ypc_mean"].to_numpy(), 4.0, 22.0)
-    y_actual = train_df["receiving_yards"].to_numpy()
-    # Evaluate binary log-loss across standard yardage lines to fit dispersion k
-    lines = np.clip(np.round(mu_rec * mu_ypc) - 0.5, 4.5, 119.5)
+    tune_pred = baseline.predict_params(tune_df)
+    mu_rec = tune_pred["mu_rec"].to_numpy()
+    mu_ypr = tune_pred["mu_ypr"].to_numpy()
+    y_actual = tune_df["receiving_yards"].to_numpy()
+    lines = np.clip(np.round(mu_rec * mu_ypr) - 0.5, 4.5, 119.5)
     y_hit = (y_actual > lines).astype(np.float64)
 
-    def _loss_base(log_k: np.ndarray) -> float:
-        k = np.full(len(train_df), math.exp(float(log_k[0])))
-        p = compound_surv_probs(mu_rec, r_rec, mu_ypc, k, lines)
-        return float(-np.mean(y_hit * np.log(p) + (1.0 - y_hit) * np.log(1.0 - p)))
-
-    res_base = minimize(_loss_base, x0=np.array([math.log(2.0)]), bounds=[(-1.0, 3.0)])
-    k_base = float(math.exp(res_base.x[0]))
-
-    adot = train_df["prior_adot"].to_numpy()
-    ays = train_df["prior_ay_share"].to_numpy()
+    adot = tune_df["prior_adot"].to_numpy()
+    ays = tune_df["prior_ay_share"].to_numpy()
     adot_m, adot_s = float(np.mean(adot)), max(float(np.std(adot)), 1e-3)
     ays_m, ays_s = float(np.mean(ays)), max(float(np.std(ays)), 1e-3)
     z_adot = (adot - adot_m) / adot_s
     z_ays = (ays - ays_m) / ays_s
 
     def _loss_shadow(theta: np.ndarray) -> float:
-        alpha, b1, b2 = float(theta[0]), float(theta[1]), float(theta[2])
-        k = np.exp(np.clip(alpha + b1 * z_adot + b2 * z_ays, -1.5, 3.5))
-        p = compound_surv_probs(mu_rec, r_rec, mu_ypc, k, lines)
+        a_k, b1, b2 = float(theta[0]), float(theta[1]), float(theta[2])
+        k = np.exp(np.clip(a_k + b1 * z_adot + b2 * z_ays, -1.5, 3.0))
+        p = compound_surv_probs(mu_rec, baseline.alpha, mu_ypr, k, lines)
         return float(-np.mean(y_hit * np.log(p) + (1.0 - y_hit) * np.log(1.0 - p)))
 
     res_sh = minimize(
         _loss_shadow,
-        x0=np.array([math.log(k_base), 0.0, 0.0]),
-        bounds=[(-1.5, 3.5), (-1.5, 1.5), (-1.5, 1.5)],
+        x0=np.array([math.log(baseline.k), 0.0, 0.0]),
+        bounds=[(-1.5, 3.0), (-1.5, 1.5), (-1.5, 1.5)],
     )
     return FittedShadowParams(
-        r_rec=r_rec,
-        k_baseline=k_base,
-        alpha=float(res_sh.x[0]),
+        baseline_model=baseline,
+        alpha_k=float(res_sh.x[0]),
         beta_adot=float(res_sh.x[1]),
         beta_ay_share=float(res_sh.x[2]),
         adot_mean=adot_m,
@@ -230,35 +243,43 @@ def fit_models(train_df: pd.DataFrame) -> FittedShadowParams:
     )
 
 
-def evaluate_oos(
-    test_df: pd.DataFrame,
+def _bootstrap_pval(deltas: np.ndarray) -> float:
+    n = len(deltas)
+    if n == 0:
+        return 1.0
+    p_pos = (float(np.sum(deltas >= 0.0)) + 1.0) / (n + 1.0)
+    p_neg = (float(np.sum(deltas <= 0.0)) + 1.0) / (n + 1.0)
+    return min(1.0, 2.0 * min(p_pos, p_neg))
+
+
+def evaluate_split(
+    eval_df: pd.DataFrame,
     params: FittedShadowParams,
     *,
     n_boot: int = 300,
     seed: int = 20261119,
 ) -> dict[str, Any]:
-    """Evaluate baseline vs shadow_v1 out-of-sample with player-clustered bootstrap CIs."""
-    # Evaluate across 4 standard lines per game so all 5 probability buckets are populated
+    """Evaluate baseline vs shadow_v1 using baseline probability as the common bucket key."""
     eval_lines = np.array([24.5, 39.5, 59.5, 79.5])
-    mu_rec = np.clip(test_df["prior_rec_mean"].to_numpy(), 0.2, 15.0)
-    mu_ypc = np.clip(test_df["prior_ypc_mean"].to_numpy(), 4.0, 22.0)
-    y_actual = test_df["receiving_yards"].to_numpy()
-    players = test_df["player_id"].to_numpy()
+    pred = params.baseline_model.predict_params(eval_df)
+    mu_rec = pred["mu_rec"].to_numpy()
+    mu_ypr = pred["mu_ypr"].to_numpy()
+    y_actual = eval_df["receiving_yards"].to_numpy()
+    players = eval_df["player_id"].to_numpy()
 
-    z_adot = (test_df["prior_adot"].to_numpy() - params.adot_mean) / params.adot_std
-    z_ays = (test_df["prior_ay_share"].to_numpy() - params.ays_mean) / params.ays_std
-    k_base = np.full(len(test_df), params.k_baseline)
-    k_sh = np.exp(np.clip(params.alpha + params.beta_adot * z_adot + params.beta_ay_share * z_ays, -1.5, 3.5))
+    z_adot = (eval_df["prior_adot"].to_numpy() - params.adot_mean) / params.adot_std
+    z_ays = (eval_df["prior_ay_share"].to_numpy() - params.ays_mean) / params.ays_std
+    k_base = np.full(len(eval_df), params.baseline_model.k)
+    k_sh = np.exp(np.clip(params.alpha_k + params.beta_adot * z_adot + params.beta_ay_share * z_ays, -1.5, 3.0))
 
-    crps_base = compound_crps(mu_rec, params.r_rec, mu_ypc, k_base, y_actual)
-    crps_sh = compound_crps(mu_rec, params.r_rec, mu_ypc, k_sh, y_actual)
+    crps_base = compound_crps(mu_rec, params.baseline_model.alpha, mu_ypr, k_base, y_actual)
+    crps_sh = compound_crps(mu_rec, params.baseline_model.alpha, mu_ypr, k_sh, y_actual)
 
-    # Stack across the 4 evaluation lines for log score & probability-bucket calibration
     all_p_base, all_p_sh, all_y, all_players = [], [], [], []
     for L in eval_lines:
-        line_vec = np.full(len(test_df), L)
-        all_p_base.append(compound_surv_probs(mu_rec, params.r_rec, mu_ypc, k_base, line_vec))
-        all_p_sh.append(compound_surv_probs(mu_rec, params.r_rec, mu_ypc, k_sh, line_vec))
+        line_vec = np.full(len(eval_df), L)
+        all_p_base.append(np.clip(params.baseline_model.p_yards_over_vec(mu_rec, mu_ypr, line_vec), 1e-6, 1.0 - 1e-6))
+        all_p_sh.append(compound_surv_probs(mu_rec, params.baseline_model.alpha, mu_ypr, k_sh, line_vec))
         all_y.append((y_actual > L).astype(np.float64))
         all_players.append(players)
 
@@ -270,8 +291,6 @@ def evaluate_oos(
     ll_b = -(y_h * np.log(p_b) + (1.0 - y_h) * np.log(1.0 - p_b))
     ll_s = -(y_h * np.log(p_s) + (1.0 - y_h) * np.log(1.0 - p_s))
 
-    # Player-clustered bootstrap CI on delta log-score (shadow - baseline; negative = shadow better)
-    # and delta CRPS
     unique_players = np.unique(players)
     rng = np.random.default_rng(seed)
     p_to_idx_game = {p: np.where(players == p)[0] for p in unique_players}
@@ -285,89 +304,122 @@ def evaluate_oos(
         boot_dc.append(float(np.mean(crps_sh[g_idx] - crps_base[g_idx])))
         boot_dl.append(float(np.mean(ll_s[l_idx] - ll_b[l_idx])))
 
-    bucket_rows: list[dict[str, Any]] = []
-    for b_name, lo, hi in BUCKETS:
-        mask_b = (p_b >= lo) & (p_b < hi)
-        mask_s = (p_s >= lo) & (p_s < hi)
-        n_b = int(mask_b.sum())
-        n_s = int(mask_s.sum())
-        pred_b = float(np.mean(p_b[mask_b])) if n_b else 0.0
-        act_b = float(np.mean(y_h[mask_b])) if n_b else 0.0
-        pred_s = float(np.mean(p_s[mask_s])) if n_s else 0.0
-        act_s = float(np.mean(y_h[mask_s])) if n_s else 0.0
-        ll_diff_b = float(np.mean(ll_s[mask_b] - ll_b[mask_b])) if n_b else 0.0
+    boot_dl_arr = np.array(boot_dl)
+    boot_dc_arr = np.array(boot_dc)
+    raw_p_overall_ll = _bootstrap_pval(boot_dl_arr)
+    raw_p_overall_crps = _bootstrap_pval(boot_dc_arr)
 
-        # Clustered CI for bucket log-score delta (grouped by baseline bucket membership)
+    # Common bucket key: baseline probability p_b so both models compare identical rows
+    bucket_rows: list[dict[str, Any]] = []
+    bucket_raw_ps: list[float] = []
+    for b_name, lo, hi in BUCKETS:
+        mask = (p_b >= lo) & (p_b < hi)
+        n_obs = int(mask.sum())
+        pred_b = float(np.mean(p_b[mask])) if n_obs else 0.0
+        pred_s = float(np.mean(p_s[mask])) if n_obs else 0.0
+        act = float(np.mean(y_h[mask])) if n_obs else 0.0
+        ll_diff = float(np.mean(ll_s[mask] - ll_b[mask])) if n_obs else 0.0
+
         b_boot = []
-        if n_b > 0:
-            b_players = np.unique(pl_all[mask_b])
-            bp_idx = {p: np.where((pl_all == p) & mask_b)[0] for p in b_players}
+        if n_obs > 0:
+            b_players = np.unique(pl_all[mask])
+            bp_idx = {p: np.where((pl_all == p) & mask)[0] for p in b_players}
             for _ in range(n_boot):
                 sp = rng.choice(b_players, size=len(b_players), replace=True)
                 idx = np.concatenate([bp_idx[p] for p in sp])
                 b_boot.append(float(np.mean(ll_s[idx] - ll_b[idx])))
-        ci_lo = float(np.percentile(b_boot, 2.5)) if b_boot else 0.0
-        ci_hi = float(np.percentile(b_boot, 97.5)) if b_boot else 0.0
+        b_arr = np.array(b_boot)
+        raw_p = _bootstrap_pval(b_arr)
+        bucket_raw_ps.append(raw_p)
+        ci_lo = float(np.percentile(b_arr, 2.5)) if len(b_arr) else 0.0
+        ci_hi = float(np.percentile(b_arr, 97.5)) if len(b_arr) else 0.0
 
         bucket_rows.append({
             "bucket": b_name,
-            "n_base": n_b,
-            "n_shadow": n_s,
+            "n_obs": n_obs,
             "base_pred": round(pred_b, 4),
-            "base_actual": round(act_b, 4),
-            "base_cal_err": round(abs(pred_b - act_b), 4),
             "shadow_pred": round(pred_s, 4),
-            "shadow_actual": round(act_s, 4),
-            "shadow_cal_err": round(abs(pred_s - act_s), 4),
-            "delta_log_score": round(ll_diff_b, 6),
+            "actual_rate": round(act, 4),
+            "base_cal_err": round(abs(pred_b - act), 4),
+            "shadow_cal_err": round(abs(pred_s - act), 4),
+            "delta_log_score": round(ll_diff, 6),
             "delta_log_score_ci95": [round(ci_lo, 6), round(ci_hi, 6)],
+            "raw_p": round(raw_p, 6),
         })
 
+    # Holm correction across 5 bucket log-score tests + 2 overall tests (7 tests total)
+    all_raw_p = [*bucket_raw_ps, raw_p_overall_ll, raw_p_overall_crps]
+    all_holm_p = holm_adjust(all_raw_p)
+    for idx, row in enumerate(bucket_rows):
+        hp = all_holm_p[idx]
+        row["holm_p"] = hp
+        if hp < 0.05:
+            row["verdict"] = "improves" if row["delta_log_score"] < 0 else "worse"
+        else:
+            row["verdict"] = "no evidence of difference"
+
     return {
-        "n_test_games": int(len(test_df)),
-        "n_test_players": int(len(unique_players)),
+        "n_games": int(len(eval_df)),
+        "n_players": int(len(unique_players)),
         "baseline_log_score": round(float(np.mean(ll_b)), 6),
         "shadow_v1_log_score": round(float(np.mean(ll_s)), 6),
         "delta_log_score": round(float(np.mean(ll_s - ll_b)), 6),
-        "delta_log_score_ci95": [round(float(np.percentile(boot_dl, 2.5)), 6), round(float(np.percentile(boot_dl, 97.5)), 6)],
+        "delta_log_score_ci95": [round(float(np.percentile(boot_dl_arr, 2.5)), 6), round(float(np.percentile(boot_dl_arr, 97.5)), 6)],
+        "raw_p_log_score": round(raw_p_overall_ll, 6),
+        "holm_p_log_score": all_holm_p[5],
         "baseline_crps": round(float(np.mean(crps_base)), 4),
         "shadow_v1_crps": round(float(np.mean(crps_sh)), 4),
         "delta_crps": round(float(np.mean(crps_sh - crps_base)), 4),
-        "delta_crps_ci95": [round(float(np.percentile(boot_dc, 2.5)), 4), round(float(np.percentile(boot_dc, 97.5)), 4)],
+        "delta_crps_ci95": [round(float(np.percentile(boot_dc_arr, 2.5)), 4), round(float(np.percentile(boot_dc_arr, 97.5)), 4)],
+        "raw_p_crps": round(raw_p_overall_crps, 6),
+        "holm_p_crps": all_holm_p[6],
         "buckets": bucket_rows,
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run nflverse shadow dispersion backtest.")
+    parser.add_argument("--include-2025-holdout", action="store_true", help="Run 2025 final holdout once.")
     parser.add_argument("--out-json", type=Path, default=Path("reports/shadow_dispersion_backtest.json"))
     args = parser.parse_args()
 
-    raw, missing = load_nflverse_receiving((*TRAIN_SEASONS, *TEST_SEASONS))
+    seasons = [*TRAIN_SEASONS, TUNE_SEASON, CHECK_SEASON]
+    if args.include_2025_holdout:
+        seasons.append(HOLDOUT_SEASON)
+
+    raw, missing = load_nflverse_receiving(seasons)
     feat = build_point_in_time_features(raw)
-    eligible = feat[feat["prior_games"] >= MIN_PRIOR_GAMES].copy()
+    elig = feat[feat["prior_games"] >= MIN_PRIOR_GAMES].copy()
 
-    train_df = eligible[eligible["season"].isin(TRAIN_SEASONS)].copy()
-    test_df = eligible[eligible["season"].isin(TEST_SEASONS)].copy()
-    params = fit_models(train_df)
-    summary = evaluate_oos(test_df, params)
+    train_df = elig[elig["season"].isin(TRAIN_SEASONS)].copy()
+    tune_df = elig[elig["season"] == TUNE_SEASON].copy()
+    check_df = elig[elig["season"] == CHECK_SEASON].copy()
 
-    out = {
-        "train_seasons": list(TRAIN_SEASONS),
-        "test_seasons": list(TEST_SEASONS),
+    params = fit_and_tune(train_df, tune_df)
+    results: dict[str, Any] = {
+        "split": {
+            "fit": list(TRAIN_SEASONS),
+            "tune": TUNE_SEASON,
+            "check": CHECK_SEASON,
+            "holdout": HOLDOUT_SEASON if args.include_2025_holdout else None,
+        },
         "missing_by_season": missing,
         "params": {
-            "r_rec": round(params.r_rec, 4),
-            "k_baseline": round(params.k_baseline, 4),
-            "alpha": round(params.alpha, 4),
-            "beta_adot": round(params.beta_adot, 4),
-            "beta_ay_share": round(params.beta_ay_share, 4),
+            "baseline_alpha_nb": round(params.baseline_model.alpha, 4),
+            "baseline_k": round(params.baseline_model.k, 4),
+            "shadow_alpha_k": round(params.alpha_k, 4),
+            "shadow_beta_adot": round(params.beta_adot, 4),
+            "shadow_beta_ay_share": round(params.beta_ay_share, 4),
         },
-        "evaluation": summary,
+        "check_2024": evaluate_split(check_df, params),
     }
+    if args.include_2025_holdout:
+        holdout_df = elig[elig["season"] == HOLDOUT_SEASON].copy()
+        results["holdout_2025"] = evaluate_split(holdout_df, params)
+
     args.out_json.parent.mkdir(parents=True, exist_ok=True)
-    args.out_json.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps(out, indent=2))
+    args.out_json.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(results, indent=2))
 
 
 if __name__ == "__main__":
