@@ -1,16 +1,23 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-19",
-  "as_of": "2026-11-19T11:30:01Z",
+  "as_of": "2026-11-19T23:00:13Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
     {
-      "player_name": "Al Horford",
+      "player_name": "Draymond Green",
       "team": "GSW",
       "report_status": "Out",
-      "reported_at": "2026-11-18T23:38Z",
-      "comment": "Horford (back) is out for Wednesday's game against the Mavericks, but will play Thursday against the Grizzlies, Nick Friedell of The Athletic reports."
+      "reported_at": "2026-11-19T18:51Z",
+      "comment": "Green (elbow) is out for Thursday's game against the Grizzlies."
+    },
+    {
+      "player_name": "LJ Cryer",
+      "team": "GSW",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-19T18:46Z",
+      "comment": "Cryer (back) is questionable for Thursday's game against Memphis."
     },
     {
       "player_name": "Brandon Williams",
@@ -69,25 +76,32 @@
       "comment": "Miller underwent surgery Wednesday to repair a torn left rotator cuff and will be re-evaluated in six months, per Law Murray of The Athletic."
     },
     {
-      "player_name": "GG Jackson",
-      "team": "MEM",
-      "report_status": "Out",
-      "reported_at": "2026-11-17T23:18Z",
-      "comment": "Jackson underwent a procedure Wednesday to repair a broken fifth metatarsal in his left foot. He is expected to recover fully and will be re-evaluated in approximately three months."
-    },
-    {
       "player_name": "Isaiah Stewart",
       "team": "MEM",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-19T19:11Z",
+      "comment": "Stewart is questionable for Thursday's game against the Warriors due to an illness."
+    },
+    {
+      "player_name": "Zach Edey",
+      "team": "MEM",
       "report_status": "Out",
-      "reported_at": "2026-11-17T22:10Z",
-      "comment": "Stewart (illness) won't play Wednesday against the Cavs."
+      "reported_at": "2026-11-19T19:09Z",
+      "comment": "Edey (hip) has been ruled out for Thursday's game against the Warriors."
     },
     {
       "player_name": "Ty Jerome",
       "team": "MEM",
       "report_status": "Out",
-      "reported_at": "2026-11-17T22:07Z",
-      "comment": "Jerome (hip) has been ruled out for Wednesday's game in Cleveland."
+      "reported_at": "2026-11-19T19:07Z",
+      "comment": "Jerome (hip) has been ruled out for Thursday's game against the Warriors."
+    },
+    {
+      "player_name": "GG Jackson",
+      "team": "MEM",
+      "report_status": "Out",
+      "reported_at": "2026-11-17T23:18Z",
+      "comment": "Jackson underwent a procedure Wednesday to repair a broken fifth metatarsal in his left foot. He is expected to recover fully and will be re-evaluated in approximately three months."
     },
     {
       "player_name": "Scotty Pippen Jr.",
@@ -104,11 +118,18 @@
       "comment": "Saunders signed a two-way contract with the Grizzlies on Saturday, Shams Charania of ESPN reports."
     },
     {
-      "player_name": "Ryan Rollins",
+      "player_name": "Kyle Kuzma",
       "team": "MIL",
       "report_status": "Out",
-      "reported_at": "2026-11-18T18:10Z",
-      "comment": "Rollins (illness) has been ruled out for Wednesday's game at Miami."
+      "reported_at": "2026-11-19T19:20Z",
+      "comment": "Kuzma (shoulder) has been ruled out for Thursday's game against Portland due to a right shoulder contusion."
+    },
+    {
+      "player_name": "Myles Turner",
+      "team": "MIL",
+      "report_status": "Out",
+      "reported_at": "2026-11-19T19:15Z",
+      "comment": "Turner (shoulder) has been ruled out for Thursday's game against Portland due to a left shoulder contusion,"
     },
     {
       "player_name": "Ousmane Dieng",
@@ -116,13 +137,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-15T23:46Z",
       "comment": "Dieng will undergo a procedure to repair a fractured left finger Monday, Justin Garcia of the Milwaukee Bucks Radio Network reports."
-    },
-    {
-      "player_name": "Zyon Pullin",
-      "team": "MIN",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-18T23:11Z",
-      "comment": "Pullin (quadriceps) is listed as questionable for Thursday's game against the Knicks."
     },
     {
       "player_name": "Jonathan Kuminga",
@@ -153,6 +167,13 @@
       "comment": "DiVincenzo (Achilles) remains confident that he'll return during the 2026-27 season, Jon Krawczynski of The Athletic reports."
     },
     {
+      "player_name": "Chris Youngblood",
+      "team": "POR",
+      "report_status": "Out",
+      "reported_at": "2026-11-19T15:06Z",
+      "comment": "Youngblood (heel) has been ruled out for Thursday's game against the Bucks."
+    },
+    {
       "player_name": "Robert Williams III",
       "team": "POR",
       "report_status": "Out",
@@ -172,13 +193,6 @@
       "report_status": "Day-To-Day",
       "reported_at": "2026-11-18T22:53Z",
       "comment": "Camara is questionable to play Thursday against the Bucks due to general soreness."
-    },
-    {
-      "player_name": "Chris Youngblood",
-      "team": "POR",
-      "report_status": "Out",
-      "reported_at": "2026-11-17T19:19Z",
-      "comment": "Youngblood (heel) has been ruled out for Tuesday's game at Minnesota."
     },
     {
       "player_name": "Vit Krejci",
@@ -205,8 +219,8 @@
       "player_name": "Dylan Harper",
       "team": "SAS",
       "report_status": "Out",
-      "reported_at": "2026-11-18T23:05Z",
-      "comment": "Harper (hip) won't play in Thursday's game against the Clippers, Jeff McDonald of the San Antonio Express-News reports."
+      "reported_at": "2026-11-19T20:07Z",
+      "comment": "Harper (hip) is expected to miss two to three weeks, Brett Siegel of ClutchPoints.com reports."
     },
     {
       "player_name": "Tobias Harris",
