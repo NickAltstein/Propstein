@@ -2613,8 +2613,11 @@
 
     // Keep excluded players in the immutable slate artifact for audit, but
     // never surface confirmed nonparticipants as current prop candidates.
+    state.contextMissingGames = Array.isArray(slate)
+      ? slate.filter((row) => row && row.context_status === 'CONTEXT_MISSING')
+      : [];
     state.slate = Array.isArray(slate)
-      ? slate.filter(row => !String(row.excl_reason || '').trim())
+      ? slate.filter((row) => row && row.context_status !== 'CONTEXT_MISSING' && !String(row.excl_reason || '').trim())
       : [];
     state.games = Array.isArray(games) ? games : [];
     // Lock execution only when this slate's own context is unproven.
@@ -3451,7 +3454,11 @@
         </button>`;
       }).join('');
 
-      $('#primeChips').innerHTML = allBtn + gameBtns;
+      const missingList = state.contextMissingGames || [];
+      const missingBanner = missingList.length > 0
+        ? `<span class="chip-context-missing" data-context-missing-banner="1" style="font-size:11px;color:#fbbf24;padding:4px 8px;">${missingList.length} game${missingList.length === 1 ? '' : 's'} unpriced: context missing (${esc(missingList.map((r) => r.matchup || r.game_id).join(', '))})</span>`
+        : '';
+      $('#primeChips').innerHTML = allBtn + gameBtns + missingBanner;
       $$('#primeChips .game-chip').forEach((button) => button.addEventListener('click', () => {
         state.filters.gameId = button.dataset.gameId;
         if ($('#gameFilter')) $('#gameFilter').value = state.filters.gameId || 'ALL';
@@ -3676,6 +3683,21 @@
       return;
     }
     if ($('#emptyState')) $('#emptyState').classList.remove('nba-market-only', 'nba-market-view-table', 'nba-market-view-cards', 'nba-market-view-compact-grid');
+    const missingCtx = state.contextMissingGames || [];
+    if (missingCtx.length > 0 && $('#terminalBoardTitle')?.parentElement) {
+      if (!state._contextMissingBannerEl) {
+        const el = document.createElement('p');
+        el.id = 'contextMissingBanner';
+        el.setAttribute('data-context-missing-banner', '1');
+        el.style.cssText = 'font-size:12px;color:#fbbf24;margin:4px 0 8px 0;';
+        $('#terminalBoardTitle').parentElement.insertAdjacentElement('afterend', el);
+        state._contextMissingBannerEl = el;
+      }
+      state._contextMissingBannerEl.textContent = `${missingCtx.length} game${missingCtx.length === 1 ? '' : 's'} unpriced: context missing (${missingCtx.map((r) => r.matchup || r.game_id).join(', ')})`;
+      state._contextMissingBannerEl.hidden = false;
+    } else if (state._contextMissingBannerEl) {
+      state._contextMissingBannerEl.hidden = true;
+    }
     const rows = filteredRows();
     if (rows.length && animatedSlateKey !== state.slateKey && document.body?.classList) {
       animatedSlateKey = state.slateKey;
