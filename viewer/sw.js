@@ -1,22 +1,22 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v272-legacy-copy';
+const CACHE_NAME = 'propstein-v273-mobile-leagues';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
   '/style.css?v=2026_v264',
   '/feed-status.css?v=2026_v260',
-  '/app.js?v=2026_v268',
+  '/app.js?v=2026_v273',
   '/design-system.css?v=2026_v230',
-  '/terminal-ui.css?v=2026_v8',
+  '/terminal-ui.css?v=2026_v273',
   '/js/market-status.js?v=2026_v5',
   '/js/instrument-panel.js?v=2026_v1',
   '/widget/line-pricer/widget.css?v=2026_v1',
   '/widget/line-pricer/widget.js?v=2026_v2',
-  '/refresh-2026.css?v=2026_r15',
+  '/refresh-2026.css?v=2026_r16',
   '/js/refresh-2026.js?v=2026_r2',
   '/js/quant-math.js?v=2026_v215',
-  '/js/today-schedule.js?v=2026_v262',
+  '/js/today-schedule.js?v=2026_v273',
   '/js/feed-status.js?v=2026_v260',
   '/js/sports/ufc.js?v=2026_v200',
   '/ufc.css?v=2026_v200',
@@ -25,7 +25,6 @@ const STATIC_ASSETS = [
   '/league-logos/nba.png',
   '/league-logos/nfl.png',
   '/league-logos/ufc.svg',
-  '/league-logos/nhl.png',
   // v171: public verify landing assets (externalized from a336e2f inline blocks)
   '/verify-landing.css',
   '/verify-landing.js',

@@ -376,7 +376,8 @@
     ufcActive = false;
     document.body.classList.remove('ufc-active');
     const label = sport.toUpperCase();
-    document.getElementById('comingSoonLogo').src = `/league-logos/${sport === 'ufc' ? 'ufc.svg' : 'nhl.png'}`;
+    document.getElementById('comingSoonLogo').hidden = true;
+    document.getElementById('comingSoonLogo').removeAttribute('src');
     document.getElementById('comingSoonTitle').textContent = `${label} coming soon`;
     document.getElementById('comingSoonMessage').textContent = `${label} schedules and research are on the way. Select NBA or NFL to see today’s games.`;
     document.getElementById('comingSoonPage').hidden = false;
@@ -428,7 +429,7 @@
     const button = event.target.closest('[data-sport]');
     if (!button) return;
     if (button.dataset.sport === 'ufc') showUfc();
-    else if (button.dataset.sport === 'nhl') showComingSoon(button.dataset.sport);
+    else if (button.dataset.sport === 'mlb') showComingSoon(button.dataset.sport);
     else if (button.dataset.sport === activeSport()) showSchedule();
   }));
   document.getElementById('comingSoonBack').addEventListener('click', showSchedule);
