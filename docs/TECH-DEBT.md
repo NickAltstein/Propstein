@@ -9,6 +9,19 @@
 
 ## Debt Ledger
 
+### 2026-11-19 close-capture and release audit
+
+The capture-only reference-time defect, 16 immutable v1 misflags, overnight
+run gaps, pending Thursday coverage, #204 pilot review, and Week 11 weather
+hold are documented in
+[`close-capture-reference-time-2026-11-19.md`](close-capture-reference-time-2026-11-19.md).
+New schema-v2 captures use `captured_at` for timing; v1 `pre_start` is excluded
+from analysis. Operational debt remains: GitHub's 10-minute schedule delivered
+1 of 42 nominal overnight ticks, while the #206 backstop targets roughly
+30-minute coverage and cannot certify T-15/T-5. Keep #204 and draft #185
+unmerged under their stated holds. Review #196's prospective policy effective
+time before any merge. Do not treat missing ESPN weather as a passing gate.
+
 | Item | Location | Type | Risk | Effort | Priority | Status |
 |---|---|---|---|---|---|---|
 | Signed user session and subject-bound entitlement | `api/main.py` | security | Critical | Medium | P0 | **Closed 2026-11-04** (`pste-ext-v1` tokens with subject-bound entitlements, HMAC-SHA256, server-side derivation) |

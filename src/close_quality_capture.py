@@ -1,4 +1,4 @@
-"""Additive close-quality capture (bid/ask/depth/volume at T-60/-30/-15/-5m).
+"""Additive close-quality capture targeting T-60/-30/-15/-5m windows.
 
 Stores hash-chained capture records in `data/close_quality_captures.jsonl`
 (outside `viewer/`) without touching any existing quote file, viewer JSON,
@@ -22,6 +22,8 @@ POLYMARKET_BOOK_URL = "https://clob.polymarket.com/book?token_id={token_id}"
 POLYMARKET_GAMMA_URL = "https://gamma-api.polymarket.com/markets?clob_token_ids={token_id}"
 KALSHI_MARKET_URL = "https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}"
 KALSHI_ORDERBOOK_URL = "https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook?depth=5"
+SCHEMA_VERSION = 2
+VOLUME_WINDOW_METHOD = "successive_volume_total_delta"
 
 
 def _parse_utc(value: Any) -> datetime | None:
@@ -79,6 +81,26 @@ def load_captures_jsonl(jsonl_path: Path) -> tuple[list[dict[str, Any]], str, bo
     return records, prev_hash, chain_valid
 
 
+def analysis_eligible_captures(records: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Exclude implicit v1 records: their pre_start used the provider's old quote time."""
+    return [record for record in records if record.get("schema_version") == SCHEMA_VERSION]
+
+
+def _capture_timing(
+    captured_at: datetime, scheduled_start: datetime | None, quoted_at: datetime | None
+) -> tuple[float | None, bool | None, float | None]:
+    offset = round((scheduled_start - captured_at).total_seconds() / 60.0, 2) if scheduled_start else None
+    pre_start = captured_at < scheduled_start if scheduled_start else None
+    quote_age = round((captured_at - quoted_at).total_seconds() / 60.0, 2) if quoted_at else None
+    return offset, pre_start, quote_age
+
+
+def _volume_window(volume_total: float | None, previous_total: float | None) -> tuple[float | None, str | None]:
+    if volume_total is None or previous_total is None or volume_total < previous_total:
+        return None, None
+    return round(volume_total - previous_total, 4), VOLUME_WINDOW_METHOD
+
+
 def normalize_polymarket_capture(
     *,
     market_id: str,
@@ -125,23 +147,19 @@ def normalize_polymarket_capture(
     depth_levels = {"bids": bids_sorted, "asks": asks_sorted} if (bids_sorted or asks_sorted) else None
 
     quoted_dt = _parse_utc((book_payload or {}).get("timestamp"))
-    ref_dt = quoted_dt or cap_dt
-    offset_minutes = round((start_dt - ref_dt).total_seconds() / 60.0, 2) if start_dt else None
-    pre_start = bool(offset_minutes is not None and offset_minutes > 0.0)
+    offset_minutes, pre_start, quote_age_minutes = _capture_timing(cap_dt, start_dt, quoted_dt)
 
     vol_total = _float_or_none(gamma_obj.get("volumeNum") or gamma_obj.get("volume"))
-    vol_window = (
-        round(max(0.0, vol_total - prev_volume_total), 4)
-        if (vol_total is not None and prev_volume_total is not None)
-        else None
-    )
+    vol_window, vol_method = _volume_window(vol_total, prev_volume_total)
 
     raw_hash = canonical_json_sha256({"book": book_payload, "gamma": gamma_obj})
     return {
+        "schema_version": SCHEMA_VERSION,
         "source": "polymarket",
         "market_id": str(market_id),
         "game_id": str(game_id),
         "quoted_at": quoted_dt.isoformat() if quoted_dt else None,
+        "quote_age_minutes": quote_age_minutes,
         "captured_at": cap_dt.isoformat(),
         "scheduled_start": start_dt.isoformat() if start_dt else None,
         "offset_minutes": offset_minutes,
@@ -151,6 +169,7 @@ def normalize_polymarket_capture(
         "depth_levels": depth_levels,
         "volume_total": vol_total,
         "volume_window": vol_window,
+        "volume_window_method": vol_method,
         "open_interest": None,  # Polymarket CLOB/Gamma do not expose open_interest
         "raw_payload_sha256": raw_hash,
     }
@@ -195,24 +214,20 @@ def normalize_kalshi_capture(
     depth_levels = {"bids": bids_sorted, "asks": asks_sorted} if (bids_sorted or asks_sorted) else None
 
     quoted_dt = _parse_utc(mkt.get("updated_time"))
-    ref_dt = quoted_dt or cap_dt
-    offset_minutes = round((start_dt - ref_dt).total_seconds() / 60.0, 2) if start_dt else None
-    pre_start = bool(offset_minutes is not None and offset_minutes > 0.0)
+    offset_minutes, pre_start, quote_age_minutes = _capture_timing(cap_dt, start_dt, quoted_dt)
 
     vol_total = _float_or_none(mkt.get("volume_fp") or mkt.get("volume"))
-    vol_window = (
-        round(max(0.0, vol_total - prev_volume_total), 4)
-        if (vol_total is not None and prev_volume_total is not None)
-        else None
-    )
+    vol_window, vol_method = _volume_window(vol_total, prev_volume_total)
     open_interest = _float_or_none(mkt.get("open_interest_fp") or mkt.get("open_interest"))
 
     raw_hash = canonical_json_sha256({"market": mkt, "orderbook": orderbook_payload})
     return {
+        "schema_version": SCHEMA_VERSION,
         "source": "kalshi",
         "market_id": str(market_id),
         "game_id": str(game_id),
         "quoted_at": quoted_dt.isoformat() if quoted_dt else None,
+        "quote_age_minutes": quote_age_minutes,
         "captured_at": cap_dt.isoformat(),
         "scheduled_start": start_dt.isoformat() if start_dt else None,
         "offset_minutes": offset_minutes,
@@ -222,6 +237,7 @@ def normalize_kalshi_capture(
         "depth_levels": depth_levels,
         "volume_total": vol_total,
         "volume_window": vol_window,
+        "volume_window_method": vol_method,
         "open_interest": open_interest,
         "raw_payload_sha256": raw_hash,
     }
@@ -244,12 +260,17 @@ def append_captures(
     appended = 0
     for cap in captures:
         rec = dict(cap)
-        rec_id = canonical_json_sha256({
+        identity = {
             "source": rec.get("source"),
             "market_id": rec.get("market_id"),
             "quoted_at": rec.get("quoted_at"),
             "raw_payload_sha256": rec.get("raw_payload_sha256"),
-        })[:24]
+        }
+        # Each v2 observation is a distinct snapshot, even when the provider's
+        # last-update timestamp and book payload have not changed.
+        if rec.get("schema_version") == SCHEMA_VERSION:
+            identity["captured_at"] = rec.get("captured_at")
+        rec_id = canonical_json_sha256(identity)[:24]
         if rec_id in seen_ids:
             continue
         seen_ids.add(rec_id)
@@ -292,13 +313,19 @@ def _fetch_json(url: str, timeout: float = 15.0) -> Any:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _last_volume_by_market(records: Sequence[Mapping[str, Any]]) -> dict[tuple[str, str], float]:
-    out: dict[tuple[str, str], float] = {}
-    for r in records:
+def _last_volume_by_market(
+    records: Sequence[Mapping[str, Any]], before: datetime
+) -> dict[tuple[str, str], float]:
+    latest: dict[tuple[str, str], tuple[datetime, float]] = {}
+    for r in analysis_eligible_captures(records):
         v = _float_or_none(r.get("volume_total"))
-        if v is not None:
-            out[(str(r.get("source")), str(r.get("market_id")))] = v
-    return out
+        captured = _parse_utc(r.get("captured_at"))
+        if v is None or captured is None or captured >= before:
+            continue
+        key = (str(r.get("source")), str(r.get("market_id")))
+        if key not in latest or captured > latest[key][0]:
+            latest[key] = (captured, v)
+    return {key: value for key, (_, value) in latest.items()}
 
 
 def run_live_capture(
@@ -313,7 +340,7 @@ def run_live_capture(
     """Capture bid/ask/depth/volume for markets whose scheduled start is within window."""
     now_dt = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     existing, _, _ = load_captures_jsonl(jsonl_path)
-    prev_vols = _last_volume_by_market(existing)
+    prev_vols = _last_volume_by_market(existing, now_dt)
 
     captures: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -334,13 +361,14 @@ def run_live_capture(
             try:
                 mkt = _fetch_json(KALSHI_MARKET_URL.format(ticker=ticker))
                 ob = _fetch_json(KALSHI_ORDERBOOK_URL.format(ticker=ticker))
+                observed_at = datetime.now(timezone.utc)
                 captures.append(normalize_kalshi_capture(
                     market_id=ticker,
                     game_id=str(q.get("game_id") or ""),
                     scheduled_start=start_dt,
                     market_payload=mkt,
                     orderbook_payload=ob,
-                    captured_at=now_dt,
+                    captured_at=observed_at,
                     prev_volume_total=prev_vols.get(("kalshi", ticker)),
                 ))
             except Exception as exc:
@@ -364,13 +392,14 @@ def run_live_capture(
                 try:
                     bk = _fetch_json(POLYMARKET_BOOK_URL.format(token_id=tok))
                     gm = _fetch_json(POLYMARKET_GAMMA_URL.format(token_id=tok))
+                    observed_at = datetime.now(timezone.utc)
                     captures.append(normalize_polymarket_capture(
                         market_id=tok,
                         game_id=str(q.get("game_id") or ""),
                         scheduled_start=start_dt,
                         book_payload=bk,
                         gamma_payload=gm,
-                        captured_at=now_dt,
+                        captured_at=observed_at,
                         prev_volume_total=prev_vols.get(("polymarket", tok)),
                     ))
                 except Exception as exc:
