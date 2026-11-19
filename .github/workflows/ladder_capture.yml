@@ -59,19 +59,27 @@ jobs:
       - name: Commit and push gzipped tick to capture-data only (never main)
         run: |
           cd _capture_data
+          if [ ! -f vercel.json ]; then
+            printf '{\n  "ignoreCommand": "exit 0"\n}\n' > vercel.json
+          fi
           if git status --porcelain | grep -q .; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add index.json ticks/
+            git add vercel.json index.json ticks/ 2>/dev/null || git add vercel.json
             git commit -m "chore(capture): append gzipped ladder tick [skip ci]"
             for attempt in 1 2 3; do
-              if git pull --rebase origin capture-data 2>/dev/null || true; then
-                if git push origin HEAD:capture-data; then
-                  exit 0
+              if git ls-remote --exit-code --heads origin capture-data >/dev/null 2>&1; then
+                if ! git pull --rebase origin capture-data; then
+                  echo "Rebase failed (attempt $attempt/3); aborting..."
+                  git rebase --abort 2>/dev/null || true
+                  sleep 3
+                  continue
                 fi
               fi
-              echo "Push conflict (attempt $attempt/3); retrying..."
-              git rebase --abort 2>/dev/null || true
+              if git push origin HEAD:capture-data; then
+                exit 0
+              fi
+              echo "Push failed (attempt $attempt/3); retrying..."
               sleep 3
             done
             exit 1
