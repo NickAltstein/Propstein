@@ -656,9 +656,10 @@ async def legacy_stripe_webhook(request: Request):
 # ---------------------------------------------------------------------------
 
 from src.contracts.book_quote_tape import (
-    DEFAULT_MAX_TAPE_AGE_SECONDS,
     best_price_view,
+    best_price_views_by_class,
     filter_fresh_tape,
+    sanitize_legacy_edge_rows,
 )
 
 _BOOK_QUOTE_TAPE: list[dict[str, Any]] = []
@@ -694,8 +695,9 @@ def get_v1_edges(
     from src.services.actionable_edges import decide_feed
 
     raw_tape = _load_tape_rows()
-    fresh_tape = filter_fresh_tape(raw_tape, max_age_seconds=DEFAULT_MAX_TAPE_AGE_SECONDS)
-    best_prices = best_price_view(raw_tape, max_age_seconds=DEFAULT_MAX_TAPE_AGE_SECONDS)
+    fresh_tape = filter_fresh_tape(raw_tape, policy_version="verification.v1")
+    best_prices = best_price_view(raw_tape, evidential_class="confirmatory", policy_version="verification.v1")
+    best_prices_by_class = best_price_views_by_class(raw_tape, policy_version="verification.v1")
 
     path = resolve_file("LIVE_ODDS_FEED_PATH", "live_odds_feed.json")
     try:
@@ -711,10 +713,10 @@ def get_v1_edges(
         edges = [edge for edge in edges if player.lower() in edge["player_name"].lower()]
     if market:
         edges = [edge for edge in edges if edge["market"] == market]
-    edges = edges[:limit]
+    edges = sanitize_legacy_edge_rows(edges[:limit], fresh_tape)
     return {"status": "success", "source": "verified_feed", "count": len(edges),
             "slate": feed.get("slate"), "tape": fresh_tape, "best_price": best_prices,
-            "data": edges}
+            "best_price_by_class": best_prices_by_class, "data": edges}
 
 
 @app.get("/v1/diagnostics")
