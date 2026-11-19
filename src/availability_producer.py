@@ -21,6 +21,12 @@ import re
 from typing import Any, Mapping, Sequence
 import urllib.request
 
+from src.agents.injury_consumer import (
+    InjuryConsumerState,
+    ReceiptRecord,
+    STATE_STALE_CONTEXT,
+    consume_injury_events,
+)
 from src.crypto_utils import canonical_json_sha256
 
 ESPN_NFL_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries"
@@ -260,6 +266,52 @@ def _make_event(
     return ev, line
 
 
+def apply_availability_to_open_receipts(
+    events: Sequence[Mapping[str, Any]],
+    *,
+    open_receipts: Sequence[ReceiptRecord | Mapping[str, Any]],
+    stale_context: bool = False,
+    model_usage_table: Mapping[str, Mapping[str, Any]] | None = None,
+    news_week: int | str | None = None,
+    board_week: int | str | None = None,
+    capture_week: int | str | None = None,
+    tape_rows: Sequence[Mapping[str, Any]] = (),
+    now: datetime | None = None,
+) -> InjuryConsumerState:
+    """Wire availability_events.jsonl into injury_consumer for open receipts."""
+    receipt_objs = [
+        r if isinstance(r, ReceiptRecord) else ReceiptRecord(**r)
+        for r in open_receipts
+    ]
+    consumer_events = [
+        {
+            "player_id": ev.get("player_id", ""),
+            "team": ev.get("team", ""),
+            "status": ev.get("category") or ev.get("new_status") or "",
+            "status_ts": ev.get("observed_at") or ev.get("source_published_at") or "",
+        }
+        for ev in events
+    ]
+    state = consume_injury_events(
+        consumer_events,
+        receipts=receipt_objs,
+        model_usage_table=model_usage_table or {},
+        news_week=news_week,
+        board_week=board_week,
+        capture_week=capture_week,
+        tape_rows=tape_rows,
+        now=now,
+    )
+    if stale_context:
+        state.gate_paused = True
+        state.pause_reason = STATE_STALE_CONTEXT
+        for rec in state.receipts.values():
+            rec.active = False
+            rec.can_execute = False
+            rec.state = STATE_STALE_CONTEXT
+    return state
+
+
 def run_availability_poll(
     *,
     jsonl_path: Path,
@@ -275,6 +327,12 @@ def run_availability_poll(
     min_exclusion_age_hours: float = DEFAULT_MIN_EXCLUSION_AGE_HOURS,
     slate_end_utc: datetime | None = None,
     review_age_days: int = DEFAULT_REVIEW_AGE_DAYS,
+    open_receipts: Sequence[ReceiptRecord | Mapping[str, Any]] | None = None,
+    receipts_path: Path | None = None,
+    model_usage_table: Mapping[str, Mapping[str, Any]] | None = None,
+    news_week: int | str | None = None,
+    board_week: int | str | None = None,
+    capture_week: int | str | None = None,
 ) -> dict[str, Any]:
     """Run one idempotent availability poll, append new events, and write compact report."""
     now_dt = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
@@ -554,13 +612,44 @@ def run_availability_poll(
                         "age_days": round(age_days, 2),
                     })
 
+    all_events = [*existing_events, *new_events]
+    loaded_receipts: Sequence[ReceiptRecord | Mapping[str, Any]] = ()
+    if open_receipts is not None:
+        loaded_receipts = open_receipts
+    elif receipts_path is not None and receipts_path.exists():
+        loaded_receipts = json.loads(receipts_path.read_text(encoding="utf-8"))
+
+    consumer_state = apply_availability_to_open_receipts(
+        all_events,
+        open_receipts=loaded_receipts,
+        stale_context=bool(stale_reasons),
+        model_usage_table=model_usage_table,
+        news_week=news_week,
+        board_week=board_week,
+        capture_week=capture_week,
+        now=now_dt,
+    )
+    if receipts_path is not None and (open_receipts is not None or receipts_path.exists()):
+        receipts_path.parent.mkdir(parents=True, exist_ok=True)
+        receipts_path.write_text(
+            json.dumps([vars(r) for r in consumer_state.receipts.values()], indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
     report = {
         "schema": "propwire.availability_report.v1",
         "generated_at": now_dt.isoformat(),
         "stale_context": bool(stale_reasons),
         "stale_reasons": stale_reasons,
         "new_events_count": len(new_events),
-        "total_events_count": len(existing_events) + len(new_events),
+        "total_events_count": len(all_events),
+        "receipt_consumer": {
+            "gate_paused": consumer_state.gate_paused,
+            "pause_reason": consumer_state.pause_reason,
+            "voided_receipt_ids": sorted(consumer_state.voided_receipt_ids),
+            "dirty_receipt_ids": sorted(consumer_state.dirty_receipt_ids),
+            "uncertain_receipt_ids": sorted(consumer_state.uncertain_receipt_ids),
+        },
         "counts_by_category": counts_by_category,
         "excluded_by_source": excluded_by_source,
         "sticky_excluded_count": len(excluded_ids),
@@ -588,6 +677,7 @@ def main() -> None:
     parser.add_argument("--week", type=int, default=11)
     parser.add_argument("--jsonl", type=Path, default=Path("data/availability_events.jsonl"))
     parser.add_argument("--report", type=Path, default=Path("viewer/availability_report.json"))
+    parser.add_argument("--receipts", type=Path, default=Path("data/open_receipts.json"))
     args = parser.parse_args()
 
     espn_payload: dict[str, Any] | None = None
@@ -622,6 +712,10 @@ def main() -> None:
         roster_error=roster_error,
         player_rows=player_rows,
         override_paths=[override_path],
+        receipts_path=args.receipts,
+        news_week=args.week,
+        board_week=args.week,
+        capture_week=args.week,
     )
     print(json.dumps({
         "new_events_count": report["new_events_count"],
