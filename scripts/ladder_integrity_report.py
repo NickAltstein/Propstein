@@ -11,9 +11,14 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from src.contracts.ladder_placeholders import (
+    PLACEHOLDER_MIN_DEPTH_CONTRACTS as _SHARED_MIN_DEPTH,
+    PLACEHOLDER_OUTLIER_THRESHOLD_CENTS as _SHARED_OUTLIER_CENTS,
+)
+
 # Placeholder thresholds for Nick's approval (docs/ladder-integrity-spec.md)
-PLACEHOLDER_OUTLIER_THRESHOLD_CENTS = Decimal("5.0")
-PLACEHOLDER_MIN_DEPTH_CONTRACTS = Decimal("1.0")
+PLACEHOLDER_OUTLIER_THRESHOLD_CENTS = Decimal(str(_SHARED_OUTLIER_CENTS))
+PLACEHOLDER_MIN_DEPTH_CONTRACTS = Decimal(str(_SHARED_MIN_DEPTH))
 
 
 def _pava_non_increasing(values: Sequence[float]) -> list[float]:
