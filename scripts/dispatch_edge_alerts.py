@@ -24,6 +24,7 @@ from urllib.request import Request, urlopen
 
 CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 SENT_LOG_PATH = CACHE_DIR / "sent_edge_alerts.json"
+PILOT_LOG_PATH = CACHE_DIR / "alert_pilot_dispatches.jsonl"
 POLICY_VERSION = "edge_10pct_v1"  # parity-checked against src.freeze_slate
 
 
@@ -66,11 +67,35 @@ def save_sent_alerts(alerts: dict) -> None:
     SENT_LOG_PATH.write_text(json.dumps(alerts, indent=2), encoding="utf-8")
 
 
+def pilot_scope() -> tuple[str, str, str, str] | None:
+    """A URL alone cannot enable broad alerting; one market must be named."""
+    values = tuple(os.environ.get(key, "").strip() for key in (
+        "PROPSTEIN_PILOT_GAME_ID", "PROPSTEIN_PILOT_PLAYER_ID",
+        "PROPSTEIN_PILOT_MARKET", "PROPSTEIN_PILOT_BOOK",
+    ))
+    return values if all(values) and values[2:] == ("receiving_yards", "Polymarket") else None
+
+
+def record_pilot_dispatch(edge: dict, sent_at: datetime) -> None:
+    """Keep the offered terms for an eventual provider re-read at user open."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    row = {key: edge.get(key) for key in (
+        "quote_id", "game_id", "player_id", "market", "book", "side",
+        "line", "odds", "quoted_at", "scheduled_start", "side_token_id", "source_url",
+    )}
+    row["sent_at"] = sent_at.isoformat()
+    with PILOT_LOG_PATH.open("a", encoding="utf-8") as output:
+        output.write(json.dumps(row, sort_keys=True) + "\n")
+
+
 def collect_active_edges(min_edge_pct: float = 5.0, edges_url: str | None = None) -> list[dict]:
     """Read only the canonical edge decision API; never infer a quote from picks."""
     url = edges_url or os.environ.get("PROPSTEIN_EDGES_URL")
     if not url:
         raise RuntimeError("PROPSTEIN_EDGES_URL is required; alert dispatch is disabled")
+    scope = pilot_scope()
+    if scope is None:
+        raise RuntimeError("One PROPSTEIN_PILOT_GAME_ID/PLAYER_ID/MARKET/BOOK scope is required")
     parsed = urlparse(url)
     if parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost"}):
         raise ValueError("PROPSTEIN_EDGES_URL must use HTTPS (localhost may use HTTP)")
@@ -93,6 +118,11 @@ def collect_active_edges(min_edge_pct: float = 5.0, edges_url: str | None = None
                 or not isinstance(edge.get("receipt_id"), str) or not edge["receipt_id"].strip()):
             continue
         if edge.get("qualification_policy_version") != POLICY_VERSION:
+            continue
+        if tuple(edge.get(key) for key in ("game_id", "player_id", "market", "book")) != scope:
+            continue
+        if (not isinstance(edge.get("side_token_id"), str) or not edge["side_token_id"].strip()
+                or _parse_utc(edge.get("scheduled_start")) is None):
             continue
         if not isinstance(edge.get("quote_id"), str) or not edge["quote_id"].strip():
             continue
@@ -118,6 +148,10 @@ def collect_active_edges(min_edge_pct: float = 5.0, edges_url: str | None = None
             "side": edge["side"], "odds": odds, "book": edge["book"],
             "ev_pct": expected_return, "edge_pct": edge_pct,
             "expires_at": edge["expires_at"], "quoted_at": edge["quoted_at"],
+            "scheduled_start": edge.get("scheduled_start"),
+            "game_id": edge["game_id"], "player_id": edge["player_id"],
+            "side_token_id": edge.get("side_token_id"),
+            "source_url": edge.get("source_url"),
         })
     return sorted(edges, key=lambda x: x["ev_pct"], reverse=True)
 
@@ -260,6 +294,7 @@ def main() -> None:
         if success:
             sent_log[edge_id] = now
             new_dispatches += 1
+            record_pilot_dispatch(edge, datetime.fromtimestamp(now, timezone.utc))
             print(f"[DISPATCHED] {edge['player']} - {edge['market']} (+{edge['ev_pct']:.1f}% EV)")
 
     if new_dispatches:
