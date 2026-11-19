@@ -1,0 +1,88 @@
+name: Capture Multi-Rung Ladder Liquidity (NBA + NFL)
+
+on:
+  # Schedule remains commented out until Nick approves turning on live capture.
+  # schedule:
+  #   - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
+  workflow_dispatch:
+    inputs:
+      window_before:
+        description: 'Minutes before scheduled_start to capture'
+        required: false
+        default: '75.0'
+      window_after:
+        description: 'Minutes after scheduled_start to capture'
+        required: false
+        default: '-10.0'
+
+concurrency:
+  group: ladder-capture
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Fetch orphan capture-data branch and verify existing chain
+        run: |
+          mkdir -p _capture_data
+          git fetch origin capture-data:capture-data 2>/dev/null || true
+          if git show-ref --verify --quiet refs/heads/capture-data; then
+            git worktree add _capture_data capture-data
+          else
+            git worktree add --orphan -b capture-data _capture_data
+          fi
+          PYTHONPATH=. python scripts/verify_ladder_manifest.py --index _capture_data/index.json --capture-dir _capture_data
+
+      - name: Run rate-limited multi-rung ladder capture
+        run: |
+          PYTHONPATH=. python -m src.ladder_capture \
+            --capture-dir _capture_data \
+            --window-before "${{ github.event.inputs.window_before || '75.0' }}" \
+            --window-after "${{ github.event.inputs.window_after || '-10.0' }}"
+
+      - name: Commit and push gzipped tick to capture-data only (never main)
+        run: |
+          cd _capture_data
+          if [ ! -f vercel.json ]; then
+            printf '{\n  "ignoreCommand": "exit 0"\n}\n' > vercel.json
+          fi
+          if git status --porcelain | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add vercel.json index.json ticks/ 2>/dev/null || git add vercel.json
+            git commit -m "chore(capture): append gzipped ladder tick [skip ci]"
+            for attempt in 1 2 3; do
+              if git ls-remote --exit-code --heads origin capture-data >/dev/null 2>&1; then
+                if ! git pull --rebase origin capture-data; then
+                  echo "Rebase failed (attempt $attempt/3); aborting..."
+                  git rebase --abort 2>/dev/null || true
+                  sleep 3
+                  continue
+                fi
+              fi
+              if git push origin HEAD:capture-data; then
+                exit 0
+              fi
+              echo "Push failed (attempt $attempt/3); retrying..."
+              sleep 3
+            done
+            exit 1
+          else
+            echo "No new ladder rungs in active window — skipping commit."
+          fi
