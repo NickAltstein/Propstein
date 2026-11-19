@@ -5,16 +5,20 @@ Pure helper; NOT called by any gate, grading path, or API endpoint.
 
 from __future__ import annotations
 
+import statistics
 from typing import Any, Mapping, Sequence
+
+from src.contracts.ladder_placeholders import (
+    PLACEHOLDER_CLOSE_WINDOW_MINUTES,
+    PLACEHOLDER_MAX_RUNG_GAP_MULTIPLIER,
+    PLACEHOLDER_MIN_DEPTH_CONTRACTS,
+)
 
 CLOSE_INTERPOLATED = "CLOSE_INTERPOLATED"
 CLOSE_UNEVALUABLE = "CLOSE_UNEVALUABLE"
 METHOD_NAME = "monotone_probability_linear_bracket_v1"
 
-# Guard-rail placeholders for Nick's approval (AMEND-004 DRAFT)
-PLACEHOLDER_MAX_RUNG_GAP = 10.0
-PLACEHOLDER_MIN_DEPTH = 5.0
-PLACEHOLDER_CLOSE_WINDOW_MINUTES = 15.0
+PLACEHOLDER_MIN_DEPTH = PLACEHOLDER_MIN_DEPTH_CONTRACTS
 
 
 def _rung_mid_prob(rung: Mapping[str, Any]) -> float | None:
@@ -43,7 +47,9 @@ def compute_interpolated_close(
     *,
     bet_line: float,
     rungs: Sequence[Mapping[str, Any]],
-    max_rung_gap: float = PLACEHOLDER_MAX_RUNG_GAP,
+    observed_stat_spacing: float | None = None,
+    max_rung_gap: float | None = None,
+    max_rung_gap_multiplier: float = PLACEHOLDER_MAX_RUNG_GAP_MULTIPLIER,
     min_depth: float = PLACEHOLDER_MIN_DEPTH,
     close_window_minutes: float = PLACEHOLDER_CLOSE_WINDOW_MINUTES,
     close_translated_prob: float | None = None,
@@ -81,7 +87,20 @@ def compute_interpolated_close(
 
     k_lo = float(low_rung["rung_threshold"])
     k_hi = float(high_rung["rung_threshold"])
-    if (k_hi - k_lo) > max_rung_gap:
+    if max_rung_gap is not None:
+        effective_max_gap = float(max_rung_gap)
+    else:
+        if observed_stat_spacing is not None and observed_stat_spacing > 0:
+            base_spacing = float(observed_stat_spacing)
+        else:
+            diffs = [
+                float(ordered[i + 1]["rung_threshold"]) - float(ordered[i]["rung_threshold"])
+                for i in range(len(ordered) - 1)
+                if float(ordered[i + 1]["rung_threshold"]) > float(ordered[i]["rung_threshold"])
+            ]
+            base_spacing = statistics.median(diffs) if diffs else 0.0
+        effective_max_gap = max_rung_gap_multiplier * base_spacing
+    if effective_max_gap > 0 and (k_hi - k_lo) > effective_max_gap:
         return {
             "close_state": CLOSE_UNEVALUABLE,
             "reason": "GAP_TOO_LARGE",

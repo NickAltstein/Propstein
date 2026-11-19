@@ -17,9 +17,9 @@ where $p_{\text{low}}$ and $p_{\text{high}}$ are the midpoint probabilities $\fr
 - Optional side-by-side `close_translated_prob` for shadow comparison against `CLOSE_TRANSLATED`.
 
 ## 2. Guard Rails (Committed Values Are Placeholders for Nick)
-If any guard rail fails, the result is `CLOSE_UNEVALUABLE`:
+All placeholder values are defined in `src/contracts/ladder_placeholders.py` and **are to be set from spacing and depth distributions after week one, committed before any convergence analysis**. If any guard rail fails, the result is `CLOSE_UNEVALUABLE`:
 1. **Two-sided bracket required:** Must have both `low.rung_threshold <= bet_line` and `high.rung_threshold >= bet_line` with `low < high`.
-2. **Maximum rung gap:** `k_high - k_low <= MAX_RUNG_GAP` (`10.0` — *PLACEHOLDER for Nick*).
+2. **Maximum rung gap (relative to observed spacing per stat):** `k_high - k_low <= MAX_RUNG_GAP_MULTIPLIER * observed_median_spacing_per_stat` (`2.0x` — *PLACEHOLDER for Nick*; e.g., `5.0` for NBA points, `10.0` for NFL receiving yards, `1.0` for NFL receptions).
 3. **Monotonicity check:** `p_low >= p_high` and no inversion (`yes_bid(high) <= yes_ask(low)`).
-4. **Executable book & minimum depth:** Both bracketing rungs must have `status == "OK"` (not `NO_BOOK` or one-sided) and `yes_bid_depth >= MIN_DEPTH` and `no_bid_depth >= MIN_DEPTH` (`5.0` contracts — *PLACEHOLDER for Nick*).
+4. **Executable book & minimum depth (shared with ladder integrity spec):** Both bracketing rungs must have `status == "OK"` (not `NO_BOOK` or one-sided) and `yes_bid_depth >= MIN_RUNG_DEPTH_CONTRACTS` and `no_bid_depth >= MIN_RUNG_DEPTH_CONTRACTS` (`PLACEHOLDER_MIN_DEPTH_CONTRACTS` in `src/contracts/ladder_placeholders.py`).
 5. **Same `snapshot_id` & close window:** Both bracketing rungs must share the exact same `snapshot_id` captured within the close window (`0 <= offset_minutes <= CLOSE_WINDOW_MINUTES`, `15.0` min — *PLACEHOLDER for Nick*).
