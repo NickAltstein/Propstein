@@ -128,9 +128,8 @@ hold its pricing; or approve a separate, reviewed event-exclusion policy if
 ESPN never supplies the fields. The last option is **not** part of this PR.
 
 Open PR housekeeping at audit time: #204 remains under its explicit live
-release hold. #196 changes prospective CLV close policy and has a fixed
-effective timestamp of `2026-11-19T00:00Z`, already earlier than a merge on
-Nov 19; reconcile that timing and its policy scope before merge. Draft #185
+release hold. #196 changes prospective CLV close policy (effective
+`2026-12-01T00:00Z`) and remains open pending §14 threshold selection. Draft #185
 explicitly leaves §14 numerical slots unfilled and says not to merge. The
 mobile league-logo PR #207 was merged separately after its seven non-weather
 checks passed; the same weather check remained red.
