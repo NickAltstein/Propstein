@@ -5,10 +5,10 @@
       "last_success_at": "2026-11-19T11:30:01Z",
       "last_success_quotes": 46,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-19T19:24:16Z",
-      "last_attempt_at": "2026-11-19T19:24:16Z",
+      "last_error_at": "2026-11-19T20:24:04Z",
+      "last_attempt_at": "2026-11-19T20:24:04Z",
       "schedule": {
-        "observed_at": "2026-11-19T19:24:16Z",
+        "observed_at": "2026-11-19T20:24:04Z",
         "state": "pending",
         "starts": [
           "2026-11-21T18:00:00Z",
@@ -23,9 +23,9 @@
     "nfl": {
       "last_success_at": "2026-11-17T03:40:47Z",
       "last_success_quotes": 11,
-      "last_error": "empty/zero-event response: 0 Polymarket quotes",
-      "last_error_at": "2026-11-19T19:24:28Z",
-      "last_attempt_at": "2026-11-19T19:24:28Z",
+      "last_error": "No module named 'pydantic'",
+      "last_error_at": "2026-11-19T20:24:14Z",
+      "last_attempt_at": "2026-11-19T20:24:14Z",
       "schedule": {
         "observed_at": null,
         "state": null,
