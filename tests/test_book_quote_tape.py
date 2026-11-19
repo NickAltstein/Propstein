@@ -1,4 +1,4 @@
-"""Tests for BookQuoteTape: provenance verification, evidential isolation, dynamic freshness, and /v1/edges."""
+"""Tests for BookQuoteTape: raw_payload provenance, evidential isolation, dynamic freshness, and /v1/edges."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from starlette.testclient import TestClient
 
 from api.main import app, set_book_quote_tape
 from src.contracts.book_quote_tape import (
-    BookQuoteTapeRow,
     best_price_view,
     best_price_views_by_class,
     filter_fresh_tape,
@@ -18,185 +17,157 @@ from src.contracts.book_quote_tape import (
     sanitize_legacy_edge_rows,
     validate_tape_row,
 )
-from src.crypto_utils import canonical_json_sha256
 
 
 def _now() -> datetime:
     return datetime(2026, 11, 18, 12, 0, 0, tzinfo=timezone.utc)
 
 
-def _with_raw_payload(row: dict, payload: bytes) -> dict:
+def _base_row(now: datetime, payload: bytes, *, book: str = "circa") -> dict:
     return {
-        **row,
+        "market_id": "nfl:2026_11_DET_GB:p1:receiving_yards:over:47.5",
+        "line": 47.5,
+        "book": book,
+        "american": -110,
+        "devig_p": 0.512,
+        "source_ts": (now - timedelta(seconds=45)).isoformat(),
+        "observed_at": now.isoformat(),
         "raw_payload": payload,
         "raw_payload_sha256": hashlib.sha256(payload).hexdigest(),
     }
 
 
-def _signed_receipt(row: dict, payload: bytes) -> dict:
-    payload_hash = hashlib.sha256(payload).hexdigest()
-    body = {
-        "market_id": row["market_id"],
-        "book": row["book"],
-        "source_ts": row["source_ts"],
-        "raw_payload_sha256": payload_hash,
-    }
-    return {
-        **row,
-        "raw_payload_sha256": payload_hash,
-        "signed_receipt": {**body, "receipt_sha256": canonical_json_sha256(body)},
-    }
-
-
-def test_tape_verifies_raw_payload_sha256_and_rejects_hash_only_or_forged():
+def test_valid_raw_payload_bytes_accepted_with_registry_class():
     now = _now()
-    fresh_ts = (now - timedelta(seconds=45)).isoformat()
     payload = b'{"market":"nfl:2026_11_DET_GB:p1","line":47.5,"american":-110}'
-    base = {
-        "market_id": "nfl:2026_11_DET_GB:p1:receiving_yards:over:47.5",
-        "line": 47.5,
-        "book": "circa",
-        "american": -110,
-        "devig_p": 0.512,
-        "source_ts": fresh_ts,
-        "observed_at": now.isoformat(),
-        "raw_payload_sha256": hashlib.sha256(payload).hexdigest(),
-    }
-
-    # Valid raw_payload bytes -> accepted with evidential_class='shadow'
-    out = validate_tape_row({**base, "raw_payload": payload}, now=now)
+    out = validate_tape_row(_base_row(now, payload, book="circa"), now=now)
     assert out is not None
     assert out["age_seconds"] == 45.0
     assert out["book"] == "circa"
     assert out["evidential_class"] == "shadow"
 
-    # Valid signed adapter receipt -> accepted
-    assert validate_tape_row(_signed_receipt(base, payload), now=now) is not None
-
-    # Well-formed 64-hex hash WITHOUT raw_payload or signed_receipt -> rejected
-    hash_only = {**base, "raw_payload_sha256": "a" * 64}
-    assert validate_tape_row(hash_only, now=now) is None
-
-    # Forged / mismatched hash -> rejected
-    forged = {**base, "raw_payload": payload, "raw_payload_sha256": "f" * 64}
-    assert validate_tape_row(forged, now=now) is None
-
-    # Missing source_ts, naive source_ts, or DOM adapter -> rejected
-    assert validate_tape_row({**base, "raw_payload": payload, "source_ts": ""}, now=now) is None
-    assert validate_tape_row({**base, "raw_payload": payload, "source_ts": "2026-11-18T11:59:00"}, now=now) is None
-    dom_row = {**base, "raw_payload": payload, "book": "dom_adapter_dk", "quote_source": "browser_dom"}
-    assert validate_tape_row(dom_row, now=now) is None
+    poly_out = validate_tape_row(_base_row(now, payload, book="polymarket"), now=now)
+    assert poly_out is not None
+    assert poly_out["evidential_class"] == "confirmatory"
 
 
-def test_dynamic_freshness_verification_v1_rules():
+def test_hash_only_and_signed_receipt_only_rejected():
     now = _now()
     payload = b'{"price":-110}'
-    base = {
-        "market_id": "mkt-dyn",
-        "line": 47.5,
-        "book": "polymarket",
-        "american": -110,
-        "devig_p": 0.51,
-        "observed_at": now.isoformat(),
-        "raw_payload": payload,
-        "raw_payload_sha256": hashlib.sha256(payload).hexdigest(),
-    }
+    base = _base_row(now, payload)
+    del base["raw_payload"]
 
-    # Pregame (90 min limit): 60 min passes, 95 min fails
+    # Well-formed 64-hex hash without raw_payload bytes -> rejected
+    assert validate_tape_row({**base, "raw_payload_sha256": "a" * 64}, now=now) is None
+
+    # Legacy self-signed receipt dict without raw_payload bytes -> rejected
+    assert validate_tape_row(
+        {
+            **base,
+            "signed_receipt": {
+                "market_id": base["market_id"],
+                "raw_payload_sha256": base["raw_payload_sha256"],
+                "receipt_sha256": "b" * 64,
+            },
+        },
+        now=now,
+    ) is None
+
+
+def test_forged_hash_rejected():
+    now = _now()
+    payload = b'{"price":-110}'
+    forged = {**_base_row(now, payload), "raw_payload_sha256": "f" * 64}
+    assert validate_tape_row(forged, now=now) is None
+
+
+def test_wrong_payload_for_correct_hash_rejected():
+    now = _now()
+    expected_payload = b'{"price":-110}'
+    tampered_payload = b'{"price":+150}'
+    row = {
+        **_base_row(now, expected_payload),
+        "raw_payload": tampered_payload,
+        "raw_payload_sha256": hashlib.sha256(expected_payload).hexdigest(),
+    }
+    assert validate_tape_row(row, now=now) is None
+
+
+def test_missing_naive_timestamp_and_dom_adapter_rejected():
+    now = _now()
+    payload = b'{"price":-110}'
+    base = _base_row(now, payload)
+    assert validate_tape_row({**base, "source_ts": ""}, now=now) is None
+    assert validate_tape_row({**base, "source_ts": "2026-11-18T11:59:00"}, now=now) is None
+    assert validate_tape_row({**base, "book": "dom_adapter_dk", "quote_source": "browser_dom"}, now=now) is None
+
+
+def test_dynamic_freshness_verification_v1_rules_and_stale_book():
+    now = _now()
+    payload = b'{"price":-110}'
+    base = _base_row(now, payload, book="polymarket")
+
+    # Pregame (90 min): 60 min passes, 95 min fails
     assert validate_tape_row({**base, "game_state": "pregame", "source_ts": (now - timedelta(minutes=60)).isoformat()}, now=now) is not None
     assert validate_tape_row({**base, "game_state": "pregame", "source_ts": (now - timedelta(minutes=95)).isoformat()}, now=now) is None
 
-    # Near start (15 min limit): 10 min passes, 20 min fails
-    near_start_kickoff = (now + timedelta(minutes=20)).isoformat()
-    assert validate_tape_row({**base, "scheduled_start": near_start_kickoff, "source_ts": (now - timedelta(minutes=10)).isoformat()}, now=now) is not None
-    assert validate_tape_row({**base, "scheduled_start": near_start_kickoff, "source_ts": (now - timedelta(minutes=20)).isoformat()}, now=now) is None
+    # Near start (15 min): 10 min passes, 20 min fails
+    kickoff = (now + timedelta(minutes=20)).isoformat()
+    assert validate_tape_row({**base, "scheduled_start": kickoff, "source_ts": (now - timedelta(minutes=10)).isoformat()}, now=now) is not None
+    assert validate_tape_row({**base, "scheduled_start": kickoff, "source_ts": (now - timedelta(minutes=20)).isoformat()}, now=now) is None
 
-    # In game (2 min limit): 90s passes, 3 min fails
+    # In game (2 min): 90s passes, 3 min fails
     assert validate_tape_row({**base, "game_state": "in_game", "source_ts": (now - timedelta(seconds=90)).isoformat()}, now=now) is not None
     assert validate_tape_row({**base, "game_state": "in_game", "source_ts": (now - timedelta(minutes=3)).isoformat()}, now=now) is None
 
     # Unknown policy_version fails closed
     assert resolve_freshness_limit_seconds(game_state="pregame", policy_version="unknown.v0") is None
-    assert validate_tape_row({**base, "game_state": "pregame", "source_ts": now.isoformat()}, now=now, policy_version="unknown.v0") is None
+    assert validate_tape_row({**base, "game_state": "pregame"}, now=now, policy_version="unknown.v0") is None
 
 
-def test_evidential_class_isolation_and_v1_edges_sanitization():
+def test_evidential_class_split_shadow_never_in_confirmatory_view():
+    now = _now()
+    shadow_only = _base_row(now, b"circa-only", book="circa")
+    shadow_only["market_id"] = "mkt-shadow-only"
+    shadow_only["devig_p"] = 0.45
+
+    conf_row = _base_row(now, b"poly-1", book="polymarket")
+    conf_row["market_id"] = "mkt-both"
+    conf_row["devig_p"] = 0.52
+
+    better_shadow = _base_row(now, b"circa-2", book="circa")
+    better_shadow["market_id"] = "mkt-both"
+    better_shadow["devig_p"] = 0.48
+
+    rows = [shadow_only, conf_row, better_shadow]
+    with pytest.raises(ValueError, match="evidential_class"):
+        best_price_view(rows, evidential_class="all", now=now)
+
+    conf_view = best_price_view(rows, evidential_class="confirmatory", now=now)
+    assert "mkt-shadow-only" not in conf_view
+    assert conf_view["mkt-both"]["book"] == "polymarket"
+
+    by_class = best_price_views_by_class(rows, now=now)
+    assert "mkt-shadow-only" not in by_class["confirmatory"]
+    assert by_class["shadow"]["mkt-shadow-only"]["book"] == "circa"
+    assert by_class["shadow"]["mkt-both"]["book"] == "circa"
+
+
+def test_v1_edges_sanitizes_unverified_legacy_rows_and_omits_stale_books():
     now = datetime.now(timezone.utc)
     fresh_ts = (now - timedelta(seconds=30)).isoformat()
     stale_ts = (now - timedelta(hours=4)).isoformat()
 
     rows = [
-        _with_raw_payload(
-            {
-                "market_id": "mkt-1",
-                "line": 47.5,
-                "book": "circa",
-                "american": -108,
-                "devig_p": 0.505,
-                "source_ts": fresh_ts,
-                "observed_at": now.isoformat(),
-            },
-            b"circa-mkt-1",
-        ),
-        _with_raw_payload(
-            {
-                "market_id": "mkt-1",
-                "line": 47.5,
-                "book": "polymarket",
-                "american": -115,
-                "devig_p": 0.520,
-                "source_ts": fresh_ts,
-                "observed_at": now.isoformat(),
-            },
-            b"poly-mkt-1",
-        ),
-        _with_raw_payload(
-            {
-                "market_id": "mkt-stale",
-                "line": 47.5,
-                "book": "circa",
-                "american": 130,
-                "devig_p": 0.420,
-                "source_ts": stale_ts,
-                "observed_at": now.isoformat(),
-            },
-            b"circa-stale",
-        ),
-        {
-            "market_id": "mkt-forged",
-            "line": 47.5,
-            "book": "polymarket",
-            "american": 120,
-            "devig_p": 0.450,
-            "source_ts": fresh_ts,
-            "observed_at": now.isoformat(),
-            "raw_payload": b"real-bytes",
-            "raw_payload_sha256": "0" * 64,
-        },
+        {**_base_row(now, b"poly-fresh", book="polymarket"), "market_id": "mkt-1", "source_ts": fresh_ts, "devig_p": 0.52},
+        {**_base_row(now, b"circa-fresh", book="circa"), "market_id": "mkt-1", "source_ts": fresh_ts, "devig_p": 0.50},
+        {**_base_row(now, b"circa-stale", book="circa"), "market_id": "mkt-stale", "source_ts": stale_ts, "devig_p": 0.42},
     ]
-
     fresh = filter_fresh_tape(rows, now=now)
     assert len(fresh) == 2
-    assert {r["evidential_class"] for r in fresh} == {"confirmatory", "shadow"}
-    assert all(r["market_id"] not in {"mkt-stale", "mkt-forged"} for r in fresh)
 
-    # best_price_view never pools confirmatory and shadow
-    with pytest.raises(ValueError, match="evidential_class"):
-        best_price_view(rows, evidential_class="all", now=now)
-
-    best_conf = best_price_view(rows, evidential_class="confirmatory", now=now)
-    best_shad = best_price_view(rows, evidential_class="shadow", now=now)
-    assert best_conf["mkt-1"]["book"] == "polymarket"
-    assert best_shad["mkt-1"]["book"] == "circa"
-    assert "mkt-stale" not in best_conf and "mkt-stale" not in best_shad
-
-    by_class = best_price_views_by_class(rows, now=now)
-    assert by_class["confirmatory"]["mkt-1"]["book"] == "polymarket"
-    assert by_class["shadow"]["mkt-1"]["book"] == "circa"
-
-    # Legacy DB rows without a verified fresh tape row are non_actionable_reference with zeroed action fields
     legacy = [
-        {"market_id": "mkt-legacy-unverified", "actionable": True, "actionable_stake": 0.02, "stake": 0.02, "qualified": True, "can_execute": True, "edge": 14.0},
+        {"market_id": "mkt-unverified", "actionable": True, "actionable_stake": 0.02, "stake": 0.02, "qualified": True, "can_execute": True, "edge": 14.0},
         {"market_id": "mkt-1", "actionable": True, "actionable_stake": 0.02, "stake": 0.02, "qualified": True, "can_execute": True, "edge": 11.0},
     ]
     sanitized = sanitize_legacy_edge_rows(legacy, fresh)
@@ -220,9 +191,8 @@ def test_evidential_class_isolation_and_v1_edges_sanitization():
         assert body["best_price"]["mkt-1"]["book"] == "polymarket"
         assert body["best_price_by_class"]["shadow"]["mkt-1"]["book"] == "circa"
         assert "mkt-stale" not in body["best_price"]
-        assert "mkt-forged" not in body["best_price"]
+        assert "mkt-stale" not in body["best_price_by_class"]["shadow"]
 
-        # Stale tape rows must NOT appear in /api/v1/diagnostics
         diag = client.get("/api/v1/diagnostics?slate=2026_w7")
         assert diag.status_code == 200
         assert "mkt-stale" not in diag.text

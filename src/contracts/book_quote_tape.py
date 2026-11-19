@@ -10,8 +10,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from src.crypto_utils import canonical_json_sha256
-
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _REGISTRY_PATH = Path(__file__).resolve().parent / "source_evidential_registry.json"
 
@@ -102,27 +100,17 @@ def resolve_freshness_limit_seconds(
 
 
 def _verify_provenance(data: Mapping[str, Any], expected_sha256: str) -> bool:
-    """Recompute SHA-256 from raw_payload bytes or verify a signed adapter receipt."""
+    """Recompute SHA-256 directly from raw_payload bytes (no self-signed receipts)."""
     raw_payload = data.get("raw_payload")
-    if raw_payload is not None:
-        if isinstance(raw_payload, bytes):
-            raw_bytes = raw_payload
-        elif isinstance(raw_payload, str):
-            raw_bytes = raw_payload.encode("utf-8")
-        else:
-            return False
-        return hashlib.sha256(raw_bytes).hexdigest() == expected_sha256
-
-    receipt = data.get("signed_receipt")
-    if isinstance(receipt, Mapping):
-        receipt_hash = str(receipt.get("raw_payload_sha256") or receipt.get("raw_payload_hash") or "").strip().lower()
-        sig = str(receipt.get("receipt_sha256") or "").strip().lower()
-        if receipt_hash != expected_sha256 or not _SHA256_RE.match(sig):
-            return False
-        body = {k: v for k, v in receipt.items() if k != "receipt_sha256"}
-        return canonical_json_sha256(body) == sig
-
-    return False
+    if raw_payload is None:
+        return False
+    if isinstance(raw_payload, bytes):
+        raw_bytes = raw_payload
+    elif isinstance(raw_payload, str):
+        raw_bytes = raw_payload.encode("utf-8")
+    else:
+        return False
+    return hashlib.sha256(raw_bytes).hexdigest() == expected_sha256
 
 
 @dataclass(frozen=True)
@@ -137,7 +125,6 @@ class BookQuoteTapeRow:
     raw_payload_sha256: str
     quote_source: str = ""
     raw_payload: bytes | str | None = None
-    signed_receipt: Mapping[str, Any] | None = None
     game_state: str | None = None
     scheduled_start: str | None = None
 
