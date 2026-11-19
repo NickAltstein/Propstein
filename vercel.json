@@ -1,7 +1,7 @@
 {
   "version": 2,
   "outputDirectory": "viewer",
-  "ignoreCommand": "git diff --quiet \"${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}\" HEAD -- viewer/ public/ api/ src/ requirements.txt package.json vercel.json ':(exclude)viewer/news_watcher_state.json' ':(exclude)public/news_watcher_state.json'",
+  "ignoreCommand": "bash scripts/vercel_ignore.sh",
   "cleanUrls": true,
   "trailingSlash": true,
   "rewrites": [
