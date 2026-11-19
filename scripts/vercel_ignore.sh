@@ -3,6 +3,11 @@
 # history must build, never abort deployment with git's exit code 128.
 set -u
 
+if [ "${VERCEL_ENV:-}" = "preview" ]; then
+  echo "Skipping preview Vercel build (VERCEL_ENV=preview)."
+  exit 0
+fi
+
 base="${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}"
 if ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null 2>&1; then
   echo "Vercel previous commit unavailable locally; building to avoid a stale deployment."
