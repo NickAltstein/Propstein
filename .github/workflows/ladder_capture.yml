@@ -1,9 +1,8 @@
 name: Capture Multi-Rung Ladder Liquidity (NBA + NFL)
 
 on:
-  # Schedule remains commented out until Nick approves turning on live capture.
-  # schedule:
-  #   - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
+  schedule:
+    - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
   workflow_dispatch:
     inputs:
       window_before:
