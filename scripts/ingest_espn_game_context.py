@@ -885,12 +885,31 @@ def overlay_journal(schedule_rows: list[dict], journal_records: list[dict]) -> l
     return overlaid
 
 
+DEFAULT_MAX_EXCLUDED_GAMES = 3  # Placeholder for Nick
+ALLOWED_EXCLUSIONS_PATH = ROOT / "data" / "allowed_context_exclusions.json"
+
+
+def load_allowed_context_exclusions(path: Path | None = None) -> tuple[set[str], int]:
+    """Load committed allowed CONTEXT_MISSING game_ids and max_excluded_games cap."""
+    target = path or ALLOWED_EXCLUSIONS_PATH
+    if not target.exists():
+        return set(), DEFAULT_MAX_EXCLUDED_GAMES
+    raw = json.loads(target.read_text(encoding="utf-8"))
+    allowed = {str(g) for g in (raw.get("allowed_game_ids") or []) if g}
+    cap = int(raw.get("max_excluded_games", DEFAULT_MAX_EXCLUDED_GAMES))
+    return allowed, cap
+
+
 def evaluate_pricing_context(
     schedule_rows: list[dict],
     journal_records: list[dict],
     now: datetime,
     failed_fetches: list[str] | None = None,
     games_ingested: int | None = None,
+    *,
+    allowed_exclusions: set[str] | None = None,
+    max_excluded_games: int = DEFAULT_MAX_EXCLUDED_GAMES,
+    block_on_stale: bool = False,
 ) -> dict:
     """Build the daily provenance report for the active week's unstarted games."""
     if now.tzinfo is None:
@@ -898,6 +917,8 @@ def evaluate_pricing_context(
     overlaid = overlay_journal(schedule_rows, journal_records)
     pricing = active_pricing_rows(overlaid, now)
     missing = []
+    excluded = []
+    per_game_readiness: dict[str, dict] = {}
     stale = []
     ready_rows = 0
     season = week = None
@@ -905,15 +926,32 @@ def evaluate_pricing_context(
         season = int(pricing[0]["season"])
         week = int(pricing[0]["week"])
     for row in pricing:
+        gid = str(row.get("game_id") or "")
         blockers = pricing_blockers(row)
         if blockers:
-            missing.append({"game_id": row.get("game_id"), "missing": blockers})
+            missing.append({"game_id": gid, "missing": blockers})
+            excluded.append({
+                "game_id": gid,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+                "ready_for_pricing": False,
+            })
+            per_game_readiness[gid] = {
+                "ready_for_pricing": False,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+            }
         else:
             ready_rows += 1
+            per_game_readiness[gid] = {
+                "ready_for_pricing": True,
+                "status": "READY",
+                "missing_fields": [],
+            }
         observed = parse_ts(row.get("spread_observed_at"))
         if observed is not None and now - observed > STALE_AFTER:
             stale.append({
-                "game_id": row.get("game_id"),
+                "game_id": gid,
                 "spread_observed_at": row.get("spread_observed_at"),
                 "age_hours": round((now - observed).total_seconds() / 3600, 1),
             })
@@ -925,14 +963,22 @@ def evaluate_pricing_context(
         ]
         latest = max(batches) if batches else None
         games_ingested = sum(1 for value in batches if value == latest) if latest else 0
-    # An empty schedule cannot prove the week is ready. A schedule whose
-    # active week has already kicked off has nothing left to price.
+
+    allow_set = allowed_exclusions if allowed_exclusions is not None else set()
+    unallowed_excluded = [e["game_id"] for e in excluded if e["game_id"] not in allow_set]
+    cap_exceeded = len(excluded) > max_excluded_games
+
     if not schedule_rows:
         ready = False
     elif not pricing:
         ready = not failed_fetches
+    elif failed_fetches or (block_on_stale and stale) or ready_rows == 0:
+        ready = False
+    elif cap_exceeded or unallowed_excluded:
+        ready = False
     else:
-        ready = not missing and not failed_fetches
+        ready = True
+
     return {
         "generated_at": now.astimezone(timezone.utc).isoformat(),
         "ruleset": RULESET,
@@ -942,27 +988,150 @@ def evaluate_pricing_context(
         "games_ready": ready_rows,
         "games_ingested": games_ingested if games_ingested is not None else 0,
         "missing_timestamps": missing,
+        "excluded": excluded,
+        "unallowed_excluded": unallowed_excluded,
+        "max_excluded_games": max_excluded_games,
+        "cap_exceeded": cap_exceeded,
+        "per_game_readiness": per_game_readiness,
         "stale_captures": stale,
         "failed_fetches": list(failed_fetches or []),
         "ready_for_pricing": ready,
     }
 
 
-def csv_pricing_context_ready(csv_path: Path, now: datetime | None = None) -> bool:
-    """True when every still-unstarted game in the active week can pass the cutoff gate."""
+def apply_context_exclusion_to_slate_rows(
+    rows: list[dict],
+    report: dict,
+) -> list[dict]:
+    """Ensure CONTEXT_MISSING games are unpriced with action/model fields zeroed/null."""
+    excluded_map = {
+        str(e["game_id"]): e for e in (report.get("excluded") or []) if e.get("game_id")
+    }
+    whole_slate_blocked = not report.get("ready_for_pricing", False)
+    out: list[dict] = []
+    for raw in rows:
+        row = dict(raw)
+        gid = str(row.get("game_id") or "")
+        if whole_slate_blocked or gid in excluded_map:
+            info = excluded_map.get(gid) or {}
+            fields = info.get("missing_fields") or []
+            row["context_status"] = "CONTEXT_MISSING"
+            row["context_missing_fields"] = list(fields)
+            row["reason"] = (
+                f"CONTEXT_MISSING: {', '.join(fields)}"
+                if fields
+                else "CONTEXT_MISSING: slate_blocked"
+            )
+            row["model_prob"] = None
+            row["fair_line"] = None
+            row["fair_line_yards"] = None
+            row["fair_line_rec"] = None
+            row["proj_yards"] = None
+            row["proj_rec"] = None
+            row["mu_rec"] = None
+            row["proj_pts"] = None
+            row["edge"] = None
+            row["edge_pp"] = None
+            row["actionable"] = False
+            row["actionable_stake"] = 0.0
+            row["stake"] = 0.0
+            row["qualified"] = False
+            row["can_execute"] = False
+        else:
+            row.setdefault("context_status", "READY")
+        out.append(row)
+    return out
+
+
+def csv_pricing_context_status(
+    csv_path: Path,
+    now: datetime | None = None,
+    *,
+    allowed_exclusions: set[str] | None = None,
+    max_excluded_games: int | None = None,
+) -> dict:
+    """Evaluate games.csv readiness with per-game allowed CONTEXT_MISSING exclusions."""
     if not csv_path.exists():
-        return False
+        return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "missing_games_csv"}
     with csv_path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         fields = set(reader.fieldnames or [])
         if not set(CONTEXT_FIELDS) <= fields:
-            return False
+            return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "missing_context_fields"}
         rows = list(reader)
     moment = now or datetime.now(ET)
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=ET)
     pricing = active_pricing_rows(rows, moment)
     if not pricing:
-        return False
-    return all(not pricing_blockers(row) for row in pricing)
+        return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "no_active_pricing_rows"}
+
+    default_allowed, default_cap = load_allowed_context_exclusions()
+    allow_set = allowed_exclusions if allowed_exclusions is not None else default_allowed
+    cap = max_excluded_games if max_excluded_games is not None else default_cap
+
+    excluded = []
+    stale = []
+    ready_rows = 0
+    per_game_readiness: dict[str, dict] = {}
+    for row in pricing:
+        gid = str(row.get("game_id") or "")
+        blockers = pricing_blockers(row)
+        if blockers:
+            excluded.append({
+                "game_id": gid,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+                "ready_for_pricing": False,
+            })
+            per_game_readiness[gid] = {
+                "ready_for_pricing": False,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+            }
+        else:
+            ready_rows += 1
+            per_game_readiness[gid] = {
+                "ready_for_pricing": True,
+                "status": "READY",
+                "missing_fields": [],
+            }
+        observed = parse_ts(row.get("spread_observed_at"))
+        if observed is not None and moment - observed > STALE_AFTER:
+            stale.append({"game_id": gid, "spread_observed_at": row.get("spread_observed_at")})
+
+    unallowed_excluded = [e["game_id"] for e in excluded if e["game_id"] not in allow_set]
+    cap_exceeded = len(excluded) > cap
+    ready = bool(ready_rows > 0 and not stale and not cap_exceeded and not unallowed_excluded)
+    return {
+        "ready_for_pricing": ready,
+        "games_in_pricing_window": len(pricing),
+        "games_ready": ready_rows,
+        "excluded": excluded,
+        "unallowed_excluded": unallowed_excluded,
+        "max_excluded_games": cap,
+        "cap_exceeded": cap_exceeded,
+        "stale_captures": stale,
+        "per_game_readiness": per_game_readiness,
+    }
+
+
+def csv_pricing_context_ready(
+    csv_path: Path,
+    now: datetime | None = None,
+    *,
+    allowed_exclusions: set[str] | None = None,
+    max_excluded_games: int | None = None,
+) -> bool:
+    """True when unstarted games pass cutoff gate (allowing configured CONTEXT_MISSING exclusions)."""
+    return bool(
+        csv_pricing_context_status(
+            csv_path,
+            now,
+            allowed_exclusions=allowed_exclusions,
+            max_excluded_games=max_excluded_games,
+        ).get("ready_for_pricing")
+    )
 
 
 def write_provenance_report(report: dict, report_path: Path | None = None) -> Path:
@@ -988,6 +1157,8 @@ def format_provenance_report(report: dict) -> str:
     ]
     for item in report.get("missing_timestamps") or []:
         lines.append(f"  - {item.get('game_id')}: {', '.join(item.get('missing') or [])}")
+    for item in report.get("excluded") or []:
+        lines.append(f"  - excluded ({item.get('status')}): {item.get('game_id')} [{', '.join(item.get('missing_fields') or [])}]")
     for item in report.get("failed_fetches") or []:
         lines.append(f"  - fetch failed: {item}")
     for item in report.get("stale_captures") or []:
@@ -1083,12 +1254,16 @@ def ingest_week(
 
     schedule = load_schedule_rows(csv_path) if csv_path.exists() else []
     now = datetime.now(ET)
+    allowed_exclusions, max_excluded = load_allowed_context_exclusions()
     report = evaluate_pricing_context(
         schedule,
         load_journal(journal),
         now,
         failed_fetches=[],
         games_ingested=len(records),
+        allowed_exclusions=allowed_exclusions,
+        max_excluded_games=max_excluded,
+        block_on_stale=True,
     )
     report["raw_source_payload"] = raw_rel
     write_provenance_report(report, report_dest)

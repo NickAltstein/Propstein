@@ -210,7 +210,8 @@ def availability_eligible(slate: pd.DataFrame, injured: set[str],
 # ---------------------------------------------------------------------------
 
 def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
-                settled_only: bool = False, include_all: bool = False) -> pd.DataFrame:
+                settled_only: bool = False, include_all: bool = False,
+                exclude_games: list[str] | set[str] | None = None) -> pd.DataFrame:
     """Produce one feature row per (player, upcoming game).
 
     Carries every player's form forward from their last observed game, then
@@ -290,7 +291,10 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
     slate["changed_team"] = (slate.current_team != slate.team).astype(int)
     slate["team"] = slate.current_team
 
+    excl_set = {str(gid) for gid in (exclude_games or []) if gid}
     g = games[(games.season == season) & (games.week == week)]
+    if excl_set and "game_id" in g.columns:
+        g = g[~g.game_id.astype(str).isin(excl_set)].copy()
 
     if settled_only:
         if "away_score" in g.columns:
@@ -352,7 +356,8 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
         return datetime.now(timezone.utc).isoformat()
 
     slate["pricing_cutoff_timestamp"] = slate["game_id"].apply(_get_cutoff)
-    slate = attach_game_context(slate, games)
+    games_ctx = games[~games.game_id.astype(str).isin(excl_set)].copy() if (excl_set and "game_id" in games.columns) else games
+    slate = attach_game_context(slate, games_ctx)
 
     # Defence indices for the upcoming opponent, from prior data.
     defsrc = load_player_weeks()

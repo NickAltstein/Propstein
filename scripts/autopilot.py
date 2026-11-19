@@ -384,11 +384,23 @@ def fetch_espn_injuries() -> None:
               file=sys.stderr)
 
 
-def run_model(season: int, week: int, with_odds: bool = False) -> bool:
-    """Run src/week1.py for the week. Returns True on success."""
+def run_model(
+    season: int,
+    week: int,
+    with_odds: bool = False,
+    context_report: dict | None = None,
+) -> bool:
+    """Run src/week1.py for the week, excluding CONTEXT_MISSING games from model input."""
     cmd = [sys.executable, "week1.py", "--season", str(season), "--week", str(week)]
     if with_odds:
         cmd.append("--odds")
+    excluded_ids = [
+        str(e["game_id"])
+        for e in ((context_report or {}).get("excluded") or [])
+        if e.get("game_id")
+    ]
+    for gid in excluded_ids:
+        cmd.extend(["--exclude-game", gid])
     print(f"[autopilot] model run: {' '.join(cmd)} (cwd=src)")
     result = subprocess.run(cmd, cwd=SRC, capture_output=True, text=True, timeout=1800)
     tail = (result.stdout or "").strip().splitlines()[-3:]
@@ -397,20 +409,21 @@ def run_model(season: int, week: int, with_odds: bool = False) -> bool:
     if result.returncode != 0:
         print((result.stderr or result.stdout or "")[-2000:], file=sys.stderr)
         return False
-    return sync_week_files(season, week)
+    return sync_week_files(season, week, context_report=context_report)
+
+
+def game_context_status(now: datetime | None = None) -> dict:
+    """Return full games.csv context readiness status including allowed CONTEXT_MISSING exclusions."""
+    from scripts.ingest_espn_game_context import csv_pricing_context_status
+
+    if not (DATA / "games.csv").exists():
+        return {"ready_for_pricing": False, "excluded": [], "games_ready": 0}
+    return csv_pricing_context_status(DATA / "games.csv", now or datetime.now(ET))
 
 
 def game_context_has_capture_times(now: datetime | None = None) -> bool:
-    """True when every unstarted game in the active week has real pre-cutoff context.
-
-    Column names alone are not enough: an empty ``weather_observed_at`` must
-    keep the model blocked. Weeks that have already kicked off are not priced.
-    """
-    from scripts.ingest_espn_game_context import csv_pricing_context_ready
-
-    if not (DATA / "games.csv").exists():
-        return False
-    return csv_pricing_context_ready(DATA / "games.csv", now or datetime.now(ET))
+    """True when active unstarted games pass cutoff gate (allowing configured exclusions)."""
+    return bool(game_context_status(now).get("ready_for_pricing"))
 
 
 def refresh_game_context(season: int, week: int) -> None:
@@ -421,7 +434,7 @@ def refresh_game_context(season: int, week: int) -> None:
     print(format_provenance_report(result["report"]))
 
 
-def sync_week_files(season: int, week: int) -> bool:
+def sync_week_files(season: int, week: int, context_report: dict | None = None) -> bool:
     """Mirror week1.py outputs into viewer/ and write week-stamped copies.
 
     week1.py writes relative to cwd (src/) — it cannot sync to viewer/ itself
@@ -440,11 +453,65 @@ def sync_week_files(season: int, week: int) -> bool:
     if not slate_src.exists() or not picks_src.exists():
         print("[autopilot] week1.py outputs missing after run", file=sys.stderr)
         return False
+    if context_report is not None:
+        from scripts.ingest_espn_game_context import apply_context_exclusion_to_slate_rows
+
+        raw_slate = json.loads(slate_src.read_text(encoding="utf-8"))
+        if isinstance(raw_slate, list):
+            cleaned_slate = apply_context_exclusion_to_slate_rows(raw_slate, context_report)
+            present_gids = {str(r.get("game_id") or "") for r in cleaned_slate}
+            for ex in context_report.get("excluded") or []:
+                gid = str(ex.get("game_id") or "")
+                if gid and gid not in present_gids:
+                    fields = ex.get("missing_fields") or []
+                    parts = gid.split("_")
+                    away = parts[2] if len(parts) >= 4 else ""
+                    home = parts[3] if len(parts) >= 4 else ""
+                    matchup = f"{away} @ {home}".strip()
+                    reason_str = f"CONTEXT_MISSING: {', '.join(fields)}" if fields else "CONTEXT_MISSING"
+                    cleaned_slate.append({
+                        "game_id": gid,
+                        "player_name": f"{matchup} (Unpriced)",
+                        "team": away or gid,
+                        "opponent": home or "",
+                        "matchup": matchup or gid,
+                        "position": "CONTEXT_MISSING",
+                        "context_status": "CONTEXT_MISSING",
+                        "context_missing_fields": list(fields),
+                        "reason": reason_str,
+                        "excl_reason": reason_str,
+                        "model_prob": None,
+                        "fair_line": None,
+                        "fair_line_yards": None,
+                        "fair_line_rec": None,
+                        "proj_yards": None,
+                        "proj_rec": None,
+                        "mu_rec": None,
+                        "proj_pts": None,
+                        "edge": None,
+                        "edge_pp": None,
+                        "actionable": False,
+                        "actionable_stake": 0.0,
+                        "stake": 0.0,
+                        "qualified": False,
+                        "can_execute": False,
+                    })
+            slate_src.write_text(json.dumps(cleaned_slate, indent=2) + "\n", encoding="utf-8")
     try:
         payload = json.loads(picks_src.read_text(encoding="utf-8"))
-        if isinstance(payload.get("picks"), list) and "top_projections" not in payload:
-            enriched = [dict(p, unposted_lines=0) for p in payload["picks"]]
-            payload["top_projections"] = enriched
+        excluded_ids = {
+            str(e.get("game_id") or "") for e in ((context_report or {}).get("excluded") or [])
+        }
+        if isinstance(payload.get("picks"), list):
+            if excluded_ids:
+                payload["picks"] = [p for p in payload["picks"] if str(p.get("game_id") or "") not in excluded_ids]
+            if "top_projections" not in payload:
+                enriched = [dict(p, unposted_lines=0) for p in payload["picks"]]
+                payload["top_projections"] = enriched
+            elif excluded_ids:
+                payload["top_projections"] = [
+                    p for p in payload["top_projections"] if str(p.get("game_id") or "") not in excluded_ids
+                ]
             picks_src.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     except Exception as exc:
         print(f"  [warn] picks enrichment skipped: {exc}", file=sys.stderr)
@@ -826,7 +893,8 @@ def main() -> int:
         reapply_count = reapply_captures_to_games_csv()
         if reapply_count > 0:
             print(f"[autopilot] reapplied {reapply_count} verified game context captures from journal")
-    context_blocked = not game_context_has_capture_times(now)
+    ctx_status = game_context_status(now)
+    context_blocked = not ctx_status.get("ready_for_pricing")
     if context_blocked:
         print("[autopilot] model BLOCKED: game spread, total, and weather lack capture times; "
               "refreshing independent feeds only")
@@ -834,7 +902,7 @@ def main() -> int:
         fetch_espn_injuries()
         with_odds, why = nfl_odds_pull_allowed(games, now)
         print(f"[autopilot] NFL sportsbook props pull: {'yes' if with_odds else 'skipped'} ({why})")
-        if not run_model(season, week, with_odds=with_odds):
+        if not run_model(season, week, with_odds=with_odds, context_report=ctx_status):
             print("[autopilot] model run failed - aborting (fail closed)", file=sys.stderr)
             return 1
     else:
