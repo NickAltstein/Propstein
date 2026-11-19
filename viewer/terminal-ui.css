@@ -1276,3 +1276,86 @@ html body.terminal-ui .quote-deep-body {
   gap: 8px;
   margin-top: 10px;
 }
+
+html body.terminal-ui #sportSwitcher .sport-switch-label small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* Keep league identity visible above the board filters on the mobile front page. */
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-filterbar {
+    height: 96px !important;
+    min-height: 96px !important;
+    max-height: none !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0 !important;
+  }
+  html body.terminal-ui.front-board-open .pw-filterbar .mobile-league-nav,
+  html body.terminal-ui .pw-filterbar .mobile-league-nav {
+    display: block !important;
+    flex: 0 0 52px;
+    width: 100%;
+    height: 52px;
+    padding: 4px 0 !important;
+    box-sizing: border-box;
+    overflow-x: auto;
+  }
+  html body.terminal-ui #mobileSportSwitcher {
+    display: flex;
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+    min-width: 0 !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
+  }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-btn {
+    flex: 1 1 0;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 0 4px !important;
+    gap: 4px !important;
+    white-space: nowrap;
+  }
+  html body.terminal-ui #mobileSportSwitcher .league-badge,
+  html body.terminal-ui #mobileSportSwitcher .league-badge-ufc {
+    display: block;
+    flex: 0 0 auto;
+    width: 27px !important;
+    height: 29px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    object-fit: contain;
+  }
+  html body.terminal-ui #mobileSportSwitcher .league-badge-ufc { width: 35px !important; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-label { line-height: 1.1; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-label small {
+    display: block;
+    margin-top: 2px;
+    color: var(--ink-dim);
+    font-size: 9px;
+    font-weight: 500;
+  }
+  html body.terminal-ui .pw-filterbar .terminal-board-controls { flex: 0 0 44px; }
+  html body.terminal-ui.coming-soon-active .pw-filterbar {
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    flex-direction: row;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar .mobile-league-nav { display: none !important; }
+}

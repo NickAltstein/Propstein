@@ -1210,7 +1210,7 @@ html.light body #mobileFilterStrip .chip-segment-group .chip-pill.active .chip-c
 }
 html body .pw-view-toggle.view-switch .pw-seg-btn:not(.active) { background: transparent !important; color: #a1a1aa !important; border-color: transparent !important; }
 html.light body .pw-view-toggle.view-switch .pw-seg-btn:not(.active) { color: #52525b !important; }
-/* sport switcher (NBA / NFL / UFC / NHL) is a segmented toggle too */
+/* sport switcher (NBA / NFL / UFC / MLB) is a segmented toggle too */
 html body #sportSwitcher .sport-switch-btn.active,
 html body .mobile-league-list .sport-switch-btn.active,
 html.light body #sportSwitcher .sport-switch-btn.active,
