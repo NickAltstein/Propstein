@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any, Mapping
 
 from src.crypto_utils import canonical_json_sha256
+
+_APPROVED_POLICY_REGISTRY_PATH = (
+    Path(__file__).resolve().parent / "approved_qualification_policies.json"
+)
+
+def load_approved_policy_registry() -> dict[str, str]:
+    """Load committed policy_version -> expected policy_spec_hash registry."""
+    raw = json.loads(_APPROVED_POLICY_REGISTRY_PATH.read_text(encoding="utf-8"))
+    return {str(k): str(v) for k, v in raw.items()}
 
 REQUIRED_POLICY_FIELDS = (
     "policy_version",
@@ -66,17 +77,29 @@ def build_qualification_policy(
     }
 
 
-def verify_qualification_policy(policy: Any) -> bool:
-    """Fail closed if qualification_policy is missing, incomplete, or hash-mismatched."""
+def verify_qualification_policy(
+    policy: Any,
+    *,
+    registry: Mapping[str, str] | None = None,
+) -> bool:
+    """Fail closed unless policy is complete, registered, and matches the pinned registry hash."""
     if not isinstance(policy, Mapping):
         return False
     for field in REQUIRED_POLICY_FIELDS:
         if field not in policy or policy[field] is None:
             return False
+    policy_version = policy.get("policy_version")
+    if not isinstance(policy_version, str) or not policy_version:
+        return False
+    reg = registry if registry is not None else load_approved_policy_registry()
+    expected_hash = reg.get(policy_version)
+    if not isinstance(expected_hash, str) or len(expected_hash) != 64:
+        return False
     supplied_hash = policy.get("policy_spec_hash")
     if not isinstance(supplied_hash, str) or len(supplied_hash) != 64:
         return False
-    return compute_policy_spec_hash(policy) == supplied_hash
+    actual_hash = compute_policy_spec_hash(policy)
+    return actual_hash == expected_hash and supplied_hash == expected_hash
 
 
 def fail_closed_action_fields(row: Mapping[str, Any], policy: Any) -> dict[str, Any]:

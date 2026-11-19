@@ -180,18 +180,31 @@ def decompose_price_clv(
     )
 
 
+def clv_stratum_key(item: DecomposedPriceCLV) -> tuple[str, str, str, str]:
+    """Return the stratification key (evidential_class, exact_or_translated, quote_source, close_state)."""
+    evidential_class = "confirmatory" if item.is_confirmatory else "shadow"
+    translation_kind = "translated" if item.close_state == "CLOSE_TRANSLATED" else "exact"
+    quote_source = item.quote_source.strip().lower()
+    return (evidential_class, translation_kind, quote_source, item.close_state)
+
+
 def summarize_price_clv_cohort(
     items: Sequence[DecomposedPriceCLV],
     *,
     replicates: int = 2000,
     seed: int = 20261118,
 ) -> dict[str, Any]:
-    """Aggregate decomposed price CLV with derived counts and a 95% bootstrap confidence interval."""
+    """Aggregate decomposed price CLV for a single homogeneous stratum.
+
+    Raises ValueError on mixed input across evidential class, exact vs translated,
+    quote source, or close state.
+    """
     import random
 
     n = len(items)
     if n == 0:
         return {
+            "stratum": None,
             "n_signals": 0,
             "n_derived": 0,
             "mean_total_clv_pp": 0.0,
@@ -202,6 +215,12 @@ def summarize_price_clv_cohort(
             "ci_low": 0.0,
             "ci_high": 0.0,
         }
+    strata = {clv_stratum_key(s) for s in items}
+    if len(strata) > 1:
+        raise ValueError(
+            f"cannot pool mixed price CLV strata in summarize_price_clv_cohort: {sorted(strata)}"
+        )
+    stratum = next(iter(strata))
     totals = [s.total_price_clv_pp for s in items]
     mean_total = sum(totals) / n
     rng = random.Random(seed)
@@ -209,6 +228,12 @@ def summarize_price_clv_cohort(
     lo_idx = max(0, int(0.025 * replicates))
     hi_idx = min(replicates - 1, int(0.975 * replicates))
     return {
+        "stratum": {
+            "evidential_class": stratum[0],
+            "translation_kind": stratum[1],
+            "quote_source": stratum[2],
+            "close_state": stratum[3],
+        },
         "n_signals": n,
         "n_derived": sum(1 for s in items if s.close_state == "CLOSE_TRANSLATED"),
         "mean_total_clv_pp": round(mean_total, 4),
@@ -218,5 +243,21 @@ def summarize_price_clv_cohort(
         "ci_level": 0.95,
         "ci_low": round(boot[lo_idx], 4),
         "ci_high": round(boot[hi_idx], 4),
+    }
+
+
+def summarize_price_clv_by_stratum(
+    items: Sequence[DecomposedPriceCLV],
+    *,
+    replicates: int = 2000,
+    seed: int = 20261118,
+) -> dict[tuple[str, str, str, str], dict[str, Any]]:
+    """Group decomposed price CLV items by stratum and summarize each independently."""
+    grouped: dict[tuple[str, str, str, str], list[DecomposedPriceCLV]] = {}
+    for item in items:
+        grouped.setdefault(clv_stratum_key(item), []).append(item)
+    return {
+        key: summarize_price_clv_cohort(group, replicates=replicates, seed=seed)
+        for key, group in sorted(grouped.items())
     }
 

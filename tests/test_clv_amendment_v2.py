@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 from unittest.mock import MagicMock
 
 import pytest
@@ -24,6 +25,7 @@ from src.contracts.qualification_policy import (
 )
 from src.ledger.close_match import (
     AMENDMENT_003_EFFECTIVE_AT,
+    AMENDMENT_003_EFFECTIVE_AT_ISO,
     CLOSE_EXACT,
     CLOSE_THIN_DEPTH,
     CLOSE_TRANSLATED,
@@ -38,7 +40,12 @@ from src.ledger.close_match import (
     load_close_quality_config,
     match_close,
 )
-from src.ledger.clv_decomposition import decompose_price_clv, summarize_price_clv_cohort
+from src.ledger.clv_decomposition import (
+    clv_stratum_key,
+    decompose_price_clv,
+    summarize_price_clv_by_stratum,
+    summarize_price_clv_cohort,
+)
 from src.ledger.migrate import MIGRATIONS, guard_historical_close_rows
 from src.ledger.shadow_ledger import build_shadow_entry, shadow_ledger_can_unfreeze_paid_access
 
@@ -67,7 +74,7 @@ def test_legacy_line_changed_preserved_pre_amendment():
         scheduled_start="2026-11-18T01:00:00+00:00",
     )
     assert match_close(expected, observed).reason_code == LINE_CHANGED
-    # Observations captured on 2026-11-18 (before 2026-11-19T00:00Z) stay under pre-amendment rules
+    # Observations captured on 2026-11-18 (before 2026-12-01T00:00:00Z) stay under pre-amendment rules
     res = evaluate_post_amendment_close(
         event_id="evt-1",
         market="receiving_yards",
@@ -358,10 +365,21 @@ def test_price_clv_decomposition_and_shadow_ledger_isolation():
     assert entry.can_unfreeze_paid_access is False
     assert shadow_ledger_can_unfreeze_paid_access([entry]) is False
 
-    summary = summarize_price_clv_cohort([worse_juice, shadow_clv])
-    assert summary["n_signals"] == 2
-    assert summary["n_derived"] == 1
-    assert summary["ci_low"] <= summary["mean_total_clv_pp"] <= summary["ci_high"]
+    with pytest.raises(ValueError, match="mixed price CLV strata"):
+        summarize_price_clv_cohort([worse_juice, shadow_clv])
+
+    conf_summary = summarize_price_clv_cohort([worse_juice])
+    assert conf_summary["n_signals"] == 1
+    assert conf_summary["n_derived"] == 0
+    assert conf_summary["stratum"]["evidential_class"] == "confirmatory"
+    assert conf_summary["ci_low"] <= conf_summary["mean_total_clv_pp"] <= conf_summary["ci_high"]
+
+    by_stratum = summarize_price_clv_by_stratum([worse_juice, shadow_clv])
+    assert set(by_stratum.keys()) == {
+        clv_stratum_key(worse_juice),
+        clv_stratum_key(shadow_clv),
+    }
+    assert by_stratum[clv_stratum_key(shadow_clv)]["n_derived"] == 1
 
 
 def test_migration_004_registered_and_historical_guard_rejects_line_changed():
@@ -369,12 +387,51 @@ def test_migration_004_registered_and_historical_guard_rejects_line_changed():
     sql = Path("db/migrations/004_clv_amendment_v2.sql").read_text(encoding="utf-8")
     assert "closing_references_protect_legacy_line_changed" in sql
     assert "OLD.reason_code = 'LINE_CHANGED'" in sql
+    assert "OLD.close_state IS DISTINCT FROM NEW.close_state" in sql
 
     conn = MagicMock()
     cur = conn.cursor.return_value.__enter__.return_value
     cur.fetchall.return_value = [("row-legacy-1",)]
     with pytest.raises(RuntimeError, match="historical LINE_CHANGED"):
         guard_historical_close_rows(conn, ["row-legacy-1"])
+
+
+def test_close_state_trigger_and_superseding_correction_row():
+    rows: list[dict[str, object]] = [
+        {
+            "id": "close-row-1",
+            "signal_id": "sig-1",
+            "close_state": CLOSE_UNEVALUABLE,
+            "reason_code": CLOSE_THIN_DEPTH,
+            "supersedes_id": None,
+        }
+    ]
+
+    def update_close_state(row_id: str, new_state: str) -> None:
+        for row in rows:
+            if row["id"] == row_id and row["close_state"] != new_state:
+                raise RuntimeError("amendment guard: close_state/reason_code is immutable")
+
+    def insert_superseding_row(prior_id: str, new_id: str, new_state: str, reason: str | None) -> None:
+        assert any(r["id"] == prior_id for r in rows)
+        rows.append(
+            {
+                "id": new_id,
+                "signal_id": "sig-1",
+                "close_state": new_state,
+                "reason_code": reason,
+                "supersedes_id": prior_id,
+            }
+        )
+
+    with pytest.raises(RuntimeError, match="immutable"):
+        update_close_state("close-row-1", CLOSE_EXACT)
+
+    insert_superseding_row("close-row-1", "close-row-2", CLOSE_EXACT, None)
+    assert len(rows) == 2
+    assert rows[0]["close_state"] == CLOSE_UNEVALUABLE
+    assert rows[1]["close_state"] == CLOSE_EXACT
+    assert rows[1]["supersedes_id"] == "close-row-1"
 
 
 def test_qualification_policy_hash_and_fail_closed_behavior():
@@ -385,9 +442,22 @@ def test_qualification_policy_hash_and_fail_closed_behavior():
     tampered = {**policy, "edge_bounds": {**policy["edge_bounds"], "min_edge_pp": 5.0}}
     assert verify_qualification_policy(tampered) is False
 
+    # Self-consistent hash with tampered parameters must still fail against pinned registry
+    tampered_rehashed = {**tampered, "policy_spec_hash": compute_policy_spec_hash(tampered)}
+    assert verify_qualification_policy(tampered_rehashed) is False
+
+    # Unregistered policy_version with valid self-hash must fail closed
+    unregistered = build_qualification_policy(policy_version="2026.11.18-unregistered")
+    assert verify_qualification_policy(unregistered) is False
+
+    # Missing policy_version must fail closed
+    missing_version = dict(policy)
+    del missing_version["policy_version"]
+    assert verify_qualification_policy(missing_version) is False
+
     sample_row = {"actionable": True, "actionable_stake": 0.02, "stake": 0.02, "qualified": True, "can_execute": True}
     assert fail_closed_action_fields(sample_row, policy)["actionable"] is True
-    dead = fail_closed_action_fields(sample_row, tampered)
+    dead = fail_closed_action_fields(sample_row, tampered_rehashed)
     assert dead["actionable"] is False
     assert dead["actionable_stake"] == 0.0
     assert dead["stake"] == 0.0
@@ -400,3 +470,39 @@ def test_qualification_policy_hash_and_fail_closed_behavior():
     assert resp.status_code == 200
     body = resp.json()
     assert verify_qualification_policy(body["qualification_policy"]) is True
+
+
+def test_amendment_003_effective_timestamp_matches_doc_and_code():
+    doc = Path("docs/protocol_amendments/AMEND-003-clv-estimand-and-ladder-translation.md").read_text(
+        encoding="utf-8"
+    )
+    eff_match = re.search(r"Effective UTC Timestamp:\*\*\s*`([^`]+)`", doc)
+    hist_match = re.search(r"captured before `([^`]+)`", doc)
+    assert eff_match is not None
+    assert hist_match is not None
+    assert eff_match.group(1) == AMENDMENT_003_EFFECTIVE_AT_ISO == "2026-12-01T00:00:00Z"
+    assert hist_match.group(1) == AMENDMENT_003_EFFECTIVE_AT_ISO
+    assert AMENDMENT_003_EFFECTIVE_AT == datetime.fromisoformat(
+        AMENDMENT_003_EFFECTIVE_AT_ISO.replace("Z", "+00:00")
+    )
+
+
+def test_amendment_003_unicode_allowlist():
+    allowed = frozenset({"\u00a7", "\u2014"})
+    paths = [
+        Path("docs/protocol_amendments/AMEND-003-clv-estimand-and-ladder-translation.md"),
+        Path("src/contracts/approved_qualification_policies.json"),
+        Path("src/contracts/qualification_policy.py"),
+        Path("src/ledger/close_match.py"),
+        Path("src/ledger/clv_decomposition.py"),
+        Path("src/ledger/shadow_ledger.py"),
+        Path("db/migrations/004_clv_amendment_v2.sql"),
+        Path("tests/test_clv_amendment_v2.py"),
+    ]
+    unexpected: list[str] = []
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        for ch in text:
+            if ord(ch) > 127 and ch not in allowed:
+                unexpected.append(f"{path}:{ch!r}(U+{ord(ch):04X})")
+    assert unexpected == []

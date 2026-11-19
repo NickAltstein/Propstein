@@ -1,11 +1,11 @@
 # AMEND-003: CLV Estimand, Ladder Translation, and Policy Spec Hash
 
 - **Amendment ID:** AMEND-003
-- **Effective UTC Timestamp:** `2026-11-19T00:00:00+00:00`
+- **Effective UTC Timestamp:** `2026-12-01T00:00:00Z`
 - **Status:** Defines the estimand for new observations captured at or after the effective timestamp only. No retroactive reinterpretation; `docs/EDGE_GATE.md` thresholds, §1, §13, and unfilled §14 slots are unchanged.
 
-## 1. Historical Immutability
-Historical rows recorded with `reason_code = 'LINE_CHANGED'` and any observations captured before `2026-12-01T00:00:00+00:00` remain untouched under pre-amendment rules.
+## 1. Historical Immutability & Superseding Corrections
+Historical rows recorded with `reason_code = 'LINE_CHANGED'` and any observations captured before `2026-12-01T00:00:00Z` remain untouched under pre-amendment rules. The `closing_references_protect_legacy_update` trigger keeps `close_state` and `reason_code` immutable in place; any correction to a recorded close observation must be written as a new superseding row rather than mutating an existing row.
 
 ## 2. Close States & Close Quality (Post-Amendment)
 - `CLOSE_EXACT`: Closing reference matches entry line (`round(line, 4)`) with valid two-sided closing odds and passes close quality checks.
