@@ -2,9 +2,10 @@ name: Capture Close-Quality Liquidity (T-60/-30/-15/-5)
 
 on:
   schedule:
-    # Every 10 minutes on odd minutes across 12:00-05:59 UTC (756 runs/week):
-    # guarantees >=1 tick in each of T-60, T-30, T-15, T-5 for all NFL/NBA starts
-    # including 13:30Z London games through 05:00Z West Coast games.
+    # Target every 10 minutes on odd minutes across 12:00-05:59 UTC.
+    # GitHub schedule delivery is best-effort and cannot guarantee all four
+    # target offsets. news_watcher.yml dispatches a separate ~30-minute
+    # backstop when its self-handoff chain is healthy.
     - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
   workflow_dispatch:
 
