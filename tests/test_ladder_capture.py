@@ -232,3 +232,60 @@ def test_weekly_manifest_continues_hash_chain_across_files(tmp_path):
     # Tampered SHA-256 fails verification
     bad_manifest = {"schema": "propwire.ladder_archives_manifest.v1", "archives": [e1, {**e2, "sha256": "0" * 64}]}
     assert verify_manifest(bad_manifest, archive_dir=tmp_path)["valid"] is False
+
+
+def test_quality_fields_and_orphan_capture_dir_gzip_with_gap_recording(tmp_path):
+    from scripts.verify_ladder_manifest import verify_capture_index
+    from src.ladder_capture import infer_rung_spacing, write_tick_to_capture_dir
+
+    t1 = _now()
+    start = t1 + timedelta(minutes=30)
+    s1 = make_snapshot_id(market_id="KXNFLRECYDS-MKT1", captured_at=t1)
+    spacing = infer_rung_spacing([30.0, 40.0, 50.0])
+    assert spacing == 10.0
+
+    r1 = normalize_kalshi_ladder_rung(
+        market_id="KXNFLRECYDS-MKT1",
+        ticker="KXNFLRECYDS-MKT1-40",
+        rung_threshold=40,
+        orderbook_payload={"orderbook_fp": {"yes_dollars": [["0.4500", "20.00"]], "no_dollars": [["0.5300", "15.00"]]}},
+        snapshot_id=s1,
+        captured_at=t1,
+        scheduled_start=start,
+        rung_spacing=spacing,
+        sport="nfl",
+        stat_type="receiving_yards",
+    )
+    assert r1["pre_start"] is True
+    assert r1["offset_minutes"] == 30.0
+    assert r1["rung_spacing"] == 10.0
+    assert r1["scheduled_start"] == start.isoformat()
+
+    capture_dir = tmp_path / "capture_data"
+    res1 = write_tick_to_capture_dir(capture_dir=capture_dir, captures=[r1], tick_time=t1)
+    assert res1["appended"] == 1
+    assert res1["tick_file"].endswith(".jsonl.gz")
+
+    # Simulate a dropped tick (25 minutes later > 15m threshold); chain continues & gap is recorded
+    t2 = t1 + timedelta(minutes=25)
+    s2 = make_snapshot_id(market_id="KXNFLRECYDS-MKT1", captured_at=t2)
+    r2 = normalize_kalshi_ladder_rung(
+        market_id="KXNFLRECYDS-MKT1",
+        ticker="KXNFLRECYDS-MKT1-40",
+        rung_threshold=40,
+        orderbook_payload={"orderbook_fp": {"yes_dollars": [], "no_dollars": []}},
+        snapshot_id=s2,
+        captured_at=t2,
+        scheduled_start=start,
+        rung_spacing=spacing,
+        sport="nfl",
+        stat_type="receiving_yards",
+    )
+    assert r2["status"] == "NO_BOOK"
+    res2 = write_tick_to_capture_dir(capture_dir=capture_dir, captures=[r2], tick_time=t2)
+    assert res2["gaps_recorded"] == 1
+
+    import json
+    index = json.loads((capture_dir / "index.json").read_text(encoding="utf-8"))
+    assert len(index["gaps"]) == 1
+    assert verify_capture_index(index, capture_dir=capture_dir)["valid"] is True
