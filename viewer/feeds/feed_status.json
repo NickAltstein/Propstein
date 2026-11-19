@@ -1,13 +1,13 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-19T11:51:38Z",
+  "generated_at": "2026-11-19T20:46:52Z",
   "sports": {
     "nba": {
-      "level": "ok",
+      "level": "degraded",
       "fail_closed": false,
       "show_edges": true,
       "stale_since": "2026-11-19T11:30:01Z",
-      "age_hours": 0.36,
+      "age_hours": 9.28,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
       "quotes": 46,
       "slate": "pending"
@@ -17,8 +17,8 @@
       "fail_closed": true,
       "show_edges": false,
       "stale_since": "2026-11-17T03:40:47Z",
-      "age_hours": 56.18,
-      "last_error": "empty/zero-event response: 0 Polymarket quotes",
+      "age_hours": 65.1,
+      "last_error": "No module named 'pydantic'",
       "quotes": 11,
       "slate": "pending"
     }
