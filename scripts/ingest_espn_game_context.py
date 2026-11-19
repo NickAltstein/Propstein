@@ -1024,6 +1024,12 @@ def apply_context_exclusion_to_slate_rows(
             )
             row["model_prob"] = None
             row["fair_line"] = None
+            row["fair_line_yards"] = None
+            row["fair_line_rec"] = None
+            row["proj_yards"] = None
+            row["proj_rec"] = None
+            row["mu_rec"] = None
+            row["proj_pts"] = None
             row["edge"] = None
             row["edge_pp"] = None
             row["actionable"] = False
@@ -1037,21 +1043,95 @@ def apply_context_exclusion_to_slate_rows(
     return out
 
 
-def csv_pricing_context_ready(csv_path: Path, now: datetime | None = None) -> bool:
-    """True when every still-unstarted game in the active week can pass the cutoff gate."""
+def csv_pricing_context_status(
+    csv_path: Path,
+    now: datetime | None = None,
+    *,
+    allowed_exclusions: set[str] | None = None,
+    max_excluded_games: int | None = None,
+) -> dict:
+    """Evaluate games.csv readiness with per-game allowed CONTEXT_MISSING exclusions."""
     if not csv_path.exists():
-        return False
+        return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "missing_games_csv"}
     with csv_path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         fields = set(reader.fieldnames or [])
         if not set(CONTEXT_FIELDS) <= fields:
-            return False
+            return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "missing_context_fields"}
         rows = list(reader)
     moment = now or datetime.now(ET)
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=ET)
     pricing = active_pricing_rows(rows, moment)
     if not pricing:
-        return False
-    return all(not pricing_blockers(row) for row in pricing)
+        return {"ready_for_pricing": False, "games_ready": 0, "excluded": [], "stale_captures": [], "reason": "no_active_pricing_rows"}
+
+    default_allowed, default_cap = load_allowed_context_exclusions()
+    allow_set = allowed_exclusions if allowed_exclusions is not None else default_allowed
+    cap = max_excluded_games if max_excluded_games is not None else default_cap
+
+    excluded = []
+    stale = []
+    ready_rows = 0
+    per_game_readiness: dict[str, dict] = {}
+    for row in pricing:
+        gid = str(row.get("game_id") or "")
+        blockers = pricing_blockers(row)
+        if blockers:
+            excluded.append({
+                "game_id": gid,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+                "ready_for_pricing": False,
+            })
+            per_game_readiness[gid] = {
+                "ready_for_pricing": False,
+                "status": "CONTEXT_MISSING",
+                "missing_fields": blockers,
+            }
+        else:
+            ready_rows += 1
+            per_game_readiness[gid] = {
+                "ready_for_pricing": True,
+                "status": "READY",
+                "missing_fields": [],
+            }
+        observed = parse_ts(row.get("spread_observed_at"))
+        if observed is not None and moment - observed > STALE_AFTER:
+            stale.append({"game_id": gid, "spread_observed_at": row.get("spread_observed_at")})
+
+    unallowed_excluded = [e["game_id"] for e in excluded if e["game_id"] not in allow_set]
+    cap_exceeded = len(excluded) > cap
+    ready = bool(ready_rows > 0 and not stale and not cap_exceeded and not unallowed_excluded)
+    return {
+        "ready_for_pricing": ready,
+        "games_in_pricing_window": len(pricing),
+        "games_ready": ready_rows,
+        "excluded": excluded,
+        "unallowed_excluded": unallowed_excluded,
+        "max_excluded_games": cap,
+        "cap_exceeded": cap_exceeded,
+        "stale_captures": stale,
+        "per_game_readiness": per_game_readiness,
+    }
+
+
+def csv_pricing_context_ready(
+    csv_path: Path,
+    now: datetime | None = None,
+    *,
+    allowed_exclusions: set[str] | None = None,
+    max_excluded_games: int | None = None,
+) -> bool:
+    """True when unstarted games pass cutoff gate (allowing configured CONTEXT_MISSING exclusions)."""
+    return bool(
+        csv_pricing_context_status(
+            csv_path,
+            now,
+            allowed_exclusions=allowed_exclusions,
+            max_excluded_games=max_excluded_games,
+        ).get("ready_for_pricing")
+    )
 
 
 def write_provenance_report(report: dict, report_path: Path | None = None) -> Path:
