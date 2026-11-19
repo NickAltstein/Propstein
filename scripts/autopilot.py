@@ -464,11 +464,22 @@ def sync_week_files(season: int, week: int, context_report: dict | None = None) 
                 gid = str(ex.get("game_id") or "")
                 if gid and gid not in present_gids:
                     fields = ex.get("missing_fields") or []
+                    parts = gid.split("_")
+                    away = parts[2] if len(parts) >= 4 else ""
+                    home = parts[3] if len(parts) >= 4 else ""
+                    matchup = f"{away} @ {home}".strip()
+                    reason_str = f"CONTEXT_MISSING: {', '.join(fields)}" if fields else "CONTEXT_MISSING"
                     cleaned_slate.append({
                         "game_id": gid,
+                        "player_name": f"{matchup} (Unpriced)",
+                        "team": away or gid,
+                        "opponent": home or "",
+                        "matchup": matchup or gid,
+                        "position": "CONTEXT_MISSING",
                         "context_status": "CONTEXT_MISSING",
                         "context_missing_fields": list(fields),
-                        "reason": f"CONTEXT_MISSING: {', '.join(fields)}" if fields else "CONTEXT_MISSING",
+                        "reason": reason_str,
+                        "excl_reason": reason_str,
                         "model_prob": None,
                         "fair_line": None,
                         "fair_line_yards": None,

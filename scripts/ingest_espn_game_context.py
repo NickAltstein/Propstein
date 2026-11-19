@@ -1254,12 +1254,16 @@ def ingest_week(
 
     schedule = load_schedule_rows(csv_path) if csv_path.exists() else []
     now = datetime.now(ET)
+    allowed_exclusions, max_excluded = load_allowed_context_exclusions()
     report = evaluate_pricing_context(
         schedule,
         load_journal(journal),
         now,
         failed_fetches=[],
         games_ingested=len(records),
+        allowed_exclusions=allowed_exclusions,
+        max_excluded_games=max_excluded,
+        block_on_stale=True,
     )
     report["raw_source_payload"] = raw_rel
     write_provenance_report(report, report_dest)
