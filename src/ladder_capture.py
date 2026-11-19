@@ -136,12 +136,16 @@ def normalize_kalshi_ladder_rung(
     }
 
 
-def load_ladder_captures_jsonl(jsonl_path: Path) -> tuple[list[dict[str, Any]], str | None, bool]:
+def load_ladder_captures_jsonl(
+    jsonl_path: Path,
+    *,
+    expected_initial_prev_hash: str | None = None,
+) -> tuple[list[dict[str, Any]], str | None, bool]:
     """Load existing ladder captures and verify hash-chain integrity."""
     if not jsonl_path.exists():
-        return [], None, True
+        return [], expected_initial_prev_hash, True
     rows: list[dict[str, Any]] = []
-    prev_hash: str | None = None
+    prev_hash: str | None = expected_initial_prev_hash
     chain_valid = True
     for raw_line in jsonl_path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
@@ -162,9 +166,12 @@ def append_ladder_captures(
     *,
     jsonl_path: Path,
     captures: Sequence[Mapping[str, Any]],
+    expected_initial_prev_hash: str | None = None,
 ) -> dict[str, Any]:
     """Append hash-chained ladder captures; enforce one captured_at per snapshot_id."""
-    existing, prev_hash, chain_valid = load_ladder_captures_jsonl(jsonl_path)
+    existing, prev_hash, chain_valid = load_ladder_captures_jsonl(
+        jsonl_path, expected_initial_prev_hash=expected_initial_prev_hash
+    )
     seen_ids = {str(r.get("record_id")) for r in existing}
     snapshot_times: dict[str, str] = {
         str(r.get("snapshot_id")): str(r.get("captured_at"))
