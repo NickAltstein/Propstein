@@ -21,10 +21,10 @@
     }
   ],
   "failed_fetches": [],
-  "games_in_pricing_window": 13,
-  "games_ingested": 13,
-  "games_ready": 11,
-  "generated_at": "2026-11-20T00:36:16.506019+00:00",
+  "games_in_pricing_window": 12,
+  "games_ingested": 12,
+  "games_ready": 10,
+  "generated_at": "2026-11-20T01:57:43.391639+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [
     {
@@ -54,11 +54,6 @@
       "status": "READY"
     },
     "2026_11_CIN_WAS": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_11_IND_HOU": {
       "missing_fields": [],
       "ready_for_pricing": true,
       "status": "READY"
@@ -115,7 +110,7 @@
       "status": "READY"
     }
   },
-  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-20T00-36-15-334341+00-00_05f09a75.json",
+  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-20T01-57-41-967318+00-00_62ca1e7e.json",
   "ready_for_pricing": true,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,

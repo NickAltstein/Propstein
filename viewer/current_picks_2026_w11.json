@@ -3,8 +3,8 @@
   "week": 11,
   "gate_edge": 0.1,
   "kelly_cap": 0.03,
-  "rostered_player_records": 373,
-  "projectable_player_records": 246,
+  "rostered_player_records": 335,
+  "projectable_player_records": 225,
   "note": "Top 25 Projections & Fair Lines (Active Games Only)",
   "picks": [
     {
@@ -114,21 +114,6 @@
     },
     {
       "rank": 8,
-      "player": "Nico Collins",
-      "team": "HOU",
-      "opponent": "IND",
-      "position": "WR",
-      "proj_rec": 5.2,
-      "fair_line_rec": 4.5,
-      "p_rec_at_fair_line": 0.548,
-      "proj_yards": 71.8,
-      "fair_line_yards": 64.0,
-      "implied_total": 28.5,
-      "spread": 12.5,
-      "questionable": 0
-    },
-    {
-      "rank": 9,
       "player": "Carnell Tate",
       "team": "TEN",
       "opponent": "DAL",
@@ -143,7 +128,7 @@
       "questionable": 1
     },
     {
-      "rank": 10,
+      "rank": 9,
       "player": "DeVonta Smith",
       "team": "PHI",
       "opponent": "PIT",
@@ -158,7 +143,7 @@
       "questionable": 0
     },
     {
-      "rank": 11,
+      "rank": 10,
       "player": "Luther Burden III",
       "team": "CHI",
       "opponent": "NO",
@@ -173,7 +158,7 @@
       "questionable": 0
     },
     {
-      "rank": 12,
+      "rank": 11,
       "player": "Tee Higgins",
       "team": "CIN",
       "opponent": "WAS",
@@ -188,7 +173,7 @@
       "questionable": 0
     },
     {
-      "rank": 13,
+      "rank": 12,
       "player": "Tetairoa McMillan",
       "team": "CAR",
       "opponent": "BAL",
@@ -203,7 +188,7 @@
       "questionable": 0
     },
     {
-      "rank": 14,
+      "rank": 13,
       "player": "Chris Olave",
       "team": "NO",
       "opponent": "CHI",
@@ -218,7 +203,7 @@
       "questionable": 0
     },
     {
-      "rank": 15,
+      "rank": 14,
       "player": "Emeka Egbuka",
       "team": "TB",
       "opponent": "DET",
@@ -233,7 +218,7 @@
       "questionable": 0
     },
     {
-      "rank": 16,
+      "rank": 15,
       "player": "Rashee Rice",
       "team": "KC",
       "opponent": "ARI",
@@ -248,7 +233,7 @@
       "questionable": 0
     },
     {
-      "rank": 17,
+      "rank": 16,
       "player": "Stefon Diggs",
       "team": "WAS",
       "opponent": "CIN",
@@ -263,7 +248,7 @@
       "questionable": 0
     },
     {
-      "rank": 18,
+      "rank": 17,
       "player": "Zay Flowers",
       "team": "BAL",
       "opponent": "CAR",
@@ -278,7 +263,7 @@
       "questionable": 0
     },
     {
-      "rank": 19,
+      "rank": 18,
       "player": "Parker Washington",
       "team": "JAX",
       "opponent": "NYG",
@@ -293,7 +278,7 @@
       "questionable": 0
     },
     {
-      "rank": 20,
+      "rank": 19,
       "player": "DK Metcalf",
       "team": "PIT",
       "opponent": "PHI",
@@ -308,7 +293,7 @@
       "questionable": 0
     },
     {
-      "rank": 21,
+      "rank": 20,
       "player": "Brock Bowers",
       "team": "LV",
       "opponent": "DEN",
@@ -316,14 +301,14 @@
       "proj_rec": 4.9,
       "fair_line_rec": 4.5,
       "p_rec_at_fair_line": 0.51,
-      "proj_yards": 51.2,
+      "proj_yards": 51.1,
       "fair_line_yards": 45.5,
-      "implied_total": 15.2,
-      "spread": -10.0,
+      "implied_total": 15.0,
+      "spread": -10.5,
       "questionable": 1
     },
     {
-      "rank": 22,
+      "rank": 21,
       "player": "Trey McBride",
       "team": "ARI",
       "opponent": "KC",
@@ -338,7 +323,7 @@
       "questionable": 0
     },
     {
-      "rank": 23,
+      "rank": 22,
       "player": "Colston Loveland",
       "team": "CHI",
       "opponent": "NO",
@@ -353,22 +338,7 @@
       "questionable": 0
     },
     {
-      "rank": 24,
-      "player": "Tank Dell",
-      "team": "HOU",
-      "opponent": "IND",
-      "position": "WR",
-      "proj_rec": 3.3,
-      "fair_line_rec": 3.5,
-      "p_rec_at_fair_line": 0.409,
-      "proj_yards": 49.0,
-      "fair_line_yards": 41.5,
-      "implied_total": 28.5,
-      "spread": 12.5,
-      "questionable": 0
-    },
-    {
-      "rank": 25,
+      "rank": 23,
       "player": "Jameson Williams",
       "team": "DET",
       "opponent": "TB",
@@ -380,6 +350,36 @@
       "fair_line_yards": 40.0,
       "implied_total": 25.8,
       "spread": 6.0,
+      "questionable": 0
+    },
+    {
+      "rank": 24,
+      "player": "Rome Odunze",
+      "team": "CHI",
+      "opponent": "NO",
+      "position": "WR",
+      "proj_rec": 3.2,
+      "fair_line_rec": 2.5,
+      "p_rec_at_fair_line": 0.584,
+      "proj_yards": 46.8,
+      "fair_line_yards": 39.5,
+      "implied_total": 30.0,
+      "spread": 11.5,
+      "questionable": 0
+    },
+    {
+      "rank": 25,
+      "player": "Isaiah Likely",
+      "team": "NYG",
+      "opponent": "JAX",
+      "position": "TE",
+      "proj_rec": 4.7,
+      "fair_line_rec": 4.5,
+      "p_rec_at_fair_line": 0.472,
+      "proj_yards": 46.0,
+      "fair_line_yards": 41.0,
+      "implied_total": 20.2,
+      "spread": -6.0,
       "questionable": 0
     }
   ],
@@ -498,22 +498,6 @@
     },
     {
       "rank": 8,
-      "player": "Nico Collins",
-      "team": "HOU",
-      "opponent": "IND",
-      "position": "WR",
-      "proj_rec": 5.2,
-      "fair_line_rec": 4.5,
-      "p_rec_at_fair_line": 0.548,
-      "proj_yards": 71.8,
-      "fair_line_yards": 64.0,
-      "implied_total": 28.5,
-      "spread": 12.5,
-      "questionable": 0,
-      "unposted_lines": 0
-    },
-    {
-      "rank": 9,
       "player": "Carnell Tate",
       "team": "TEN",
       "opponent": "DAL",
@@ -529,7 +513,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 10,
+      "rank": 9,
       "player": "DeVonta Smith",
       "team": "PHI",
       "opponent": "PIT",
@@ -545,7 +529,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 11,
+      "rank": 10,
       "player": "Luther Burden III",
       "team": "CHI",
       "opponent": "NO",
@@ -561,7 +545,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 12,
+      "rank": 11,
       "player": "Tee Higgins",
       "team": "CIN",
       "opponent": "WAS",
@@ -577,7 +561,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 13,
+      "rank": 12,
       "player": "Tetairoa McMillan",
       "team": "CAR",
       "opponent": "BAL",
@@ -593,7 +577,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 14,
+      "rank": 13,
       "player": "Chris Olave",
       "team": "NO",
       "opponent": "CHI",
@@ -609,7 +593,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 15,
+      "rank": 14,
       "player": "Emeka Egbuka",
       "team": "TB",
       "opponent": "DET",
@@ -625,7 +609,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 16,
+      "rank": 15,
       "player": "Rashee Rice",
       "team": "KC",
       "opponent": "ARI",
@@ -641,7 +625,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 17,
+      "rank": 16,
       "player": "Stefon Diggs",
       "team": "WAS",
       "opponent": "CIN",
@@ -657,7 +641,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 18,
+      "rank": 17,
       "player": "Zay Flowers",
       "team": "BAL",
       "opponent": "CAR",
@@ -673,7 +657,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 19,
+      "rank": 18,
       "player": "Parker Washington",
       "team": "JAX",
       "opponent": "NYG",
@@ -689,7 +673,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 20,
+      "rank": 19,
       "player": "DK Metcalf",
       "team": "PIT",
       "opponent": "PHI",
@@ -705,7 +689,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 21,
+      "rank": 20,
       "player": "Brock Bowers",
       "team": "LV",
       "opponent": "DEN",
@@ -713,15 +697,15 @@
       "proj_rec": 4.9,
       "fair_line_rec": 4.5,
       "p_rec_at_fair_line": 0.51,
-      "proj_yards": 51.2,
+      "proj_yards": 51.1,
       "fair_line_yards": 45.5,
-      "implied_total": 15.2,
-      "spread": -10.0,
+      "implied_total": 15.0,
+      "spread": -10.5,
       "questionable": 1,
       "unposted_lines": 0
     },
     {
-      "rank": 22,
+      "rank": 21,
       "player": "Trey McBride",
       "team": "ARI",
       "opponent": "KC",
@@ -737,7 +721,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 23,
+      "rank": 22,
       "player": "Colston Loveland",
       "team": "CHI",
       "opponent": "NO",
@@ -753,23 +737,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 24,
-      "player": "Tank Dell",
-      "team": "HOU",
-      "opponent": "IND",
-      "position": "WR",
-      "proj_rec": 3.3,
-      "fair_line_rec": 3.5,
-      "p_rec_at_fair_line": 0.409,
-      "proj_yards": 49.0,
-      "fair_line_yards": 41.5,
-      "implied_total": 28.5,
-      "spread": 12.5,
-      "questionable": 0,
-      "unposted_lines": 0
-    },
-    {
-      "rank": 25,
+      "rank": 23,
       "player": "Jameson Williams",
       "team": "DET",
       "opponent": "TB",
@@ -781,6 +749,38 @@
       "fair_line_yards": 40.0,
       "implied_total": 25.8,
       "spread": 6.0,
+      "questionable": 0,
+      "unposted_lines": 0
+    },
+    {
+      "rank": 24,
+      "player": "Rome Odunze",
+      "team": "CHI",
+      "opponent": "NO",
+      "position": "WR",
+      "proj_rec": 3.2,
+      "fair_line_rec": 2.5,
+      "p_rec_at_fair_line": 0.584,
+      "proj_yards": 46.8,
+      "fair_line_yards": 39.5,
+      "implied_total": 30.0,
+      "spread": 11.5,
+      "questionable": 0,
+      "unposted_lines": 0
+    },
+    {
+      "rank": 25,
+      "player": "Isaiah Likely",
+      "team": "NYG",
+      "opponent": "JAX",
+      "position": "TE",
+      "proj_rec": 4.7,
+      "fair_line_rec": 4.5,
+      "p_rec_at_fair_line": 0.472,
+      "proj_yards": 46.0,
+      "fair_line_yards": 41.0,
+      "implied_total": 20.2,
+      "spread": -6.0,
       "questionable": 0,
       "unposted_lines": 0
     }
