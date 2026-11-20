@@ -1,25 +1,25 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-19T20:46:52Z",
+  "generated_at": "2026-11-20T01:55:33Z",
   "sports": {
     "nba": {
       "level": "degraded",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-19T11:30:01Z",
-      "age_hours": 9.28,
+      "stale_since": "2026-11-19T23:39:23Z",
+      "age_hours": 2.27,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "quotes": 46,
+      "quotes": 60,
       "slate": "pending"
     },
     "nfl": {
-      "level": "critical",
-      "fail_closed": true,
-      "show_edges": false,
-      "stale_since": "2026-11-17T03:40:47Z",
-      "age_hours": 65.1,
+      "level": "ok",
+      "fail_closed": false,
+      "show_edges": true,
+      "stale_since": "2026-11-20T00:53:19Z",
+      "age_hours": 1.04,
       "last_error": "No module named 'pydantic'",
-      "quotes": 11,
+      "quotes": 183,
       "slate": "pending"
     }
   }
