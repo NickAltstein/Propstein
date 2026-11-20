@@ -1,7 +1,7 @@
 {
   "schema_version": "ufc-card.v1",
   "sport": "ufc",
-  "generated_at": "2026-11-19T20:24:05Z",
+  "generated_at": "2026-11-20T00:36:35Z",
   "event_id": "600061665",
   "event_name": "UFC Fight Night: Procházka vs. Stirling",
   "date": "2026-11-21",
@@ -23,13 +23,13 @@
         {
           "id": "4712356",
           "name": "Shoaib Yousaf",
-          "record": "10-3-0",
+          "record": "14-3-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/eng.png",
           "winner": false,
           "age": 31,
-          "reach_in": null,
+          "reach_in": 72.0,
           "stance": "Orthodox",
-          "headshot": null
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4712356.png"
         },
         {
           "id": "5080723",
@@ -45,8 +45,8 @@
       ],
       "model": {
         "p": [
-          0.5,
-          0.5
+          0.4655,
+          0.5345
         ],
         "elo": [
           1500.0,
@@ -57,12 +57,16 @@
           0
         ],
         "adjustments": [
-          {},
-          {}
+          {
+            "reach": -12.0
+          },
+          {
+            "reach": 12.0
+          }
         ],
         "fair_american": [
-          -100,
-          -100
+          115,
+          -115
         ],
         "p_finish": 0.5631,
         "p_over_by_line": {
