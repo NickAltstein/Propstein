@@ -282,9 +282,13 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
 
     # Current team and opponent from the schedule.
     rosters = load_rosters(season)
-    rost = rosters[rosters.week == rosters.week.min()] if "week" in rosters else rosters
-    rost = rost.drop_duplicates("player_id")[["player_id", "team", "position",
-                                              "status", "years_exp", "full_name"]]
+    if "week" in rosters:
+        eligible = rosters[rosters["week"] <= week]
+        rost_src = eligible if not eligible.empty else rosters
+        rost = rost_src.sort_values("week").drop_duplicates("player_id", keep="last")
+    else:
+        rost = rosters.drop_duplicates("player_id")
+    rost = rost[["player_id", "team", "position", "status", "years_exp", "full_name"]]
     rost = rost.rename(columns={"team": "current_team"})
 
     slate = last.merge(rost, on="player_id", how="inner", suffixes=("_hist", ""))
