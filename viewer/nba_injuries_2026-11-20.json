@@ -1,23 +1,23 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-20",
-  "as_of": "2026-11-20T11:25:32Z",
+  "as_of": "2026-11-20T22:37:57Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
+    {
+      "player_name": "Kingston Flemings",
+      "team": "ATL",
+      "report_status": "Out",
+      "reported_at": "2026-11-20T22:15Z",
+      "comment": "Flemings (back) is out for Friday's game against the Hornets, Brad Rowland of the Locked On Podcast Network reports."
+    },
     {
       "player_name": "Jock Landale",
       "team": "ATL",
       "report_status": "Out",
       "reported_at": "2026-11-19T22:07Z",
       "comment": "Landale (hip) won't play in Friday's game against the Hornets, Brad Rowland of the Locked On Podcast Network reports."
-    },
-    {
-      "player_name": "Kingston Flemings",
-      "team": "ATL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-19T22:05Z",
-      "comment": "Flemings (back) is questionable for Friday's game against the Hornets, Brad Rowland of the Locked On Podcast Network reports."
     },
     {
       "player_name": "Asa Newell",
@@ -83,6 +83,13 @@
       "comment": "Schroder has been diagnosed with a left hamstring strain and will be reevaluated in two weeks, Michael Scotto of HoopsHype.com reports."
     },
     {
+      "player_name": "Jalen Smith",
+      "team": "CHI",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-20T17:41Z",
+      "comment": "Smith (illness) has been downgraded to questionable for Friday's game against the Wizards."
+    },
+    {
       "player_name": "Noa Essengue",
       "team": "CHI",
       "report_status": "Day-To-Day",
@@ -139,6 +146,13 @@
       "comment": "Strawther (knee) was diagnosed with a left knee sprain Friday and will be re-evaluated in six weeks, Vinny Benedetto of The Denver Gazette reports."
     },
     {
+      "player_name": "Ronald Holland II",
+      "team": "DET",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-20T17:46Z",
+      "comment": "Holland (knee) has been upgraded to doubtful for Friday's game against Toronto, Hunter Patterson of The Athletic reports."
+    },
+    {
       "player_name": "Taurean Prince",
       "team": "DET",
       "report_status": "Out",
@@ -151,13 +165,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-19T21:43Z",
       "comment": "Okorie (oblique) has been ruled out for Friday's game against Toronto."
-    },
-    {
-      "player_name": "Ronald Holland II",
-      "team": "DET",
-      "report_status": "Out",
-      "reported_at": "2026-11-19T21:41Z",
-      "comment": "Holland (knee) won't play in Friday's game against the Raptors, Blake Murphy of Sportsnet.ca reports."
     },
     {
       "player_name": "Cade Cunningham",
@@ -209,6 +216,13 @@
       "comment": "Sengun (eye) is questionable for Friday's game against the Nuggets."
     },
     {
+      "player_name": "Tyrese Haliburton",
+      "team": "IND",
+      "report_status": "Out",
+      "reported_at": "2026-11-20T20:41Z",
+      "comment": "Haliburton (hamstring) is expected to miss at least two more weeks, Shams Charania of ESPN reports."
+    },
+    {
       "player_name": "T.J. McConnell",
       "team": "IND",
       "report_status": "Day-To-Day",
@@ -228,13 +242,6 @@
       "report_status": "Day-To-Day",
       "reported_at": "2026-11-19T22:05Z",
       "comment": "Smith (ankle) is listed as questionable for Friday's game against Cleveland."
-    },
-    {
-      "player_name": "Tyrese Haliburton",
-      "team": "IND",
-      "report_status": "Out",
-      "reported_at": "2026-11-17T18:46Z",
-      "comment": "Head coach Rick Carlisle said Tuesday that Haliburton (hamstring) is \"getting there,\" but there's still no definitive timetable for his return to game action, Dustin Dopirak of The Indianapolis Star reports."
     },
     {
       "player_name": "Johnny Furphy",
@@ -291,6 +298,13 @@
       "report_status": "Out",
       "reported_at": "2026-11-13T20:19Z",
       "comment": "Murray (ankle) is out for Friday's game against Memphis."
+    },
+    {
+      "player_name": "Nikola Topic",
+      "team": "OKC",
+      "report_status": "Out",
+      "reported_at": "2026-11-20T17:02Z",
+      "comment": "Topic (hip) is out for Friday's game against New Orleans."
     },
     {
       "player_name": "Alex Caruso",
@@ -365,9 +379,9 @@
     {
       "player_name": "Precious Achiuwa",
       "team": "SAC",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T01:22Z",
-      "comment": "Achiuwa is doubtful for Friday's game against the Lakers due to a left lower leg bruise."
+      "report_status": "Out",
+      "reported_at": "2026-11-20T21:21Z",
+      "comment": "Achiuwa (lower leg) has been ruled out for Friday's game against the Lakers."
     },
     {
       "player_name": "De'Andre Hunter",
@@ -391,6 +405,13 @@
       "comment": "Simmons underwent successful surgery Tuesday to repair a torn right Achilles tendon, James Ham of ESPN 1320 Sacramento reports."
     },
     {
+      "player_name": "Kawhi Leonard",
+      "team": "TOR",
+      "report_status": "Out",
+      "reported_at": "2026-11-20T20:42Z",
+      "comment": "Leonard (knee) could return in the next few weeks, per Shams Charania of ESPN."
+    },
+    {
       "player_name": "Collin Murray-Boyles",
       "team": "TOR",
       "report_status": "Out",
@@ -403,13 +424,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-19T21:13Z",
       "comment": "Barrett has been diagnosed with a right hamstring strain and will be re-evaluated in two weeks, Brett Siegel of ClutchPoints.com reports."
-    },
-    {
-      "player_name": "Kawhi Leonard",
-      "team": "TOR",
-      "report_status": "Out",
-      "reported_at": "2026-11-17T22:25Z",
-      "comment": "Leonard (knee) has progressed in his strength and conditioning program but will miss at least one more week, Michael Scotto of HoopsHype.com reports."
     },
     {
       "player_name": "Nate Bittle",
