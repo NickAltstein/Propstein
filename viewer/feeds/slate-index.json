@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-21T01:42:07Z",
+  "generated_at": "2026-11-21T07:12:35Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -105,7 +105,7 @@
       }
     },
     "nba": {
-      "default_slate": "2026-11-20",
+      "default_slate": "2026-11-21",
       "slates": {
         "2026-10-22": {
           "season": 2026,
@@ -365,13 +365,28 @@
         "2026-11-20": {
           "season": 2026,
           "date": "2026-11-20",
-          "shortLabel": "Nov 20 Slate",
-          "state": "Slate \u00b7 2026-11-20",
+          "shortLabel": "Nov 20 Audit",
+          "state": "Historical audit \u00b7 2026-11-20",
           "slate": "nba_slate_2026-11-20.json",
           "games": "nba_games_2026-11-20.json",
           "picks": null,
           "injuries": "nba_injuries_2026-11-20.json",
           "odds": "nba_odds_2026-11-20.json",
+          "snapshots": null,
+          "historical": true,
+          "timezone": "America/New_York",
+          "marketOnly": true
+        },
+        "2026-11-21": {
+          "season": 2026,
+          "date": "2026-11-21",
+          "shortLabel": "Nov 21 Slate",
+          "state": "Slate \u00b7 2026-11-21",
+          "slate": "nba_slate_2026-11-21.json",
+          "games": "nba_games_2026-11-21.json",
+          "picks": null,
+          "injuries": "nba_injuries_2026-11-21.json",
+          "odds": "nba_odds_2026-11-21.json",
           "snapshots": null,
           "historical": false,
           "timezone": "America/New_York",
