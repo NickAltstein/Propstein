@@ -1,30 +1,44 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-21",
-  "as_of": "2026-11-21T10:54:27Z",
+  "as_of": "2026-11-21T21:36:26Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
     {
-      "player_name": "Jayson Tatum",
+      "player_name": "Mitchell Robinson",
       "team": "BOS",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T01:07Z",
-      "comment": "Tatum (rest) is listed as questionable for Saturday's game against Sacramento."
+      "report_status": "Out",
+      "reported_at": "2026-11-21T20:55Z",
+      "comment": "Robinson (illness) has been ruled out for Saturday's game against the Kings, Keith Smith of Spotrac.com reports."
     },
     {
       "player_name": "Derrick White",
       "team": "BOS",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T01:00Z",
-      "comment": "White (shoulder) is questionable to play in Saturday's game against Sacramento."
+      "report_status": "Out",
+      "reported_at": "2026-11-21T20:53Z",
+      "comment": "White (shoulder) has been ruled out for Saturday's game against Sacramento."
+    },
+    {
+      "player_name": "Jayson Tatum",
+      "team": "BOS",
+      "report_status": "Out",
+      "reported_at": "2026-11-21T20:51Z",
+      "comment": "Tatum (rest) has been ruled out for Saturday's game against the Kings."
     },
     {
       "player_name": "P.J. Washington",
       "team": "DAL",
       "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T22:40Z",
-      "comment": "Washington (shoulder) is listed as questionable for Saturday's game versus the Clippers."
+      "reported_at": "2026-11-21T19:22Z",
+      "comment": "Washington (illness/shoulder) has been downgraded from questionable to doubtful ahead of Saturday's game against the Clippers."
+    },
+    {
+      "player_name": "Tobi Lawal",
+      "team": "DAL",
+      "report_status": "Out",
+      "reported_at": "2026-11-21T15:08Z",
+      "comment": "Lawal (groin) is out for Saturday's game against the Clippers."
     },
     {
       "player_name": "Walter Clayton Jr.",
@@ -39,13 +53,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-20T19:31Z",
       "comment": "Head coach Dusty May said Friday that Lively (foot) is moving well and progressing in his recovery, and the big man told May he's \"close\" to returning, Mike Curtis of The Dallas Morning News reports."
-    },
-    {
-      "player_name": "Tobi Lawal",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-19T14:51Z",
-      "comment": "Lawal is out for Wednesday's game against the Warriors due to tightness in his right groin."
     },
     {
       "player_name": "Sergio de Larrea",
@@ -104,13 +111,6 @@
       "comment": "Boozer is out for Saturday's game against Minnesota due to a right ankle sprain."
     },
     {
-      "player_name": "Ty Jerome",
-      "team": "MEM",
-      "report_status": "Out",
-      "reported_at": "2026-11-20T23:11Z",
-      "comment": "Jerome (hip) is probable for Saturday's game in Minnesota."
-    },
-    {
       "player_name": "GG Jackson",
       "team": "MEM",
       "report_status": "Out",
@@ -160,18 +160,25 @@
       "comment": "DiVincenzo (Achilles) remains confident that he'll return during the 2026-27 season, Jon Krawczynski of The Athletic reports."
     },
     {
-      "player_name": "Bryce McGowens",
+      "player_name": "Trey Murphy III",
       "team": "NOP",
       "report_status": "Out",
-      "reported_at": "2026-11-19T21:15Z",
-      "comment": "McGowens (elbow) has been ruled out for Friday's game against the Thunder."
+      "reported_at": "2026-11-21T18:22Z",
+      "comment": "Murphy (knee) has been ruled out for Saturday's game against the Spurs."
     },
     {
       "player_name": "Trendon Watford",
       "team": "NOP",
       "report_status": "Out",
-      "reported_at": "2026-11-19T21:09Z",
-      "comment": "Watford (ankle) has been ruled out for Friday's game against Oklahoma City."
+      "reported_at": "2026-11-21T18:21Z",
+      "comment": "Watford (ankle) is out for Saturday's game against the Spurs."
+    },
+    {
+      "player_name": "Bryce McGowens",
+      "team": "NOP",
+      "report_status": "Out",
+      "reported_at": "2026-11-19T21:15Z",
+      "comment": "McGowens (elbow) has been ruled out for Friday's game against the Thunder."
     },
     {
       "player_name": "Bennedict Mathurin",
@@ -188,6 +195,20 @@
       "comment": "Murray (ankle) is out for Friday's game against Memphis."
     },
     {
+      "player_name": "OG Anunoby",
+      "team": "NYK",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-21T16:09Z",
+      "comment": "Anunoby (calf) has been downgraded to doubtful for Saturday's game against the Trail Bllazers."
+    },
+    {
+      "player_name": "Karl-Anthony Towns",
+      "team": "NYK",
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-21T16:05Z",
+      "comment": "Towns is questionable for Saturday's game against the Trail Blazers due to an illness."
+    },
+    {
       "player_name": "Jordan Clarkson",
       "team": "NYK",
       "report_status": "Out",
@@ -195,32 +216,11 @@
       "comment": "Clarkson (foot) won't play in Saturday's game against Portland."
     },
     {
-      "player_name": "OG Anunoby",
-      "team": "NYK",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T22:10Z",
-      "comment": "Anunoby (calf) is questionable for Saturday's game against Portland."
-    },
-    {
-      "player_name": "Dominick Barlow",
-      "team": "PHI",
-      "report_status": "Out",
-      "reported_at": "2026-11-20T22:13Z",
-      "comment": "Barlow (back) is probable for Saturday's game versus the Bucks."
-    },
-    {
       "player_name": "Dean Wade",
       "team": "PHI",
       "report_status": "Out",
       "reported_at": "2026-11-20T22:11Z",
       "comment": "Wade (hamstring) won't play Saturday against the Bucks."
-    },
-    {
-      "player_name": "Tyrese Maxey",
-      "team": "PHI",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T22:07Z",
-      "comment": "Maxey (foot) is questionable for Saturday's game against the Bucks."
     },
     {
       "player_name": "Adem Bona",
@@ -281,9 +281,9 @@
     {
       "player_name": "Precious Achiuwa",
       "team": "SAC",
-      "report_status": "Out",
-      "reported_at": "2026-11-20T21:21Z",
-      "comment": "Achiuwa (lower leg) has been ruled out for Friday's game against the Lakers."
+      "report_status": "Day-To-Day",
+      "reported_at": "2026-11-21T21:19Z",
+      "comment": "Achiuwa (lower leg) is questionable for Saturday's game against the Celtics."
     },
     {
       "player_name": "Maxime Raynaud",
