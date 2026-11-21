@@ -287,3 +287,128 @@ one of those sources. Rows with no readable source stay `unknown`.
 Headline CLV is computed inside one source class only. `odds_api`, `kalshi`,
 `polymarket`, and `unknown` are not averaged together. The thresholds in §1
 are unchanged. The operating parameters this section fills are in §3.
+
+## 14. Close definition and per-source liquidity floors (effective [EFFECTIVE_DATE_SLOT])
+
+This section is additive. It does not edit §13. The stored-field measurements
+it relies on are in
+[docs/research/close-quality-inventory-2026-11.md](research/close-quality-inventory-2026-11.md).
+Every quantity below is a named slot. This section sets no numeric floor,
+offset, notional, or date (§14.4).
+
+### 14.1 Close definition per source
+
+The close price is fixed per source. It is not chosen per row. The inventory
+does not make "last trade" or "mid" unambiguous for either source, so both
+price slots stay open.
+
+| Source | Close price | What is stored today |
+|---|---|---|
+| Kalshi | [KALSHI_CLOSE_PRICE_SLOT] | American odds converted from the YES ask and the NO ask. Not a last trade. Not a mid. |
+| Polymarket | [POLYMARKET_CLOSE_PRICE_SLOT] | American odds converted from each outcome token's best ask. Not a last trade. Not a mid. |
+
+The cutoff is scheduled event start minus [CUTOFF_OFFSET_SLOT], for both
+sources. The offset is fixed before any pull that uses it. A close is never
+"the last available price." A capture inside the game, or in the window
+between start and settlement, is not a close under this section.
+
+A row captured at or after scheduled event start is unevaluable with reason
+code `CLOSE_AFTER_START`. That code is distinct from `LINE_CHANGED`. A price
+taken at or after scheduled start is an in-game or settlement-window price,
+so it is not a pre-event close.
+
+`CLOSE_AFTER_START` is the only reason code this section adds. A free-text
+flag is not a category. Treatment of an unevaluable row stays the §3 rule:
+excluded from N with that reason code, reported, never silently dropped, and
+never counted as zero.
+
+### 14.2 Quality floor
+
+A close counts as confirmatory-grade only when it passes all three tests
+below. Each test is a raw slot. There is no weighted composite and no index
+that blends them.
+
+1. **Spread at cutoff.** The implied-probability spread at the cutoff is at
+   most [SPREAD_SLOT]. The value later written into that slot is bounded
+   above by the same-source disagreement tolerance already registered in §13.
+2. **Price impact at a fixed notional.** The price impact of lifting
+   [NOTIONAL_SLOT] at the cutoff is at most [PRICE_IMPACT_SLOT].
+3. **Close-window volume.** Traded volume in the close window is at least
+   [VOLUME_SLOT].
+
+Order-book depth at close is not recorded for Kalshi or for Polymarket. The
+price-impact test cannot be computed from the rows stored today. Where the
+current Polymarket feed stores a depth figure, it is top-of-book ask notional
+at fetch time, not a full book, and the retained line series drops it. Kalshi
+stores no depth. Those quantities are not one metric, and they are not
+averaged into a shared liquidity score.
+
+A row that fails any one test stays in the record and stays visible. It is
+descriptive only: it does not count toward N = 600, it is not deleted, and it
+is not recategorized.
+
+### 14.3 Outside reference for the volume criterion
+
+[REFERENCE_SLOT] is chosen by Nick and frozen before any pull that sets a
+floor. The amendment that fills the slot names the reference, why that
+reference, and the contract-mapping and settlement caveats. Kalshi contracts
+and Polymarket contracts are not equivalent. This section does not choose a
+reference.
+
+### 14.4 Values
+
+Every value in this section is a named slot. No floor, offset, notional,
+spread, volume, accrual window, or effective date is filled here.
+
+### 14.5 Two preregistered paths
+
+Both paths are written here. Neither path is a license to fill a slot inside
+this section.
+
+**Fields-exist path.** When stored rows contain the field list in the
+price-only paragraph below, floors are derived once from the historical pull
+against the frozen reference. The derivation is published with the
+distributions (quantiles and N per source) and a review date
+[REVIEW_DATE_SLOT]. It is not refit per row.
+
+**Price-only path.** The spread test is set from history when spread at the
+cutoff is computable from stored prices. The volume test and the price-impact
+test wait until prospective rows record a fixed field list for a minimum
+accrual window [ACCRUAL_SLOT]. The list is: close-window traded volume, open
+interest, bid, ask, spread at cutoff, last trade price, mid, cutoff
+timestamp, and order-book depth at cutoff. The amendment that starts accrual
+names the book scope per source (top of book, or full book). Depth from one
+venue is not pooled with depth from the other. Floors are then set only by a
+new anchored amendment. Rows recorded in the interim are descriptive only.
+
+The linked inventory finds that field list absent from the stored rows, and
+it finds spread at cutoff not stored for either source. The rows on hand
+support the price-only path. They do not support executing the fields-exist
+path.
+
+### 14.6 No retroactive upgrade
+
+Rows logged before [EFFECTIVE_DATE_SLOT] remain under §13. Nothing already
+stored is re-scored, promoted, or re-tagged because this section exists. The
+after-start captures in the inventory are a description of the files. They
+are not a retroactive `CLOSE_AFTER_START` tag.
+
+### 14.7 Scope
+
+This section applies to Kalshi and Polymarket only. Legacy sportsbook rows
+are unchanged. DFS break-evens are thresholds, not closes, and are out of
+scope. UFC is unchanged from §3.
+
+### 14.8 What a qualified close supports
+
+CLV against a close that meets this section supports only the claim that the
+entry was priced better than a preregistered qualified close. It does not
+support a claim of edge. Calibration, model probability against outcomes, is
+reported alongside that CLV and is not a substitute for it.
+
+### 14.9 Edge-type tags
+
+Any edge-type tagging scheme is written into this document before it is used.
+A tag is assigned before the result is known and is immutable after
+settlement. A row with no tag is descriptive only. This section does not
+define a scheme.
