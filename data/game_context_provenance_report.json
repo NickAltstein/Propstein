@@ -24,7 +24,7 @@
   "games_in_pricing_window": 12,
   "games_ingested": 12,
   "games_ready": 10,
-  "generated_at": "2026-11-20T18:59:41.647819+00:00",
+  "generated_at": "2026-11-21T17:44:47.953068+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [
     {
@@ -110,7 +110,6 @@
       "status": "READY"
     }
   },
-  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-20T18-59-39-807632+00-00_8b0e5da2.json",
   "ready_for_pricing": true,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,
