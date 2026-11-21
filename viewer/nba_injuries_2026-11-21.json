@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-21",
-  "as_of": "2026-11-21T21:36:26Z",
+  "as_of": "2026-11-21T22:14:45Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -197,9 +197,9 @@
     {
       "player_name": "OG Anunoby",
       "team": "NYK",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T16:09Z",
-      "comment": "Anunoby (calf) has been downgraded to doubtful for Saturday's game against the Trail Bllazers."
+      "report_status": "Out",
+      "reported_at": "2026-11-21T21:49Z",
+      "comment": "Anunoby (calf) has been ruled out for Saturday's game against the Trail Blazers."
     },
     {
       "player_name": "Karl-Anthony Towns",
