@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-21",
-  "as_of": "2026-11-21T07:41:55Z",
+  "as_of": "2026-11-21T08:45:44Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -83,6 +83,13 @@
       "comment": "Miller underwent surgery Wednesday to repair a torn left rotator cuff and will be re-evaluated in six months, per Law Murray of The Athletic."
     },
     {
+      "player_name": "Jerami Grant",
+      "team": "MEM",
+      "report_status": "Out",
+      "reported_at": "2026-11-21T08:08Z",
+      "comment": "Grant (calf) is out for Saturday's game against the Timberwolves."
+    },
+    {
       "player_name": "Javon Small",
       "team": "MEM",
       "report_status": "Out",
@@ -102,13 +109,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-20T23:11Z",
       "comment": "Jerome (hip) is probable for Saturday's game in Minnesota."
-    },
-    {
-      "player_name": "Jerami Grant",
-      "team": "MEM",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T02:08Z",
-      "comment": "Grant won't return to Thursday's game against the Warriors due to a left calf injury. He'll finish with three points (1-2 FG, 1-1 3Pt) across five minutes."
     },
     {
       "player_name": "GG Jackson",
