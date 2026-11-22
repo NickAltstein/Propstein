@@ -12,10 +12,10 @@
     }
   ],
   "failed_fetches": [],
-  "games_in_pricing_window": 5,
-  "games_ingested": 5,
-  "games_ready": 4,
-  "generated_at": "2026-11-22T18:18:35.924148+00:00",
+  "games_in_pricing_window": 4,
+  "games_ingested": 4,
+  "games_ready": 3,
+  "generated_at": "2026-11-22T21:08:41.858841+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [
     {
@@ -49,14 +49,9 @@
       ],
       "ready_for_pricing": false,
       "status": "CONTEXT_MISSING"
-    },
-    "2026_11_NYJ_LAC": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
     }
   },
-  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-22T18-18-34-717043+00-00_0334651d.json",
+  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-22T21-08-41-179868+00-00_d552d864.json",
   "ready_for_pricing": true,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,
