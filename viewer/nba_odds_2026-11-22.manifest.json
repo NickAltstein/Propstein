@@ -1,20 +1,20 @@
 {
-  "run_id": "run_2ad28d15fc97",
-  "commit_sha": "d88ce1c49a9e4e67fd12e74969ed982bb1864a8c",
-  "data_cutoff_timestamp": "2026-11-22T06:52:41.699982Z",
+  "run_id": "run_1c017f97e77e",
+  "commit_sha": "5f083ab07ccc8f3dcdced1c6b59368602cfc4d2c",
+  "data_cutoff_timestamp": "2026-11-22T07:27:54.059135Z",
   "model_version": "ingestion-only",
   "contracts_version": "quant.v1",
   "generator": "validate_and_publish:LiveOddsFeed",
   "schema_version": "propstein_contract_v1",
   "schema_class": "LiveOddsFeed",
   "source_feed": "kalshi_nba",
-  "timestamp": "2026-11-22T06:52:41.698228+00:00",
+  "timestamp": "2026-11-22T07:27:54.057577+00:00",
   "status": "PASS_ATOMIC_PUBLISHED",
   "target_file": "viewer/nba_odds_2026-11-22.json",
-  "rows_seen": 25,
-  "rows_valid": 25,
+  "rows_seen": 40,
+  "rows_valid": 40,
   "rows_rejected": 0,
   "quarantine_path": null,
   "config_hash": "dfd1b9e06c70b476445de1287296cacd79bc099ac7d5e7129870cd64f374a6f7",
-  "sha256": "09de5ca93b60f1e8445c2714f1b55c163fc595ae95c3c9674c1c57cff47c8faa"
+  "sha256": "4cbdaae8b5a4bd5d4e93b11d453f9c3ff803e96554c78b8da390a361a339d383"
 }
