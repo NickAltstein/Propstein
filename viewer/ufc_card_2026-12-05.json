@@ -1,0 +1,959 @@
+{
+  "schema_version": "ufc-card.v1",
+  "sport": "ufc",
+  "generated_at": "2026-11-22T03:49:35Z",
+  "event_id": "600062700",
+  "event_name": "UFC Fight Night: Adesanya vs Magomedov",
+  "date": "2026-12-05",
+  "honesty": "NO EDGE · model unbacktested vs closing lines",
+  "sources": {
+    "card": "ESPN UFC scoreboard",
+    "odds": "The Odds API (mma_mixed_martial_arts: h2h, totals; region us)"
+  },
+  "fights": [
+    {
+      "fight_id": "401933598",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Welterweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4867651",
+          "name": "Levan Chokheli",
+          "record": "15-3-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/geo.png",
+          "winner": false,
+          "age": 30,
+          "reach_in": 73.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4867651.png"
+        },
+        {
+          "id": "5212748",
+          "name": "Islam Dulatov",
+          "record": "12-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/ger.png",
+          "winner": false,
+          "age": 28,
+          "reach_in": 75.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5212748.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.4815,
+          0.5185
+        ],
+        "elo": [
+          1523.0,
+          1544.9
+        ],
+        "fights": [
+          1,
+          2
+        ],
+        "adjustments": [
+          {
+            "reach": -8.0
+          },
+          {
+            "reach": 8.0,
+            "layoff": -25.0
+          }
+        ],
+        "fair_american": [
+          108,
+          -108
+        ],
+        "p_finish": 0.5807,
+        "p_over_by_line": {
+          "1.5": 0.6109,
+          "2.5": 0.4649
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933606",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Bantamweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4905308",
+          "name": "Abdul Hussein",
+          "record": "16-2-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/fin.png",
+          "winner": false,
+          "age": 29,
+          "reach_in": 67.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4905308.png"
+        },
+        {
+          "id": "5236383",
+          "name": "Hecher Sosa",
+          "record": "15-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/esp.png",
+          "winner": false,
+          "age": 31,
+          "reach_in": 70.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5236383.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.4438,
+          0.5562
+        ],
+        "elo": [
+          1522.5,
+          1537.7
+        ],
+        "fights": [
+          1,
+          2
+        ],
+        "adjustments": [
+          {
+            "reach": -12.0
+          },
+          {
+            "reach": 12.0
+          }
+        ],
+        "fair_american": [
+          125,
+          -125
+        ],
+        "p_finish": 0.462,
+        "p_over_by_line": {
+          "1.5": 0.6905,
+          "2.5": 0.5743
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933605",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Middleweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5364355",
+          "name": "Modestino Rodrigues",
+          "record": "8-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 23,
+          "reach_in": 77.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5364355.png"
+        },
+        {
+          "id": "5013686",
+          "name": "Matthieu Letho Duclos",
+          "record": "11-3-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/fra.png",
+          "winner": false,
+          "age": 31,
+          "reach_in": 77.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5013686.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.5226,
+          0.4774
+        ],
+        "elo": [
+          1521.4,
+          1505.6
+        ],
+        "fights": [
+          1,
+          2
+        ],
+        "adjustments": [
+          {
+            "reach": 0.0
+          },
+          {
+            "reach": 0.0
+          }
+        ],
+        "fair_american": [
+          -109,
+          109
+        ],
+        "p_finish": 0.6499,
+        "p_over_by_line": {
+          "1.5": 0.5646,
+          "2.5": 0.4012
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933604",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Bantamweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5445620",
+          "name": "Pavel Andrusca",
+          "record": "9-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/mda.png",
+          "winner": false,
+          "age": 24,
+          "reach_in": 66.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5445620.png"
+        },
+        {
+          "id": "5345640",
+          "name": "Mehemmedeli Osmanli",
+          "record": "12-2-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/aze.png",
+          "winner": false,
+          "age": 22,
+          "reach_in": 71.0,
+          "stance": "Southpaw",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5345640.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.5101,
+          0.4899
+        ],
+        "elo": [
+          1524.0,
+          1477.0
+        ],
+        "fights": [
+          1,
+          1
+        ],
+        "adjustments": [
+          {
+            "reach": -20.0
+          },
+          {
+            "reach": 20.0
+          }
+        ],
+        "fair_american": [
+          -104,
+          104
+        ],
+        "p_finish": 0.4747,
+        "p_over_by_line": {
+          "1.5": 0.682,
+          "2.5": 0.5626
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933603",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Middleweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5138111",
+          "name": "Marco Tulio",
+          "record": "14-3-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 32,
+          "reach_in": 74.5,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5138111.png"
+        },
+        {
+          "id": "4275043",
+          "name": "JunYong Park",
+          "record": "19-7-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/sko.png",
+          "winner": false,
+          "age": 35,
+          "reach_in": 73.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4275043.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.5567,
+          0.4433
+        ],
+        "elo": [
+          1541.6,
+          1575.0
+        ],
+        "fights": [
+          6,
+          11
+        ],
+        "adjustments": [
+          {
+            "reach": 6.0
+          },
+          {
+            "reach": -6.0,
+            "age": -36.0,
+            "layoff": -25.0
+          }
+        ],
+        "fair_american": [
+          -126,
+          126
+        ],
+        "p_finish": 0.5785,
+        "p_over_by_line": {
+          "1.5": 0.6125,
+          "2.5": 0.467
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933602",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Light Heavyweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5206516",
+          "name": "Uran Satybaldiev",
+          "record": "9-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/kgz.png",
+          "winner": false,
+          "age": 32,
+          "reach_in": 79.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5206516.png"
+        },
+        {
+          "id": "5292007",
+          "name": "Ivan Gnizditskiy",
+          "record": "7-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+          "winner": false,
+          "age": 30,
+          "reach_in": null,
+          "stance": "--",
+          "headshot": null
+        }
+      ],
+      "model": {
+        "p": [
+          0.4767,
+          0.5233
+        ],
+        "elo": [
+          1508.8,
+          1500.0
+        ],
+        "fights": [
+          2,
+          0
+        ],
+        "adjustments": [
+          {
+            "layoff": -25.0
+          },
+          {}
+        ],
+        "fair_american": [
+          110,
+          -110
+        ],
+        "p_finish": 0.6631,
+        "p_over_by_line": {
+          "1.5": 0.5557,
+          "2.5": 0.389
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933601",
+      "start": "2026-12-05T15:00Z",
+      "weight_class": "Flyweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "3895544",
+          "name": "Bruno Silva",
+          "record": "15-9-2",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 36,
+          "reach_in": 65.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/3895544.png"
+        },
+        {
+          "id": "3896934",
+          "name": "Jafel Filho",
+          "record": "17-5-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 33,
+          "reach_in": 68.5,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/3896934.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.3814,
+          0.6186
+        ],
+        "elo": [
+          1504.5,
+          1524.5
+        ],
+        "fights": [
+          11,
+          7
+        ],
+        "adjustments": [
+          {
+            "reach": -14.0,
+            "age": -48.0
+          },
+          {
+            "reach": 14.0,
+            "age": -12.0
+          }
+        ],
+        "fair_american": [
+          162,
+          -162
+        ],
+        "p_finish": 0.5647,
+        "p_over_by_line": {
+          "1.5": 0.6217,
+          "2.5": 0.4797
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933600",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Light Heavyweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5360467",
+          "name": "Magomed Tuchalov",
+          "record": "7-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+          "winner": false,
+          "age": 26,
+          "reach_in": 78.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5360467.png"
+        },
+        {
+          "id": "3994033",
+          "name": "Ion Cutelaba",
+          "record": "20-12-1",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/mda.png",
+          "winner": false,
+          "age": 32,
+          "reach_in": 75.0,
+          "stance": "Southpaw",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/3994033.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.601,
+          0.399
+        ],
+        "elo": [
+          1519.0,
+          1471.8
+        ],
+        "fights": [
+          1,
+          14
+        ],
+        "adjustments": [
+          {
+            "reach": 12.0
+          },
+          {
+            "reach": -12.0
+          }
+        ],
+        "fair_american": [
+          -151,
+          151
+        ],
+        "p_finish": 0.6445,
+        "p_over_by_line": {
+          "1.5": 0.5682,
+          "2.5": 0.4061
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933599",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Lightweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4914573",
+          "name": "Mairon Santos",
+          "record": "18-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 26,
+          "reach_in": 72.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4914573.png"
+        },
+        {
+          "id": "5210077",
+          "name": "Akbar Abdullaev",
+          "record": "14-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/kgz.png",
+          "winner": false,
+          "age": 29,
+          "reach_in": 70.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5210077.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.5794,
+          0.4206
+        ],
+        "elo": [
+          1582.6,
+          1523.0
+        ],
+        "fights": [
+          4,
+          1
+        ],
+        "adjustments": [
+          {
+            "reach": 8.0,
+            "weight_class_up": -20.0
+          },
+          {
+            "reach": -8.0
+          }
+        ],
+        "fair_american": [
+          -138,
+          138
+        ],
+        "p_finish": 0.5713,
+        "p_over_by_line": {
+          "1.5": 0.6173,
+          "2.5": 0.4736
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401936244",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Featherweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "5146696",
+          "name": "Luke Riley",
+          "record": "14-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/eng.png",
+          "winner": false,
+          "age": 27,
+          "reach_in": 69.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5146696.png"
+        },
+        {
+          "id": "5109762",
+          "name": "Gabriel Santos",
+          "record": "12-2-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
+          "winner": false,
+          "age": 29,
+          "reach_in": 70.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5109762.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.5961,
+          0.4039
+        ],
+        "elo": [
+          1560.8,
+          1510.2
+        ],
+        "fights": [
+          3,
+          4
+        ],
+        "adjustments": [
+          {
+            "reach": -4.0
+          },
+          {
+            "reach": 4.0,
+            "layoff": -25.0
+          }
+        ],
+        "fair_american": [
+          -148,
+          148
+        ],
+        "p_finish": 0.5107,
+        "p_over_by_line": {
+          "1.5": 0.6579,
+          "2.5": 0.5294
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933597",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Heavyweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4421246",
+          "name": "Serghei Spivac",
+          "record": "18-7-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/mda.png",
+          "winner": false,
+          "age": 31,
+          "reach_in": 78.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4421246.png"
+        },
+        {
+          "id": "5218817",
+          "name": "Mario Pinto",
+          "record": "13-0-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/por.png",
+          "winner": false,
+          "age": 28,
+          "reach_in": 79.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5218817.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.4032,
+          0.5968
+        ],
+        "elo": [
+          1541.9,
+          1602.0
+        ],
+        "fights": [
+          14,
+          5
+        ],
+        "adjustments": [
+          {
+            "reach": -4.0
+          },
+          {
+            "reach": 4.0
+          }
+        ],
+        "fair_american": [
+          148,
+          -148
+        ],
+        "p_finish": 0.6261,
+        "p_over_by_line": {
+          "1.5": 0.5806,
+          "2.5": 0.4231
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933596",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Welterweight",
+      "sched_rounds": 3,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4738092",
+          "name": "Ian Machado Garry",
+          "record": "17-2-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/irl.png",
+          "winner": false,
+          "age": 29,
+          "reach_in": 74.5,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4738092.png"
+        },
+        {
+          "id": "4275020",
+          "name": "Yaroslav Amosov",
+          "record": "30-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/ukr.png",
+          "winner": false,
+          "age": 33,
+          "reach_in": 75.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4275020.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.6193,
+          0.3807
+        ],
+        "elo": [
+          1632.2,
+          1555.7
+        ],
+        "fights": [
+          12,
+          2
+        ],
+        "adjustments": [
+          {
+            "reach": -2.0
+          },
+          {
+            "reach": 2.0,
+            "age": -12.0
+          }
+        ],
+        "fair_american": [
+          -163,
+          163
+        ],
+        "p_finish": 0.5166,
+        "p_over_by_line": {
+          "1.5": 0.6539,
+          "2.5": 0.524
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
+      "fight_id": "401933595",
+      "start": "2026-12-05T18:00Z",
+      "weight_class": "Middleweight",
+      "sched_rounds": 5,
+      "result": null,
+      "end_round": null,
+      "went_distance": null,
+      "fighters": [
+        {
+          "id": "4285679",
+          "name": "Israel Adesanya",
+          "record": "24-6-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/ngr.png",
+          "winner": false,
+          "age": 37,
+          "reach_in": 80.0,
+          "stance": "Switch",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4285679.png"
+        },
+        {
+          "id": "4421784",
+          "name": "Shara Magomedov",
+          "record": "17-1-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+          "winner": false,
+          "age": 32,
+          "reach_in": 73.0,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4421784.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.4081,
+          0.5919
+        ],
+        "elo": [
+          1524.5,
+          1585.1
+        ],
+        "fights": [
+          12,
+          7
+        ],
+        "adjustments": [
+          {
+            "reach": 28.0,
+            "age": -60.0
+          },
+          {
+            "reach": -28.0
+          }
+        ],
+        "fair_american": [
+          145,
+          -145
+        ],
+        "p_finish": 0.6042,
+        "p_over_by_line": {
+          "1.5": 0.7411,
+          "2.5": 0.5589,
+          "3.5": 0.4917,
+          "4.5": 0.4182
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "scheduled",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    }
+  ],
+  "odds_meter": {
+    "skipped": "outside 48h window or --no-odds"
+  },
+  "market_as_of": null,
+  "backtest": {
+    "n": 3549,
+    "brier": 0.2431,
+    "log_loss": 0.6793,
+    "coinflip_brier": 0.25,
+    "coinflip_log_loss": 0.6931,
+    "type": "walk-forward results-only (not closing-line CLV)"
+  }
+}
