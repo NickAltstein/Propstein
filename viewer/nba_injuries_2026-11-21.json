@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-21",
-  "as_of": "2026-11-22T00:37:43Z",
+  "as_of": "2026-11-22T02:41:34Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -153,6 +153,13 @@
       "comment": "DiVincenzo (Achilles) remains confident that he'll return during the 2026-27 season, Jon Krawczynski of The Athletic reports."
     },
     {
+      "player_name": "Zion Williamson",
+      "team": "NOP",
+      "report_status": "Out",
+      "reported_at": "2026-11-22T00:39Z",
+      "comment": "Williamson is out for Saturday's game against the Spurs due to a left thigh contusion."
+    },
+    {
       "player_name": "Trey Murphy III",
       "team": "NOP",
       "report_status": "Out",
@@ -263,13 +270,6 @@
       "report_status": "Out",
       "reported_at": "2026-08-24T20:23Z",
       "comment": "Sharpe suffered a torn meniscus in his knee and is expected to miss six months, per Shams Charania of ESPN."
-    },
-    {
-      "player_name": "Precious Achiuwa",
-      "team": "SAC",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T21:19Z",
-      "comment": "Achiuwa (lower leg) is questionable for Saturday's game against the Celtics."
     },
     {
       "player_name": "Maxime Raynaud",
