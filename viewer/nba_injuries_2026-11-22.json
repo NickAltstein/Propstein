@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-22",
-  "as_of": "2026-11-22T21:41:55Z",
+  "as_of": "2026-11-22T22:37:18Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -62,25 +62,11 @@
       "comment": "Claxton (illness) won't play in Sunday's game against the Nuggets."
     },
     {
-      "player_name": "Jalen Smith",
-      "team": "CHI",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-22T17:22Z",
-      "comment": "Smith (illness) has been upgraded to probable for Sunday's game against the Nuggets."
-    },
-    {
       "player_name": "Norman Powell",
       "team": "CHI",
       "report_status": "Out",
       "reported_at": "2026-11-22T15:25Z",
       "comment": "Powell has been diagnosed with a mild right hamstring strain and will be re-evaluated later this week."
-    },
-    {
-      "player_name": "Patrick Williams",
-      "team": "CHI",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-22T06:06Z",
-      "comment": "Williams is probable for Sunday's game against the Nuggets due to a left thumb sprain."
     },
     {
       "player_name": "Caleb Wilson",
@@ -92,16 +78,9 @@
     {
       "player_name": "P.J. Washington",
       "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-22T19:07Z",
-      "comment": "Washington (illness) is doubtful to play Sunday's game against the Jazz."
-    },
-    {
-      "player_name": "Walter Clayton Jr.",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-22T19:07Z",
-      "comment": "Clayton (knee) is listed as questionable for Sunday's game against the Jazz."
+      "report_status": "Out",
+      "reported_at": "2026-11-22T22:24Z",
+      "comment": "Washington (illness) has been ruled out for Sunday's game against the Jazz."
     },
     {
       "player_name": "Tobi Lawal",
@@ -239,9 +218,9 @@
     {
       "player_name": "Giannis Antetokounmpo",
       "team": "MIA",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T20:33Z",
-      "comment": "Antetokounmpo (groin) is listed as questionable for Sunday's game against Oklahoma City, Ira Winderman of the South Florida Sun Sentinel reports."
+      "report_status": "Out",
+      "reported_at": "2026-11-22T22:09Z",
+      "comment": "Antetokounmpo (groin) won't play in Sunday's game against Oklahoma City, Clemente Almanza of USA Today reports."
     },
     {
       "player_name": "OG Anunoby",
