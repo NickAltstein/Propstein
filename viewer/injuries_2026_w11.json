@@ -1,9 +1,9 @@
 {
-  "as_of": "2026-11-22T00:48:35Z",
+  "as_of": "2026-11-22T18:18:58Z",
   "slate_week": 11,
   "season": 2026,
-  "total_active_injuries": 130,
-  "total_practice_entries": 180,
+  "total_active_injuries": 143,
+  "total_practice_entries": 170,
   "source": "nflverse injuries_2026.parquet",
   "impacted_beneficiaries": {},
   "injuries": [
@@ -654,7 +654,7 @@
       "position": "DT",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Did Not Participate In Practice"
+      "practice_status": "Limited Participation in Practice"
     },
     {
       "player_id": "00-0034446",
@@ -663,8 +663,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "CB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Hamstring",
+      "report_status": "DOUBTFUL",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -674,13 +674,24 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "LB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Groin",
+      "report_status": "OUT",
       "practice_status": "Did Not Participate In Practice"
     },
     {
       "player_id": "00-0034800",
       "player_name": "B.J. Hill",
+      "team": "CIN",
+      "opponent": "WAS",
+      "game_id": "2026_11_CIN_WAS",
+      "position": "DT",
+      "injury_type": "Injury",
+      "report_status": "PRACTICE ONLY",
+      "practice_status": "Did Not Participate In Practice"
+    },
+    {
+      "player_id": "00-0035683",
+      "player_name": "Dexter Lawrence",
       "team": "CIN",
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
@@ -696,8 +707,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "G",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Knee",
+      "report_status": "OUT",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -707,8 +718,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "S",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Quadricep",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -740,8 +751,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "CB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Illness",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Did Not Participate In Practice"
     },
     {
@@ -751,8 +762,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "WR",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Thumb",
+      "report_status": "DOUBTFUL",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -762,8 +773,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "LB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Forearm",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -795,9 +806,9 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "G",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "injury_type": "Oblique",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0041098",
@@ -806,8 +817,8 @@
       "opponent": "WAS",
       "game_id": "2026_11_CIN_WAS",
       "position": "G",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Knee",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -3292,8 +3303,8 @@
       "opponent": "CIN",
       "game_id": "2026_11_CIN_WAS",
       "position": "C",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Concussion",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     },
     {
@@ -3308,6 +3319,17 @@
       "practice_status": "Full Participation in Practice"
     },
     {
+      "player_id": "00-0033947",
+      "player_name": "Deatrich Wise",
+      "team": "WAS",
+      "opponent": "CIN",
+      "game_id": "2026_11_CIN_WAS",
+      "position": "DE",
+      "injury_type": "Injury",
+      "report_status": "PRACTICE ONLY",
+      "practice_status": "Limited Participation in Practice"
+    },
+    {
       "player_id": "00-0035149",
       "player_name": "Nick Allegretti",
       "team": "WAS",
@@ -3317,6 +3339,17 @@
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
       "practice_status": "Full Participation in Practice"
+    },
+    {
+      "player_id": "00-0036375",
+      "player_name": "Amik Robertson",
+      "team": "WAS",
+      "opponent": "CIN",
+      "game_id": "2026_11_CIN_WAS",
+      "position": "CB",
+      "injury_type": "Ankle",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Did Not Participate In Practice"
     },
     {
       "player_id": "00-0036628",
@@ -3336,9 +3369,9 @@
       "opponent": "CIN",
       "game_id": "2026_11_CIN_WAS",
       "position": "RB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "injury_type": "Heel",
+      "report_status": "QUESTIONABLE",
+      "practice_status": "Did Not Participate In Practice"
     },
     {
       "player_id": "00-0037742",
@@ -3349,7 +3382,7 @@
       "position": "WR",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Did Not Participate In Practice"
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0037809",
@@ -3371,7 +3404,7 @@
       "position": "S",
       "injury_type": "Injury",
       "report_status": "PRACTICE ONLY",
-      "practice_status": "Limited Participation in Practice"
+      "practice_status": "Full Participation in Practice"
     },
     {
       "player_id": "00-0039681",
@@ -3413,8 +3446,8 @@
       "opponent": "CIN",
       "game_id": "2026_11_CIN_WAS",
       "position": "RB",
-      "injury_type": "Injury",
-      "report_status": "PRACTICE ONLY",
+      "injury_type": "Groin",
+      "report_status": "QUESTIONABLE",
       "practice_status": "Full Participation in Practice"
     }
   ]

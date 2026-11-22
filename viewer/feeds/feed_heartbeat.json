@@ -5,19 +5,15 @@
       "last_success_at": "2026-11-22T11:10:22Z",
       "last_success_quotes": 78,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-22T00:48:37Z",
-      "last_attempt_at": "2026-11-22T11:10:22Z",
+      "last_error_at": "2026-11-22T18:19:00Z",
+      "last_attempt_at": "2026-11-22T18:19:00Z",
       "schedule": {
-        "observed_at": "2026-11-22T11:10:22Z",
+        "observed_at": "2026-11-22T18:19:00Z",
         "state": "pending",
         "starts": [
-          "2026-11-22T20:30:00Z",
-          "2026-11-22T23:00:00Z",
-          "2026-11-23T00:00:00Z",
-          "2026-11-23T00:00:00Z",
-          "2026-11-23T00:00:00Z",
-          "2026-11-23T01:00:00Z",
-          "2026-11-23T01:30:00Z"
+          "2026-11-25T00:00:00Z",
+          "2026-11-25T01:00:00Z",
+          "2026-11-25T03:00:00Z"
         ]
       }
     },
@@ -25,8 +21,8 @@
       "last_success_at": "2026-11-22T14:50:18Z",
       "last_success_quotes": 104,
       "last_error": "No module named 'pydantic'",
-      "last_error_at": "2026-11-22T00:48:51Z",
-      "last_attempt_at": "2026-11-22T14:50:18Z",
+      "last_error_at": "2026-11-22T18:19:13Z",
+      "last_attempt_at": "2026-11-22T18:19:13Z",
       "schedule": {
         "observed_at": null,
         "state": null,

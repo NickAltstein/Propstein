@@ -12,10 +12,10 @@
     }
   ],
   "failed_fetches": [],
-  "games_in_pricing_window": 12,
-  "games_ingested": 12,
-  "games_ready": 11,
-  "generated_at": "2026-11-22T17:59:36.642517+00:00",
+  "games_in_pricing_window": 5,
+  "games_ingested": 5,
+  "games_ready": 4,
+  "generated_at": "2026-11-22T18:18:35.924148+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [
     {
@@ -27,16 +27,6 @@
     }
   ],
   "per_game_readiness": {
-    "2026_11_ARI_KC": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_11_BAL_CAR": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
     "2026_11_CIN_WAS": {
       "missing_fields": [],
       "ready_for_pricing": true,
@@ -52,11 +42,6 @@
       "ready_for_pricing": true,
       "status": "READY"
     },
-    "2026_11_MIA_BUF": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
     "2026_11_MIN_SF": {
       "missing_fields": [
         "weather_observed_at",
@@ -65,32 +50,13 @@
       "ready_for_pricing": false,
       "status": "CONTEXT_MISSING"
     },
-    "2026_11_NO_CHI": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
     "2026_11_NYJ_LAC": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_11_PIT_PHI": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_11_TB_DET": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_11_TEN_DAL": {
       "missing_fields": [],
       "ready_for_pricing": true,
       "status": "READY"
     }
   },
+  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-22T18-18-34-717043+00-00_0334651d.json",
   "ready_for_pricing": true,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,
