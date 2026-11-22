@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-21",
-  "as_of": "2026-11-21T22:14:45Z",
+  "as_of": "2026-11-22T00:37:43Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -29,9 +29,9 @@
     {
       "player_name": "P.J. Washington",
       "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T19:22Z",
-      "comment": "Washington (illness/shoulder) has been downgraded from questionable to doubtful ahead of Saturday's game against the Clippers."
+      "report_status": "Out",
+      "reported_at": "2026-11-21T23:14Z",
+      "comment": "Washington (illness/shoulder) is listed as out for Saturday's game against the Clippers."
     },
     {
       "player_name": "Tobi Lawal",
@@ -39,13 +39,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-21T15:08Z",
       "comment": "Lawal (groin) is out for Saturday's game against the Clippers."
-    },
-    {
-      "player_name": "Walter Clayton Jr.",
-      "team": "DAL",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T22:35Z",
-      "comment": "Clayton (knee) is questionable for Saturday's game against the Clippers."
     },
     {
       "player_name": "Dereck Lively II",
@@ -195,18 +188,18 @@
       "comment": "Murray (ankle) is out for Friday's game against Memphis."
     },
     {
+      "player_name": "Karl-Anthony Towns",
+      "team": "NYK",
+      "report_status": "Out",
+      "reported_at": "2026-11-21T22:51Z",
+      "comment": "Towns (illness) won't play in Saturday's game versus the Trail Blazers."
+    },
+    {
       "player_name": "OG Anunoby",
       "team": "NYK",
       "report_status": "Out",
       "reported_at": "2026-11-21T21:49Z",
       "comment": "Anunoby (calf) has been ruled out for Saturday's game against the Trail Blazers."
-    },
-    {
-      "player_name": "Karl-Anthony Towns",
-      "team": "NYK",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-21T16:05Z",
-      "comment": "Towns is questionable for Saturday's game against the Trail Blazers due to an illness."
     },
     {
       "player_name": "Jordan Clarkson",
@@ -249,13 +242,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-20T22:18Z",
       "comment": "Youngblood (heel) has been ruled out for Saturday's game against the Knicks."
-    },
-    {
-      "player_name": "Deni Avdija",
-      "team": "POR",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-20T22:08Z",
-      "comment": "Avdija (foot) is listed as questionable for Saturday's game against the Knicks."
     },
     {
       "player_name": "Vit Krejci",
