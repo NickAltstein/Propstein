@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T19:38:13Z",
+  "generated_at": "2026-11-22T20:37:48Z",
   "rules": "draw/NC/cancel/scratch = void (push); CLV vs lock snapshot only",
   "summary": {
     "n_decisions": 13,
@@ -13,14 +13,7 @@
       0.8124
     ],
     "mean_clv": -0.0013,
-    "edge_claim": "NO EDGE",
-    "headline_source_class": "unknown",
-    "clv_by_source": {
-      "unknown": {
-        "n": 6,
-        "mean": -0.0013166666666666667
-      }
-    }
+    "edge_claim": "NO EDGE"
   },
   "cards": [
     {
@@ -41,9 +34,7 @@
           "market_p": 0.3099,
           "edge": 0.0533,
           "clv": null,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401928117",
@@ -54,9 +45,7 @@
           "market_p": 0.1629,
           "edge": 0.2065,
           "clv": null,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401932011",
@@ -67,9 +56,7 @@
           "market_p": 0.2817,
           "edge": 0.1387,
           "clv": null,
-          "result": "win",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "win"
         },
         {
           "fight_id": "401933235",
@@ -80,9 +67,7 @@
           "market_p": 0.1768,
           "edge": 0.2519,
           "clv": null,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401928120",
@@ -93,9 +78,7 @@
           "market_p": 0.4807,
           "edge": 0.0324,
           "clv": null,
-          "result": "win",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "win"
         },
         {
           "fight_id": "401928115",
@@ -106,9 +89,7 @@
           "market_p": 0.3348,
           "edge": 0.059,
           "clv": null,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401911642",
@@ -119,9 +100,7 @@
           "market_p": 0.2468,
           "edge": 0.2889,
           "clv": null,
-          "result": "win",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "win"
         },
         {
           "fight_id": "401932012",
@@ -133,9 +112,7 @@
           "edge": 0.0969,
           "lock_p": 0.3194,
           "clv": -0.0075,
-          "result": "win",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "win"
         },
         {
           "fight_id": "401928116",
@@ -147,9 +124,7 @@
           "edge": 0.1376,
           "lock_p": 0.2,
           "clv": 0.0021,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401928113",
@@ -161,9 +136,7 @@
           "edge": 0.2639,
           "lock_p": 0.2566,
           "clv": -0.0038,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401928119",
@@ -175,9 +148,7 @@
           "edge": 0.0354,
           "lock_p": 0.261,
           "clv": -0.011,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401928111",
@@ -189,9 +160,7 @@
           "edge": 0.0878,
           "lock_p": 0.3631,
           "clv": 0.0078,
-          "result": "loss",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "loss"
         },
         {
           "fight_id": "401932715",
@@ -203,15 +172,18 @@
           "edge": 0.1144,
           "lock_p": 0.3364,
           "clv": 0.0045,
-          "result": "win",
-          "entry_quote_source": "unknown",
-          "close_quote_source": "unknown"
+          "result": "win"
         }
       ]
     },
     {
       "event_id": "600061400",
       "event_name": "UFC 334: Gane vs. Hokit",
+      "decisions": []
+    },
+    {
+      "event_id": "600061665",
+      "event_name": "UFC Fight Night: Procházka vs. Stirling",
       "decisions": []
     }
   ]
