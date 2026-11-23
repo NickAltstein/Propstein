@@ -2,34 +2,33 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-23T12:19:32Z",
-      "last_success_quotes": 120,
+      "last_success_at": "2026-11-23T20:53:46Z",
+      "last_success_quotes": 122,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-23T04:02:30Z",
-      "last_attempt_at": "2026-11-23T12:19:32Z",
+      "last_error_at": "2026-11-23T20:53:46Z",
+      "last_attempt_at": "2026-11-23T20:53:46Z",
       "schedule": {
-        "observed_at": "2026-11-23T12:19:32Z",
+        "observed_at": "2026-11-23T20:53:46Z",
         "state": "pending",
         "starts": [
-          "2026-11-24T00:00:00Z",
-          "2026-11-24T00:00:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T01:00:00Z",
-          "2026-11-24T01:00:00Z",
-          "2026-11-24T01:30:00Z",
-          "2026-11-24T03:00:00Z",
-          "2026-11-24T03:00:00Z"
+          "2026-11-25T22:00:00Z",
+          "2026-11-26T00:00:00Z",
+          "2026-11-26T00:30:00Z",
+          "2026-11-26T00:30:00Z",
+          "2026-11-26T01:00:00Z",
+          "2026-11-26T01:00:00Z",
+          "2026-11-26T01:30:00Z",
+          "2026-11-26T03:00:00Z",
+          "2026-11-26T03:00:00Z"
         ]
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-23T09:11:30Z",
-      "last_success_quotes": 1,
+      "last_success_at": "2026-11-23T20:53:57Z",
+      "last_success_quotes": 5,
       "last_error": "No module named 'pydantic'",
       "last_error_at": "2026-11-23T04:02:42Z",
-      "last_attempt_at": "2026-11-23T09:11:30Z",
+      "last_attempt_at": "2026-11-23T20:53:57Z",
       "schedule": {
         "observed_at": null,
         "state": null,
