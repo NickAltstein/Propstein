@@ -1,0 +1,1678 @@
+/* Production terminal components. Legacy selectors stay scoped to this page
+   while the shared viewer styles continue to serve the research pages. */
+html .terminal-ui {
+  --surface-0: #0c0d0f;
+  --surface-1: #17181b;
+  --surface-2: #1c1e21;
+  --surface-page: linear-gradient(180deg, #121316 0%, #0c0d0f 100%);
+  --surface-card: linear-gradient(165deg, #1e2023 0%, #17181b 100%);
+  --surface-raised: linear-gradient(165deg, #26282c 0%, #1c1e21 100%);
+  --specular-card: inset 0 1px 0 0 rgb(196 200 205 / 12%);
+  --specular-raised: inset 0 1px 0 0 rgb(196 200 205 / 18%);
+  --ink: #e9ebee;
+  --ink-dim: #9da3ab;
+  --ink-faint: #6b7077;
+  --signal: #bfdbff;
+  --quote: #8fb5ea;
+  --accent-fill: #364962;
+  --warn: #e8b45a;
+  --fail: #ff6b5e;
+  --terminal-canvas: var(--surface-0);
+  --terminal-surface: var(--surface-1);
+  --terminal-raised: var(--surface-2);
+  --terminal-border: rgb(169 173 178 / 10%);
+  --terminal-text: var(--ink);
+  --terminal-muted: var(--ink-dim);
+  --terminal-blue: var(--quote);
+  --terminal-cyan: var(--quote);
+  --terminal-active-ink: var(--ink);
+  --terminal-active-fill: var(--surface-2);
+  --terminal-positive: var(--quote);
+  --terminal-alert: var(--warn);
+  --terminal-chrome: var(--surface-0);
+  --terminal-mono: "JetBrains Mono", ui-monospace, monospace;
+  --terminal-sans: "Inter", system-ui, sans-serif;
+  --terminal-content-width: 1440px;
+  --terminal-control-height: 38px;
+  --terminal-gutter: clamp(12px, 2.5vw, 32px);
+
+  --rf-bg: var(--terminal-canvas);
+  --rf-surface: var(--terminal-surface);
+  --rf-surface-2: var(--terminal-raised);
+  --rf-surface-3: var(--terminal-raised);
+  --rf-line: var(--terminal-border);
+  --rf-line-strong: var(--terminal-border);
+  --rf-accent: var(--ink-dim);
+  --rf-accent-hi: var(--quote);
+  --rf-good: var(--terminal-positive);
+  --ps-bg: var(--terminal-canvas);
+  --ps-elev: var(--terminal-surface);
+  --ps-elev-2: var(--terminal-raised);
+  --ps-line: var(--terminal-border);
+}
+
+html body.terminal-ui {
+  background: var(--terminal-canvas) !important;
+  color: var(--terminal-text);
+  font-family: var(--terminal-sans);
+}
+
+/* Header, league switcher and board filters */
+html body.terminal-ui .pw-terminal-chrome {
+  background: var(--terminal-chrome) !important;
+  border-color: var(--terminal-border) !important;
+  backdrop-filter: none;
+}
+.terminal-ui .pw-topbar,
+.terminal-ui .pw-filterbar,
+.terminal-ui .shell.page {
+  width: 100%;
+  max-width: var(--terminal-content-width) !important;
+  margin-inline: auto !important;
+  box-sizing: border-box;
+}
+html body.terminal-ui .pw-topbar {
+  display: flex !important;
+  gap: 12px !important;
+  min-height: 60px !important;
+  height: auto !important;
+  padding: 6px var(--terminal-gutter) !important;
+}
+.terminal-ui .terminal-leagues { margin: 0; padding: 0; flex: 0 0 auto; }
+.terminal-ui .terminal-leagues .sport-switcher-bar { padding: 0; }
+.terminal-ui .sport-switcher { gap: 2px; padding: 3px; border-radius: 10px; }
+.terminal-ui .pw-topbar-right { gap: 6px !important; }
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector) {
+  display: inline-flex !important;
+  align-items: center;
+  flex: 0 1 auto;
+}
+.terminal-ui .terminal-control,
+.terminal-ui #moreFiltersBtn,
+html body.terminal-ui #frontMenuBtn,
+html body.terminal-ui #slateSelector {
+  min-height: var(--terminal-control-height) !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--terminal-border) !important;
+  border-radius: 8px !important;
+  background: var(--terminal-surface) !important;
+  color: var(--terminal-text) !important;
+  box-shadow: none !important;
+  font: 600 13px/1.2 var(--terminal-sans);
+}
+.terminal-ui .terminal-search-trigger { gap: 7px; white-space: nowrap; }
+.terminal-ui #slateSelector { max-width: 172px; text-overflow: ellipsis; }
+.terminal-ui .terminal-board-controls {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+.terminal-ui #moreFiltersBtn { flex: none; }
+html body.terminal-ui .pw-filterbar {
+  flex-wrap: wrap;
+  gap: 4px !important;
+  padding: 0 var(--terminal-gutter) 6px !important;
+  backdrop-filter: none !important;
+}
+.terminal-ui #mobileFilterStrip { flex: 1; min-width: 0; padding: 4px 0 !important; }
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher) .sport-switch-btn.active,
+html body.terminal-ui #mobileFilterStrip .chip-segment-group .chip-pill.active,
+html body.terminal-ui .pw-view-toggle.view-switch .pw-seg-btn.active {
+  border-color: var(--terminal-blue) !important;
+  background: var(--terminal-active-fill) !important;
+  color: var(--terminal-active-ink) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher) .sport-switch-btn.active .sport-switch-label {
+  color: inherit !important;
+}
+
+/* Board, metrics and density */
+.terminal-ui .terminal-board-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--terminal-border);
+}
+.terminal-ui .terminal-board-heading h2 { margin: 0; font: 600 20px/1.2 var(--terminal-sans); }
+.terminal-ui .terminal-density { display: inline-flex; align-items: center; gap: 7px; margin-inline-start: auto; cursor: pointer; }
+.terminal-ui .terminal-density input { accent-color: var(--terminal-blue); }
+.terminal-ui .terminal-quote-status {
+  margin-inline-start: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--terminal-muted);
+  font: 500 11px/1.4 var(--terminal-mono);
+}
+.terminal-ui .terminal-quote-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"], [data-state="offline"], [data-state="time unknown"]) { color: var(--terminal-alert); }
+.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"])::before {
+  animation: terminal-status-pulse 1.8s ease-in-out 3;
+}
+.terminal-ui .terminal-quote-status[data-state="verified"] { color: var(--terminal-positive); }
+@keyframes terminal-status-pulse { 50% { opacity: .42; } }
+
+html body.terminal-ui #cardView .mobile-quant-row,
+html body.terminal-ui #tableView {
+  background: var(--terminal-surface) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui #cardView .mobile-quant-row:is(:hover, :focus-visible) {
+  transform: none !important;
+  border-color: var(--terminal-blue) !important;
+}
+html body.terminal-ui #cardView .mobile-quant-row .card-money-row { background: var(--terminal-raised); }
+html body.terminal-ui #cardView .mobile-quant-row .card-money-val:not(.fair) { color: var(--terminal-positive) !important; }
+html body.terminal-ui #cardView .mobile-quant-row .card-money-val.fair { color: var(--terminal-text) !important; }
+.terminal-ui :is(.card-money-val, .card-ci-chip, .slate-table .td-num, .terminal-quote-status, .csim-ro-v) {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.terminal-ui .terminal-model-inputs {
+  display: block;
+  margin-top: 4px;
+  color: var(--terminal-muted);
+  font: 500 11px/1.4 var(--terminal-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html body.terminal-ui #tableView :is(th, td:first-child) { background: var(--terminal-surface) !important; }
+html body.terminal-ui #tableView th { border-bottom-color: var(--terminal-border); backdrop-filter: none; }
+.terminal-ui .terminal-compact #tableView tbody td { padding-block: 5px !important; }
+.terminal-ui .terminal-compact #tableView .pw-avatar { display: none; }
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row .card-money-cell,
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row .card-ci-chip { padding-block: 6px !important; }
+.terminal-ui .terminal-compact #cardView .card-id-block .pw-avatar { display: none; }
+.terminal-ui .terminal-compact #cardView .rf-dist { max-height: 44px; }
+
+.terminal-ui .skeleton-card { background: var(--terminal-surface); border: 1px solid var(--terminal-border); }
+.terminal-ui .skeleton-card .skeleton-block { background: var(--terminal-raised); }
+.terminal-ui :is(.card-sim-primary, .card-btn-sim-quick, .card-ghost-act, .card-btn-log, .terminal-control) { transition: background-color .14s, border-color .14s, color .14s; }
+html body.terminal-ui :is(.card-sim-primary, .card-btn-sim-quick, .card-ghost-act, .card-btn-log, .terminal-control):active,
+html body.terminal-ui :is(.card-ghost-act[data-copied], .card-btn-log.logged) {
+  background: var(--terminal-active-fill) !important;
+  color: var(--terminal-active-ink) !important;
+}
+
+/* Search and native bottom sheets */
+.terminal-ui .terminal-search-dialog {
+  box-sizing: border-box;
+  width: min(440px, calc(100% - 24px));
+  padding: 16px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  background: var(--terminal-surface);
+  color: var(--terminal-text);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+.terminal-ui .terminal-search-dialog::backdrop { background: rgb(4 6 12 / 74%); }
+.terminal-ui .terminal-search-dialog form { display: grid; gap: 10px; }
+.terminal-ui .terminal-search-head { display: flex; align-items: center; justify-content: space-between; }
+.terminal-ui .terminal-search-head h2 { margin: 0; font: 600 18px/1.2 var(--terminal-sans); }
+.terminal-ui .terminal-search-dialog label { color: var(--terminal-muted); font-size: 13px; }
+.terminal-ui .terminal-search-dialog input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: var(--terminal-raised);
+  color: var(--terminal-text);
+  font: 500 16px/1.2 var(--terminal-sans);
+}
+.terminal-ui .terminal-search-submit { justify-self: end; }
+.terminal-ui .terminal-search-head button { min-width: 44px; }
+html body.terminal-ui :is(#moreFiltersDialog, #terminalSimDialog) .dialog-shell {
+  background: var(--terminal-surface) !important;
+  border-color: var(--terminal-border) !important;
+  color: var(--terminal-text);
+}
+.terminal-ui #terminalSimTitle { margin: 0; font: 600 18px/1.2 var(--terminal-sans); }
+.terminal-ui #terminalSimBody .csim-panel { display: block; margin: 0; }
+.terminal-ui #terminalSimBody :is(.csim-row, .csim-odds-chips, .csim-readout) { flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  html .terminal-ui { --terminal-control-height: 44px; }
+  html body.terminal-ui .pw-terminal-chrome { backdrop-filter: none; }
+  html body.terminal-ui .pw-topbar { gap: 6px !important; }
+  html body.terminal-ui #slateSelector { min-width: 0; max-width: clamp(78px, 30vw, 155px); }
+  .terminal-ui .pw-topbar-right { justify-content: flex-end; }
+  .terminal-ui #frontMenuBtn { gap: 5px; white-space: nowrap; }
+  .terminal-ui #mobileFilterStrip .position-filter-menu { display: none !important; }
+  .terminal-ui .terminal-search-trigger { min-width: 44px; justify-content: center; }
+  .terminal-ui .terminal-search-trigger span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  html body.terminal-ui .mobile-league-nav { padding-inline: 0 !important; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-btn,
+  html body.terminal-ui #mobileFilterStrip :is(.chip-pill, summary) { min-height: 44px !important; min-width: 44px !important; }
+  html body.terminal-ui .pw-terminal-chrome.rf-condensed :is(.mobile-league-nav, .mobile-usage-ticker) { visibility: hidden; }
+  html body.terminal-ui #mobileFilterStrip { padding-inline: 2px !important; }
+  .terminal-ui .terminal-board-heading { gap: 6px; }
+  .terminal-ui .terminal-board-heading h2 { font-size: 18px; }
+  .terminal-ui .terminal-quote-status { width: 100%; }
+  html body.terminal-ui #cardView .mobile-quant-row .card-money-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr); }
+  html body.terminal-ui #cardView .mobile-quant-row :is(.card-money-cell, .card-ci-chip) { padding-inline: 9px !important; }
+  html body.terminal-ui #cardView .mobile-quant-row .card-ci-chip { font-size: 11px !important; }
+  html body.terminal-ui :is(#cardView, #terminalSimBody, #moreFiltersDialog, #detailDialog) button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  html body.terminal-ui #cardView :is(.card-action-bar, .col-action) { flex-wrap: wrap !important; }
+  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-model { grid-column: 1; grid-row: 1; }
+  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-book { grid-column: 2; grid-row: 1; }
+  html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-shell { max-height: 90dvh !important; }
+  html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-sheet-handle {
+    height: 24px !important;
+    width: 100% !important;
+    background: none !important;
+    margin: 0 !important;
+    touch-action: none;
+    display: grid;
+    place-items: center;
+  }
+  .terminal-ui .dialog-sheet-handle::after { content: ""; width: 36px; height: 4px; border-radius: 999px; background: var(--terminal-muted); }
+  .terminal-ui .dialog-body { overscroll-behavior: contain; }
+}
+
+@media (max-width: 980px) {
+  html body.terminal-ui #themeToggle.rf-theme-toggle { display: none !important; }
+}
+
+@media (min-width: 981px) {
+  .terminal-ui .front-menu-actions .terminal-menu-theme { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-ui .terminal-quote-status::before { animation: none; }
+}
+
+/* Obsidian Desk: a 44px portrait and an 18px crest that never covers the face. */
+html body.terminal-ui .pw-avatar {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex: 0 0 48px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #26303b;
+  box-shadow: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+}
+html body.terminal-ui .pw-avatar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--terminal-surface);
+  pointer-events: none;
+}
+html body.terminal-ui .pw-avatar-img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  clip-path: circle(50%);
+  object-fit: cover !important;
+  object-position: center 20% !important;
+}
+html body.terminal-ui .pw-avatar-initials {
+  font: 600 13px/1 var(--terminal-mono) !important;
+  letter-spacing: 0 !important;
+  color: var(--terminal-text) !important;
+}
+html body.terminal-ui .pw-avatar-team-chip {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid var(--terminal-surface);
+  border-radius: 50%;
+  background: #26303b;
+  transform: translate(25%, 25%);
+}
+html body.terminal-ui .pw-avatar-team-badge,
+html body.terminal-ui .card-id-block .pw-avatar-team-badge {
+  position: static !important;
+  display: block;
+  width: 12px !important;
+  height: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui .pw-avatar-fallback .pw-avatar-team-chip { display: none; }
+html body.terminal-ui .terminal-compact #cardView .card-id-block .pw-avatar,
+html body.terminal-ui .terminal-compact #tableView .pw-avatar { display: inline-flex; }
+
+/* Surface and type scale. Legacy modules inherit the same dark material. */
+html body.terminal-ui {
+  --pw-font-sans: var(--terminal-sans);
+  --pw-font-mono: var(--terminal-mono);
+  --pw-text-primary: var(--ink);
+  --pw-text-muted: var(--ink-dim);
+  --rf-text: var(--ink);
+  --rf-dim: var(--ink-dim);
+  --brand-accent: var(--ink-dim);
+  color-scheme: dark;
+  overflow-x: clip;
+}
+html body.terminal-ui :is(.home-edge-preview, .home-edge-card, .today-game-card, .mobile-quant-row, .card-grid-col, .rf-method, .rf-m-step, .front-pro-bar, .terminal-search-dialog, .dialog-shell, .csim-panel) {
+  background: var(--surface-1) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui :is(.home-edge-preview, .today-game-card, .mobile-quant-row)::before { background: none !important; }
+html body.terminal-ui :is(.home-edge-card, .today-game-card, .mobile-quant-row):is(:hover, :focus-visible) {
+  transform: none !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .mobile-quant-row { border-inline-start: 2px solid var(--terminal-border); }
+html body.terminal-ui .home-edge-preview { border-radius: 8px; }
+html body.terminal-ui #homeEdgeTitle {
+  background: none !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  color: var(--ink) !important;
+  font: 600 31px/1.15 var(--terminal-sans);
+  letter-spacing: -.025em;
+}
+html body.terminal-ui :is(.today-schedule-eyebrow, .card-money-lbl, .grid-col-lbl, .rf-stat small, .rf-m-step small, .front-pro-bar > span) {
+  color: var(--ink-faint) !important;
+  font: 400 11px/1.3 var(--terminal-sans) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html body.terminal-ui :is(.card-player-name, .player-name-text) { color: var(--ink) !important; font-weight: 600 !important; }
+html body.terminal-ui :is(.card-money-val, .card-money-val.fair, .rf-stat b, .card-proj-fair-row, .card-odds-pill, .td-num, .receipt-hash, .terminal-quote-status, .snapshot-age-pill) {
+  font-family: var(--terminal-mono) !important;
+  font-variant-numeric: tabular-nums slashed-zero !important;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+html body.terminal-ui .card-money-val { color: var(--ink) !important; font-size: 25px !important; font-weight: 600 !important; }
+html body.terminal-ui .card-money-val.fair { color: var(--quote) !important; }
+html body.terminal-ui :is(.dens-fair-sub, .rf-stat-fair b) { color: var(--quote) !important; }
+html body.terminal-ui :is(.card-edge-badge-lime, .row-state-actionable .card-hero-edge.positive) { color: var(--signal) !important; }
+html body.terminal-ui .mobile-quant-row:not(.row-state-actionable) .card-hero-edge.positive { color: var(--ink-dim) !important; }
+html body.terminal-ui :is(.card-ci-chip, .card-context-chip, .card-research-tag) {
+  color: var(--ink-dim) !important;
+  background: var(--surface-2) !important;
+  border-color: var(--terminal-border) !important;
+  letter-spacing: 0 !important;
+}
+html body.terminal-ui :is(.card-sim-primary, .card-ghost-act, .card-btn-sim-quick, .card-btn-log, .home-edge-heading button, .dfs-mode-btn, .front-explore-btn) {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--terminal-border) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+html body.terminal-ui :is(.sport-switch-btn.active, .chip-pill.active, .pw-seg-btn.active, .dfs-mode-btn.active) {
+  background: var(--surface-2) !important;
+  border-color: rgb(255 255 255 / 19%) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui :is(button, select, input, a, summary, [role="button"]):focus-visible {
+  outline: 2px solid var(--quote) !important;
+  outline-offset: 2px !important;
+}
+html body.terminal-ui .terminal-menu-theme,
+html body.terminal-ui #themeToggle { display: none !important; }
+html body.terminal-ui #cardView:not(.compact-grid) .mobile-quant-row { padding: 16px !important; }
+html body.terminal-ui #cardView.compact-grid .mobile-quant-row,
+html body.terminal-ui .terminal-compact #cardView .mobile-quant-row { padding: 10px !important; }
+html body.terminal-ui #tableView tbody tr { height: 36px; }
+html body.terminal-ui #tableView tbody td { height: 36px; padding-block: 0 !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-filterbar,
+  html body.terminal-ui .terminal-board-controls { min-width: 0 !important; max-width: 100vw !important; }
+  html body.terminal-ui #mobileFilterStrip {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: calc(100vw - 124px) !important;
+    overflow-x: auto !important;
+  }
+  html body.terminal-ui .card-money-row { min-width: 0; }
+  html body.terminal-ui .card-money-cell { min-width: 0; }
+}
+
+/* Pinned command chrome and a dock that appears only after staging an item. */
+html body.terminal-ui .pw-terminal-chrome { background: var(--surface-0) !important; }
+html body.terminal-ui .pw-topbar { min-height: 56px !important; max-height: 56px; }
+html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+  display: inline-flex !important;
+  max-width: 205px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+html body.terminal-ui .terminal-quote-status[data-state="verified"] { color: var(--ink-faint); }
+html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { background: var(--quote); }
+html body.terminal-ui .terminal-quote-status:is([data-state="stale"], [data-state="unverified"], [data-state="offline"], [data-state="time unknown"]) { color: var(--warn); }
+html body.terminal-ui .terminal-quote-status[data-state="offline"]::before { background: var(--fail); }
+html body.terminal-ui .terminal-scrolled .pw-filterbar {
+  height: 39px !important;
+  min-height: 39px !important;
+  margin-block: 0 !important;
+  overflow: hidden;
+  align-content: center;
+  padding-block: 0 !important;
+}
+html body.terminal-ui .terminal-scrolled :is(.pw-command-row, #mobileFilterStrip, .mobile-usage-ticker) { display: none !important; }
+html body.terminal-ui .terminal-scrolled .terminal-board-controls { width: auto; }
+html body.terminal-ui .terminal-scrolled #moreFiltersBtn { min-height: 36px !important; }
+html body.terminal-ui #moreFiltersLabel { text-transform: none; }
+html body.terminal-ui .pw-topbar-right > #frontMenuBtn { border-color: var(--terminal-border) !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui .terminal-scrolled .mobile-league-nav { display: none !important; }
+  html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+    width: 8px;
+    min-width: 8px;
+    max-width: 8px;
+    font-size: 0;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar { display: flex !important; }
+  html body.terminal-ui .terminal-scrolled .terminal-board-controls { display: flex !important; }
+  html body.terminal-ui .mobile-bottom-nav {
+    display: none !important;
+    position: fixed !important;
+    left: auto !important;
+    right: 12px !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    min-height: 52px;
+    padding: 4px !important;
+    border: 1px solid var(--terminal-border) !important;
+    border-radius: 999px !important;
+    background: var(--surface-2) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    grid-template-columns: none !important;
+    justify-content: flex-end !important;
+  }
+  html body.terminal-ui.front-board-open .mobile-bottom-nav.has-items { display: flex !important; animation: terminal-dock-in .24s cubic-bezier(.2,.8,.2,1) both; }
+  html body.terminal-ui .mobile-bottom-nav :is(#bottomNavSlate, #bottomNavAudit),
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item[hidden] { display: none !important; }
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item {
+    min-width: 64px;
+    min-height: 44px !important;
+    padding: 4px 8px !important;
+    color: var(--ink-dim) !important;
+  }
+  html body.terminal-ui .mobile-bottom-nav .bottom-nav-item.active { color: var(--ink) !important; background: var(--surface-1) !important; border: 0 !important; box-shadow: none !important; }
+  @keyframes terminal-dock-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui.front-board-open .mobile-bottom-nav.has-items { animation: none !important; }
+}
+
+/* One distribution grammar in cards, compact rows, and the simulator. */
+html body.terminal-ui .rf-dist { position: relative; }
+html body.terminal-ui .rf-dist-tail { fill: none !important; }
+html body.terminal-ui .rf-dist-band { fill: rgb(255 255 255 / 6%) !important; opacity: 1 !important; animation: none !important; transition: fill .14s ease; }
+html body.terminal-ui .mobile-quant-row:is(:hover, :focus-within) .rf-dist-band { fill: rgb(255 255 255 / 10%) !important; }
+html body.terminal-ui .rf-dist-line {
+  stroke: var(--ink-dim) !important;
+  stroke-width: 1.5px !important;
+  filter: none !important;
+  animation: none !important;
+  stroke-dashoffset: 0;
+}
+html body.terminal-ui:not(.terminal-curves-drawn) .rf-dist-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: terminal-curve-draw .32s cubic-bezier(.23,1,.32,1) both !important;
+}
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(2) .rf-dist-line { animation-delay: 24ms !important; }
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(3) .rf-dist-line { animation-delay: 48ms !important; }
+html body.terminal-ui:not(.terminal-curves-drawn) .mobile-quant-row:nth-child(4) .rf-dist-line { animation-delay: 72ms !important; }
+@keyframes terminal-curve-draw { to { stroke-dashoffset: 0; } }
+html body.terminal-ui .rf-dist-fair { stroke: var(--quote) !important; stroke-width: 1.5px !important; stroke-dasharray: 4 3; opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-proj { stroke: var(--signal) !important; stroke-width: 2px !important; opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-book { stroke: var(--warn); stroke-width: 1.5px; }
+html body.terminal-ui .rf-dist-base { stroke: var(--terminal-border); }
+html body.terminal-ui .rf-dist-chip { opacity: 1 !important; animation: none !important; }
+html body.terminal-ui .rf-dist-chip rect { fill: var(--surface-2) !important; stroke: var(--terminal-border) !important; }
+html body.terminal-ui .rf-dist-chip-fair text { fill: var(--quote) !important; }
+html body.terminal-ui .rf-dist-chip-proj text { fill: var(--ink) !important; }
+html body.terminal-ui .rf-dist-hover {
+  display: none;
+  position: absolute;
+  top: 2px;
+  z-index: 2;
+  padding: 4px 6px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 500 11px/1 var(--terminal-mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+html body.terminal-ui .rf-dist.is-reading .rf-dist-hover { display: block; }
+html body.terminal-ui .rf-dist-compact { width: 100%; min-width: 56px; }
+html body.terminal-ui .rf-dist-compact svg { width: 100%; height: 24px; }
+html body.terminal-ui .bullet-container .rf-dist-compact { width: 56px; }
+html body.terminal-ui .bullet-container .rf-dist-compact svg { height: 18px; }
+html body.terminal-ui .bullet-top-readout { justify-content: flex-start; gap: 12px; }
+html body.terminal-ui .bullet-dim { color: var(--ink-faint) !important; text-transform: none; letter-spacing: 0; }
+html body.terminal-ui .bullet-bold { color: var(--ink) !important; text-shadow: none !important; }
+html body.terminal-ui .bullet-top-readout .text-fair { color: var(--quote) !important; }
+html body.terminal-ui .bullet-bottom-sub { color: var(--ink-faint) !important; }
+html body.terminal-ui .card-dist-block .rf-dist-compact { margin-block: 4px; }
+html body.terminal-ui .home-edge-card[data-rf-card] { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui:not(.terminal-curves-drawn) .rf-dist-line { animation: none !important; stroke-dashoffset: 0 !important; }
+}
+
+/* Recover command controls hidden by the older shared stylesheet. */
+html body.terminal-ui .pw-topbar .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #terminalQuoteStatus) { display: inline-flex !important; }
+html body.terminal-ui .pw-topbar-right > :is(#slimInjuryBanner, #dismissInjuryBannerBtn, #headerRiskSteppers, #livePollingWidget, .pw-receipt-badge, #sniperBtn, #pricingBtn, #clvReportBtn, #portfolioBtn, #exportBtn, #mobileMenuBtn, #themeToggle) { display: none !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui #slateSelector { display: none !important; }
+  html body.terminal-ui #headerSearchTrigger { display: inline-flex !important; }
+  html body.terminal-ui #mobileSearchBtn { display: none !important; }
+}
+
+/* Receipts and stale data stay legible without turning into banners. */
+html body.terminal-ui .terminal-receipt { position: relative; display: inline-flex; color: var(--ink-faint); font: 500 11px/1.2 var(--terminal-mono); }
+html body.terminal-ui .terminal-receipt summary { cursor: pointer; list-style: none; white-space: nowrap; }
+html body.terminal-ui .terminal-receipt summary::-webkit-details-marker { display: none; }
+html body.terminal-ui .terminal-receipt code {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  max-width: min(70vw, 500px);
+  overflow-wrap: anywhere;
+  padding: 8px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  white-space: normal;
+}
+html body.terminal-ui .terminal-receipt:is([open], :hover) code { display: block; }
+html body.terminal-ui .terminal-receipt[open] { display: inline-block; max-width: 100%; }
+html body.terminal-ui .terminal-receipt[open] code {
+  position: static; display: block; width: min(70vw, 500px); max-width: 100%;
+  margin-top: 4px; box-sizing: border-box;
+}
+html body.terminal-ui:has(.terminal-quote-status[data-state="stale"]) :is(.home-edge-preview, .data-board) { border-top: 1px solid var(--warn) !important; }
+html body.terminal-ui .market-state-banner {
+  border: 0 !important;
+  border-top: 1px solid var(--warn) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .terminal-fail-closed { border-color: var(--terminal-border) !important; background: var(--surface-1) !important; box-shadow: none !important; }
+html body.terminal-ui .terminal-fail-closed .anti-tout-shield { color: var(--fail) !important; font-size: 16px; }
+html body.terminal-ui .terminal-fail-closed .anti-tout-title { color: var(--ink) !important; }
+html body.terminal-ui .terminal-audit-link { display: inline-flex; margin-top: 8px; color: var(--ink-dim); font: 500 13px/1.4 var(--terminal-sans); }
+
+/* The shared card stylesheet declares several competing avatar sizes. */
+html body.terminal-ui #cardView .card-id-block .pw-avatar,
+html body.terminal-ui #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar,
+html body.terminal-ui #tableView .player-name .pw-avatar {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex: 0 0 48px !important;
+  border-radius: 50% !important;
+}
+
+/* Sheets follow the same surface steps and restrained control grammar. */
+html body.terminal-ui :is(.front-menu-dialog, .detail-dialog, .dialog-shell, .receipt-card-shell, .execution-shell) {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.terminal-ui .detail-dialog::backdrop { background: rgb(4 6 10 / 80%); }
+html body.terminal-ui .dialog-header { background: var(--surface-2) !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui :is(.dialog-header .eyebrow, .filter-sheet-section h4, .csim-eyebrow, .csim-k, .csim-ro-k) {
+  color: var(--ink-faint) !important;
+  font: 500 11px/1.4 var(--terminal-sans) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html body.terminal-ui :is(.signal-chip-btn, .csim-step, .csim-odds-chip, .csim-close, .filter-reset-btn, .filter-apply-btn, .csim-actions button) {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--terminal-border) !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+}
+html body.terminal-ui :is(.signal-chip-btn.active, .csim-odds-chip.active) {
+  background: var(--surface-2) !important;
+  border-color: rgb(255 255 255 / 19%) !important;
+  color: var(--ink) !important;
+}
+html body.terminal-ui :is(.csim-line-val, .csim-alpha-val, .csim-ro-v) {
+  color: var(--ink) !important;
+  font-family: var(--terminal-mono) !important;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+html body.terminal-ui .csim-readout { background: var(--surface-1) !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui .csim-ro-v.pos { color: var(--ink) !important; }
+html body.terminal-ui .csim-ro-v.neg { color: var(--ink-dim) !important; }
+html body.terminal-ui #terminalSimBody .sketch-arrow .sketch-arrow-ink { stroke: var(--ink-dim) !important; }
+html body.terminal-ui .csim-panel { border-color: var(--terminal-border) !important; }
+html body.terminal-ui .front-menu-actions :is(button, a) { background: var(--surface-1) !important; color: var(--ink) !important; }
+html body.terminal-ui .mobile-usage-ticker {
+  background: var(--surface-1) !important;
+  border-color: var(--terminal-border) !important;
+  color: var(--ink-dim) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .mobile-usage-ticker :is(.mobile-usage-icon, .mobile-usage-label, .mobile-usage-count) { color: var(--ink-dim) !important; background: transparent !important; }
+html body.terminal-ui .terminal-quote-status::before { animation: none !important; }
+
+/* Equal treatment comparison rail; operator links remain disabled until approval. */
+.terminal-ui .price-rail { margin: 10px 12px 12px; border: 1px solid var(--terminal-border); border-radius: 9px; color: var(--terminal-text); }
+.terminal-ui .price-rail summary { min-height: 44px; padding: 10px 12px; cursor: pointer; color: var(--terminal-active-ink); font-size: 12px; font-weight: 650; }
+.terminal-ui .price-rail-scroll { overflow-x: auto; }
+.terminal-ui .price-rail table { width: 100%; min-width: 460px; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+.terminal-ui .price-rail th, .terminal-ui .price-rail td { padding: 8px 10px; text-align: left; border-top: 1px solid var(--terminal-border); }
+.terminal-ui .price-rail th { font-weight: 600; }
+.terminal-ui .price-rail p { margin: 8px 10px 10px; color: var(--terminal-muted); font-size: 11px; line-height: 1.4; }
+.terminal-ui .access-tiers { display: grid; gap: 8px; margin: 12px 0; }
+.terminal-ui .access-tier { padding: 12px; border: 1px solid var(--terminal-border); border-radius: 8px; background: var(--terminal-surface); }
+.terminal-ui .access-tier strong { color: var(--terminal-text); }
+.terminal-ui .access-tier p { margin: 5px 0 0; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
+.terminal-ui .home-fail-closed { margin: 8px 0 12px; color: var(--terminal-muted); font-size: 12px; line-height: 1.45; }
+.terminal-ui .home-fail-closed a { color: var(--terminal-active-ink); white-space: nowrap; }
+
+/* Graphite Bloom material: gradients stop at surface boundaries. */
+html body.terminal-ui {
+  background: var(--surface-page) fixed !important;
+  --rf-accent: var(--quote);
+  --rf-accent-hi: var(--quote);
+  --pw-accent-lime: var(--quote);
+  --pw-accent-blue: var(--quote);
+  --pw-bg-card: var(--surface-1);
+}
+html body.terminal-ui :is(.home-edge-preview, .home-edge-card, .today-game-card,
+  .mobile-quant-row, .card-grid-col, .rf-method, .front-pro-bar, .skeleton-card,
+  .price-rail, .access-tier, .today-schedule-message) {
+  background: var(--surface-card) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-card) !important;
+}
+html body.terminal-ui :is(.terminal-search-dialog, .dialog-shell, .csim-panel,
+  .front-menu-dialog, .detail-dialog, .receipt-card-shell, .execution-shell,
+  .terminal-receipt code, .position-filter-menu[open] #positionChipGroup) {
+  background: var(--surface-raised) !important;
+  border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-raised) !important;
+}
+html body.terminal-ui :is(.card-money-row, .card-money-cell, .card-ci-chip,
+  .card-grid-col .rf-dist, .rf-dist, .rf-stat, .csim-readout, #tableView,
+  #tableView td, #tableView th) {
+  background: var(--surface-1) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui .rf-dist-band,
+html body.terminal-ui .mobile-quant-row:is(:hover, :focus-within) .rf-dist-band {
+  fill: rgb(143 181 234 / 8%) !important;
+}
+html body.terminal-ui :is(.row-state-actionable .card-hero-edge.positive,
+  .row-state-actionable .card-edge-badge-lime) {
+  color: var(--signal) !important;
+  text-shadow: 0 0 8px rgb(143 181 234 / 35%);
+}
+html body.terminal-ui .receipt-cell-val.is-lime { color: var(--quote) !important; text-shadow: none !important; }
+html body.terminal-ui .mobile-quant-row:not(.row-state-actionable) .card-edge-badge-lime {
+  color: var(--ink-dim) !important; text-shadow: none !important;
+}
+html body.terminal-ui .mobile-quant-row .ou-mini-box {
+  background: transparent !important; border: 0 !important;
+  color: var(--quote) !important;
+}
+html body.terminal-ui .mobile-quant-row :is(.ou-over, .ou-under) .ou-mini-arrow {
+  color: var(--quote) !important;
+}
+html body.terminal-ui .rf-dist-proj { filter: drop-shadow(0 0 4px rgb(143 181 234 / 35%)) !important; }
+html body.terminal-ui .rf-dist-fair { filter: none !important; }
+html body.terminal-ui :is(.card-odds-pill, .rf-dist-chip-fair text, a:not(.pw-brand)) { color: var(--quote); }
+html body.terminal-ui :is(.card-money-val:not(.fair), .sketch-arrow .sketch-arrow-ink) {
+  color: var(--ink) !important;
+  stroke: var(--quote) !important;
+  text-shadow: none !important;
+}
+html body.terminal-ui .pw-avatar {
+  background: #2a2d31;
+  box-shadow: 0 0 0 1px rgb(196 200 205 / 22%) !important;
+}
+html body.terminal-ui .pw-avatar::after { box-shadow: inset 0 0 0 1px rgb(196 200 205 / 26%); }
+html body.terminal-ui .pw-avatar-team-chip {
+  width: 18px; height: 18px; padding: 0; border: 0; border-radius: 0;
+  background: transparent !important; transform: translate(25%, 15%);
+}
+html body.terminal-ui .pw-avatar-team-chip:not(:has(img)) { display: none !important; }
+html body.terminal-ui .pw-avatar-team-badge,
+html body.terminal-ui .card-id-block .pw-avatar-team-badge {
+  width: 18px !important; height: 18px !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 50%));
+}
+
+/* Instrument Panel: two rows, recessed wells, quiet controls, readout chips. */
+html body.terminal-ui .pw-terminal-chrome {
+  background: rgb(18 19 22 / 96%) !important;
+  border-bottom: 1px solid rgb(169 173 178 / 8%) !important;
+}
+html body.terminal-ui .pw-topbar {
+  height: 56px !important; min-height: 56px !important; max-height: 56px;
+  gap: 16px !important; padding: 0 var(--terminal-gutter) !important;
+  align-items: center; white-space: nowrap;
+}
+html body.terminal-ui .pw-topbar-left { flex: 0 0 auto; }
+html body.terminal-ui .pw-telemetry-pod { display: none !important; }
+html body.terminal-ui .terminal-leagues { margin-right: auto; }
+html body.terminal-ui .pw-topbar-right { flex: 0 1 auto; min-width: 0; gap: 8px !important; }
+html body.terminal-ui .pw-topbar-right > :not(#headerSearchTrigger):not(#slateSelector):not(#terminalQuoteStatus):not(#frontMenuBtn):not(#mobileSearchBtn):not(#terminalHeaderSearch):not(.terminal-desktop-nav) { display: none !important; }
+html body.terminal-ui .pw-topbar-right > #terminalHeaderSearch,
+html body.terminal-ui .pw-topbar-right > .terminal-desktop-nav { display: flex !important; }
+html body.terminal-ui .terminal-desktop-nav { align-items: center; gap: 2px; border-inline: 1px solid rgb(169 173 178 / 8%); padding-inline: 8px; }
+html body.terminal-ui .terminal-desktop-nav button,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn),
+html body.terminal-ui #moreFiltersBtn,
+html body.terminal-ui .position-filter-menu > summary {
+  position: relative; display: inline-flex !important; align-items: center;
+  justify-content: center; flex: 0 0 auto; min-height: 44px !important;
+  padding: 0 8px !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; color: var(--ink-dim) !important;
+  box-shadow: none !important; font: 500 13px/1.2 var(--terminal-sans) !important;
+  white-space: nowrap; text-transform: none !important; letter-spacing: 0 !important;
+  transform: none !important;
+}
+html body.terminal-ui .terminal-desktop-nav button::after,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn)::after,
+html body.terminal-ui #moreFiltersBtn::after,
+html body.terminal-ui .position-filter-menu > summary::after {
+  content: ''; position: absolute; left: 50%; right: 50%; bottom: 5px;
+  height: 2px; background: var(--quote); transition: left .12s, right .12s;
+}
+html body.terminal-ui .terminal-desktop-nav button:is(:hover, :focus-visible)::after,
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn):is(:hover, :focus-visible)::after,
+html body.terminal-ui #moreFiltersBtn:is(:hover, :focus-visible)::after,
+html body.terminal-ui .position-filter-menu > summary:is(:hover, :focus-visible)::after { left: 8px; right: 8px; }
+html body.terminal-ui .pw-topbar-right > :is(#headerSearchTrigger, #slateSelector, #frontMenuBtn):hover,
+html body.terminal-ui .terminal-desktop-nav button:hover,
+html body.terminal-ui #moreFiltersBtn:hover { color: var(--ink) !important; }
+html body.terminal-ui #frontMenuBtn { min-width: 44px; font-size: 20px !important; }
+html body.terminal-ui #slateSelector { width: 84px; max-width: 84px; font-family: var(--terminal-mono) !important; font-size: 12px !important; }
+html body.terminal-ui .terminal-search-trigger { min-width: 78px; gap: 6px; }
+html body.terminal-ui .terminal-header-search {
+  width: 0; min-width: 0; max-width: 0; opacity: 0; padding: 0; border: 0;
+  background: transparent; color: var(--ink); font: 500 13px var(--terminal-sans);
+  transition: max-width .14s ease-out, opacity .14s ease-out;
+}
+html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) #headerSearchTrigger { display: none !important; }
+html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) .terminal-header-search,
+html body.terminal-ui .terminal-header-search:not(:placeholder-shown) {
+  width: 320px; max-width: min(320px, 28vw); opacity: 1; padding: 0 8px;
+  border-bottom: 2px solid var(--quote); height: 44px;
+}
+html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus {
+  display: inline-flex !important; flex: 0 0 88px; width: 88px; max-width: 88px;
+  overflow: visible; white-space: nowrap; text-overflow: clip;
+  font: 500 11px/1 var(--terminal-mono); color: var(--ink-dim);
+}
+html body.terminal-ui .terminal-quote-status::before { width: 4px; height: 4px; }
+html body.terminal-ui .terminal-quote-status[data-state="verified"]::before { box-shadow: none; }
+html body.terminal-ui .terminal-snapshot-strip {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 12px; padding: 8px 12px; width: fit-content; max-width: 100%;
+  border: 1px solid var(--terminal-border); border-radius: 8px;
+  background: var(--surface-raised); box-shadow: var(--specular-raised);
+}
+html body.terminal-ui .terminal-snapshot-strip .snapshot-age-pill { margin: 0; background: transparent !important; border: 0 !important; border-radius: 0; color: var(--ink-dim) !important; padding: 0 !important; min-height: 0; }
+html body.terminal-ui .terminal-snapshot-strip .snapshot-age-pill::before { display: none !important; }
+html body.terminal-ui .terminal-snapshot-status { color: var(--warn); font: 500 11px/1.4 var(--terminal-mono); }
+html body.terminal-ui .terminal-snapshot-status:empty { display: none; }
+html body.terminal-ui .terminal-snapshot-status:not(:empty)::before { content: '·'; margin-right: 12px; color: var(--ink-faint); }
+html body.terminal-ui .pw-filterbar {
+  height: 44px; min-height: 44px; max-height: 44px; padding: 0 var(--terminal-gutter) !important;
+  align-items: center; flex-wrap: nowrap; gap: 8px !important; overflow: visible;
+  border: 0 !important; background: transparent !important;
+}
+html body.terminal-ui .pw-command-row,
+html body.terminal-ui .mobile-usage-ticker { display: none !important; }
+html body.terminal-ui .terminal-board-controls { flex: 1 1 auto; min-width: 0; gap: 24px; white-space: nowrap; }
+html body.terminal-ui #moreFiltersBtn { min-width: 64px; padding-inline: 0 !important; }
+html body.terminal-ui #moreFiltersBtn :is(svg, .chip-chevron) { display: none; }
+html body.terminal-ui #mobileFilterStrip {
+  display: flex; align-items: center; gap: 24px; min-width: 0;
+  padding: 0 !important; overflow: visible; white-space: nowrap;
+}
+html body.terminal-ui .chip-divider { display: none !important; }
+html body.terminal-ui .terminal-well {
+  position: relative; display: inline-flex; align-items: center; gap: 0;
+  padding: 3px !important; border: 0 !important; border-radius: 8px !important;
+  background: linear-gradient(180deg, #0e0f11, #16171a) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 50%) !important;
+  isolation: isolate;
+}
+html body.terminal-ui .terminal-well-thumb {
+  position: absolute; z-index: 0; top: 3px; bottom: 3px;
+  left: 0; width: var(--thumb-w, 0); transform: translateX(var(--thumb-x, 0px));
+  border-radius: 6px; background: var(--surface-raised);
+  box-shadow: var(--specular-raised); pointer-events: none;
+  transition: transform .14s ease-out, width .14s ease-out;
+}
+html body.terminal-ui .terminal-well > button,
+html body.terminal-ui .terminal-well .chip-pill,
+html body.terminal-ui .terminal-well .pw-seg-btn {
+  position: relative; z-index: 1; min-height: 38px !important;
+  padding: 0 10px !important; border: 0 !important; border-radius: 6px !important;
+  background: transparent !important; box-shadow: none !important;
+  color: var(--ink-faint) !important; font: 500 12px/1 var(--terminal-sans) !important;
+  letter-spacing: 0 !important; text-transform: none !important; transform: none !important;
+}
+html body.terminal-ui .terminal-well > button.active,
+html body.terminal-ui .terminal-well .chip-pill.active,
+html body.terminal-ui .terminal-well .pw-seg-btn.active { color: var(--ink) !important; }
+html body.terminal-ui #mobileFilterStrip .terminal-well .chip-pill.active,
+html body.terminal-ui :is(#sportSwitcher, #mobileSportSwitcher).terminal-well .sport-switch-btn.active,
+html body.terminal-ui .pw-view-toggle.view-switch.terminal-well .pw-seg-btn.active {
+  border: 0 !important; outline: 0; background: transparent !important;
+  box-shadow: none !important; color: var(--ink) !important;
+}
+html body.terminal-ui .chip-segment-group::before,
+html body.terminal-ui .chip-segment-group::after { display: none !important; }
+html body.terminal-ui .chip-count-pill { border: 0 !important; background: transparent !important; color: inherit !important; font: 500 11px/1 var(--terminal-mono) !important; }
+html body.terminal-ui .position-filter-menu { margin: 0; border: 0; }
+html body.terminal-ui .position-filter-menu > summary { list-style: none; }
+html body.terminal-ui .position-filter-menu > summary::-webkit-details-marker { display: none; }
+html body.terminal-ui .view-switch { margin-left: auto; }
+html body.terminal-ui #mobileSniperBtn { display: none !important; }
+html body.terminal-ui .mobile-bottom-nav { display: none !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard {
+  border: 0 !important; border-radius: 8px !important;
+  background: linear-gradient(165deg, #3e5370, #2f4158) !important;
+  box-shadow: var(--specular-raised) !important; color: var(--ink) !important;
+  transform: none !important;
+}
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard:hover { background: linear-gradient(165deg, #435975, #34475f) !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard:active { background: linear-gradient(165deg, #2f4158, #3e5370) !important; }
+html body.terminal-ui .home-edge-actions #homeEdgeOpenBoard span { display: none; }
+html body.terminal-ui #explorePropsBtn { background: transparent !important; border: 0 !important; color: var(--quote) !important; box-shadow: none !important; }
+
+/* Research panels use the same 4px rhythm and density padding. */
+html body.terminal-ui :is(.compare-formats, .slate-overview, .today-schedule) { margin-block: 24px; }
+html body.terminal-ui :is(.compare-formats, .slate-overview, .today-schedule) :is(.today-game-card, .format-card, .overview-card) { padding: 16px; }
+html body.terminal-ui .terminal-compact :is(.compare-formats, .slate-overview, .today-schedule) :is(.today-game-card, .format-card, .overview-card) { padding: 8px; }
+
+/* Detail controls and plot inherit the same material and single blue accent. */
+html body.terminal-ui #detailDialog {
+  --pd-card: var(--surface-card); --pd-border: var(--terminal-border);
+  --pd-border-hi: var(--quote); --pd-glow: var(--specular-raised);
+  --pd-green: var(--quote);
+}
+html body.terminal-ui #detailDialog :is(.pd-card, .pd-chart-card, .pd-break) {
+  background: var(--surface-card) !important; border-color: var(--terminal-border) !important;
+  box-shadow: var(--specular-card) !important;
+}
+html body.terminal-ui #detailDialog .pd-tile {
+  background: var(--surface-1) !important; border-color: var(--terminal-border) !important;
+  box-shadow: none !important;
+}
+html body.terminal-ui #detailDialog :is(.pd-tabs, .pd-seg) {
+  gap: 0; padding: 3px; border: 0; border-radius: 8px;
+  background: linear-gradient(180deg, #0e0f11, #16171a);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 50%);
+}
+html body.terminal-ui #detailDialog :is(.pd-tab, .pd-seg-btn) {
+  min-height: 44px; border: 0 !important; border-radius: 6px !important;
+  background: transparent !important; box-shadow: none !important;
+  color: var(--ink-faint) !important; transform: none !important;
+}
+html body.terminal-ui #detailDialog :is(.pd-tab.is-active, .pd-seg-btn.is-active) {
+  background: var(--surface-raised) !important; box-shadow: var(--specular-raised) !important;
+  color: var(--ink) !important;
+}
+html body.terminal-ui #detailDialog .pd-tile-fair .pd-tile-value { color: var(--quote) !important; text-shadow: none !important; }
+html body.terminal-ui #detailDialog .pd-badge-verified {
+  color: var(--quote) !important; background: transparent !important;
+  border-color: var(--terminal-border) !important;
+}
+html body.terminal-ui #detailDialog .pd-badge-unverified { color: var(--warn) !important; background: transparent !important; border-color: var(--terminal-border) !important; }
+html body.terminal-ui #detailDialog :is(.pd-chart, .pd-chart-svg) { background: var(--surface-1) !important; }
+html body.terminal-ui #detailDialog :is(.pd-band, .pd-area) { fill: rgb(143 181 234 / 8%) !important; }
+html body.terminal-ui #detailDialog .pd-curve { stroke: var(--quote) !important; filter: none !important; }
+html body.terminal-ui #detailDialog .pd-marker-market :is(.pd-marker-line, .pd-chip),
+html body.terminal-ui #detailDialog .pd-marker-median :is(.pd-marker-line, .pd-chip) { stroke: var(--quote) !important; }
+html body.terminal-ui #detailDialog .pd-marker-market :is(.pd-chip-label, .pd-chip-value),
+html body.terminal-ui #detailDialog .pd-marker-median :is(.pd-chip-label, .pd-chip-value) { fill: var(--quote) !important; }
+html body.terminal-ui #detailDialog .pd-marker-mean :is(.pd-marker-line, .pd-chip) {
+  stroke: var(--signal) !important; filter: drop-shadow(0 0 4px rgb(143 181 234 / 35%));
+}
+html body.terminal-ui #detailDialog .pd-marker-mean :is(.pd-chip-label, .pd-chip-value) { fill: var(--ink) !important; }
+html body.terminal-ui #detailDialog .detail-sticky-log-btn {
+  background: var(--surface-raised) !important; border: 0 !important;
+  box-shadow: var(--specular-raised) !important; color: var(--ink) !important;
+  transform: none !important;
+}
+
+@media (max-width: 1100px) {
+  html body.terminal-ui .pw-topbar-right > .terminal-desktop-nav { display: none !important; }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-avatar-team-badge,
+  html body.terminal-ui .card-id-block .pw-avatar-team-badge { display: block !important; }
+  html body.terminal-ui .pw-topbar { gap: 4px !important; }
+  html body.terminal-ui .pw-topbar-left { min-width: 104px; }
+  html body.terminal-ui .pw-topbar-right { margin-left: auto; gap: 2px !important; }
+  html body.terminal-ui .pw-topbar-center { display: none !important; }
+  html body.terminal-ui #headerSearchTrigger { min-width: 44px; }
+  html body.terminal-ui .terminal-search-trigger span { display: none; }
+  html body.terminal-ui .pw-topbar .pw-topbar-right > #slateSelector { display: none !important; }
+  html body.terminal-ui .pw-topbar-right > #terminalQuoteStatus { width: 88px; min-width: 88px; max-width: 88px; font-size: 11px; }
+  html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) #terminalQuoteStatus { display: none !important; }
+  html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) .terminal-header-search { max-width: min(180px, 48vw); }
+  html body.terminal-ui .pw-filterbar { height: 44px; min-height: 44px; max-height: 44px; display: flex !important; flex-wrap: nowrap; }
+  html body.terminal-ui.front-board-open .pw-filterbar .mobile-league-nav { display: none !important; }
+  html body.terminal-ui .terminal-board-controls { width: 100%; height: 44px; gap: 8px; }
+  html body.terminal-ui #mobileFilterStrip { flex: 1 1 auto !important; max-width: none !important; overflow-x: auto !important; gap: 8px; }
+  html body.terminal-ui .position-filter-menu { display: none; }
+  html body.terminal-ui .view-switch { display: none !important; }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar { height: 40px !important; min-height: 40px !important; max-height: 40px; }
+  html body.terminal-ui .terminal-scrolled .mobile-league-nav { display: none !important; }
+  html body.terminal-ui.front-board-open .mobile-bottom-nav { display: flex !important; }
+  html body.terminal-ui .mobile-bottom-nav :is(#bottomNavSlate, #bottomNavAudit) { display: flex !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.terminal-ui .terminal-well-thumb,
+  html body.terminal-ui .terminal-header-search,
+  html body.terminal-ui .terminal-desktop-nav button::after { transition: none !important; }
+}
+
+/* Status placement repairs; the instrument panel's visual grammar stays intact. */
+html body.terminal-ui .terminal-feed-details { margin: 4px 12px 12px; color: var(--ink-dim); font: 500 11px/1.5 var(--terminal-sans); }
+html body.terminal-ui .terminal-feed-details summary { width: fit-content; min-height: 28px; cursor: pointer; color: var(--quote); }
+html body.terminal-ui #terminalFeedDetailsContent { display: grid; gap: 4px; max-width: 90ch; }
+html body.terminal-ui #terminalFeedDetailsContent ul { margin: 4px 0 0; padding-left: 20px; }
+html body.terminal-ui .rf-status-strip { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto; align-items: start; }
+html body.terminal-ui .rf-status-strip .home-edge-status { grid-column: 1; }
+html body.terminal-ui .rf-status-strip .home-fail-closed { grid-column: 2; margin: 0; min-width: 0; }
+html body.terminal-ui .rf-status-strip .how-math-works-btn { grid-column: 3; }
+@media (min-width: 769px) and (max-width: 1000px) {
+  html body.terminal-ui .terminal-board-controls { gap: 8px; }
+  html body.terminal-ui #mobileFilterStrip { gap: 8px; flex-wrap: nowrap; }
+  html body.terminal-ui .pw-filterbar { overflow: hidden; }
+  html body.terminal-ui .terminal-snapshot-strip { margin-top: 28px; }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui .rf-status-strip { grid-template-columns: minmax(0, 1fr) auto; }
+  html body.terminal-ui .rf-status-strip .home-edge-status { grid-column: 1; grid-row: 1; }
+  html body.terminal-ui .rf-status-strip .how-math-works-btn { grid-column: 2; grid-row: 1; }
+  html body.terminal-ui .rf-status-strip .home-fail-closed { grid-column: 1 / -1; grid-row: 2; }
+  html body.terminal-ui .shell.page { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  html body.terminal-ui.toast-visible .shell.page { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+  html body.terminal-ui .toast { bottom: calc(76px + env(safe-area-inset-bottom)) !important; }
+}
+
+/* The header wordmark is transparent; its icy P carries its own subtle glow. */
+html body.terminal-ui .pw-brand {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+html body.terminal-ui .pw-brand-img {
+  width: auto !important;
+  height: 56px !important;
+  max-width: none !important;
+  filter: none !important;
+}
+html body.terminal-ui .pw-brand:hover .pw-brand-img { filter: none !important; }
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-topbar-left { flex: 0 0 auto !important; min-width: 0 !important; }
+  html body.terminal-ui .pw-brand-img { height: clamp(42px, calc(20vw - 30px), 48px) !important; }
+}
+
+/* Single-venue board hierarchy: first-screen headline, stacked mobile offers,
+   strict green reservation, and responsive quote details side panel / sheet. */
+html body.terminal-ui .terminal-snapshot-strip {
+  width: 100%;
+  max-width: 100%;
+  gap: 8px 12px;
+}
+html body.terminal-ui .terminal-snapshot-status {
+  color: var(--ink);
+  font: 500 12px/1.45 var(--terminal-sans);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html body.terminal-ui .terminal-snapshot-status:not(:empty)::before {
+  margin-right: 8px;
+}
+
+/* Strict green reservation: only verified pre-start qualified offers turn green. */
+html body.terminal-ui .offer-qualified-green {
+  color: #34d399 !important;
+}
+html body.terminal-ui tr.slate-row.offer-qualified-green {
+  border-left: 3px solid #34d399;
+}
+html body.terminal-ui article.mobile-quant-row.offer-qualified-green {
+  border-color: rgb(52 211 153 / 42%) !important;
+}
+html body.terminal-ui .meta-pill.offer-qualified-green,
+html body.terminal-ui .edge-cell.offer-qualified-green {
+  border-color: rgb(52 211 153 / 45%) !important;
+  color: #34d399 !important;
+}
+html body.terminal-ui .mobile-quant-row:not(.offer-qualified-green) :is(.card-hero-edge, .card-edge-badge-lime, .card-edge-sub, .status-active),
+html body.terminal-ui tr.slate-row:not(.offer-qualified-green) :is(.edge-cell, .edge-line-top, .exec-tag, .meta-pill) {
+  color: var(--ink-dim) !important;
+  text-shadow: none !important;
+}
+html body.terminal-ui .card-edge-badge-muted {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+html body.terminal-ui .offer-market-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--terminal-border);
+  background: var(--surface-1);
+  color: var(--ink-dim);
+  font: 600 10px/1.2 var(--terminal-sans);
+}
+html body.terminal-ui .offer-terms-line {
+  font: 600 15px/1.3 var(--terminal-mono);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+html body.terminal-ui .offer-venue-age {
+  font: 500 11px/1.3 var(--terminal-mono);
+  color: var(--ink-dim);
+}
+html body.terminal-ui .view-quote-details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--terminal-border);
+  background: var(--surface-raised);
+  color: var(--quote);
+  font: 600 12px/1.2 var(--terminal-sans);
+  cursor: pointer;
+  white-space: nowrap;
+}
+html body.terminal-ui .view-quote-details-btn:hover {
+  border-color: var(--quote);
+  color: var(--ink);
+}
+html body.terminal-ui .nba-market-quote {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+html body.terminal-ui .nba-market-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Quote details drawer: right-hand side panel on desktop, bottom sheet on mobile */
+@media (min-width: 769px) {
+  html body.terminal-ui dialog.detail-dialog {
+    align-items: stretch !important;
+    justify-content: flex-end !important;
+  }
+  html body.terminal-ui dialog.detail-dialog .dialog-shell {
+    width: min(500px, 44vw) !important;
+    max-width: 520px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border-left: 1px solid var(--terminal-border) !important;
+    border-top: 0 !important;
+  }
+  html body.terminal-ui dialog.detail-dialog .dialog-sheet-handle {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  html body.terminal-ui #cardView {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html body.terminal-ui .mobile-quant-row {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  html body.terminal-ui .mobile-quant-row .card-grid-row:not(.v176-research) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  html body.terminal-ui .mobile-quant-row .col-steam {
+    display: none !important;
+  }
+  html body.terminal-ui .mobile-quant-row .col-action {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  html body.terminal-ui .mobile-quant-row .view-quote-details-btn {
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
+  html body.terminal-ui .terminal-feed-details,
+  html body.terminal-ui .front-legal {
+    margin-top: 8px;
+  }
+}
+
+html body.terminal-ui .quote-details-lead {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+html body.terminal-ui .quote-details-lead.offer-qualified-green {
+  border-color: rgb(52 211 153 / 45%);
+}
+html body.terminal-ui .quote-lead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+html body.terminal-ui .quote-lead-k {
+  color: var(--ink-dim);
+  flex: 0 0 auto;
+}
+html body.terminal-ui .quote-lead-v {
+  color: var(--ink);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+html body.terminal-ui .quote-model-unavailable {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+html body.terminal-ui .quote-model-unavailable strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 13px;
+}
+html body.terminal-ui .quote-model-unavailable p {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+}
+html body.terminal-ui .quote-deep-details {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+html body.terminal-ui .quote-deep-details > summary {
+  cursor: pointer;
+  color: var(--quote);
+  font: 600 12.5px/1.3 var(--terminal-sans);
+}
+html body.terminal-ui .quote-deep-body {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+html body.terminal-ui #sportSwitcher .sport-switch-label small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* Keep league identity visible above the board filters on the mobile front page. */
+@media (max-width: 768px) {
+  html body.terminal-ui .pw-filterbar {
+    height: 96px !important;
+    min-height: 96px !important;
+    max-height: none !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0 !important;
+  }
+  html body.terminal-ui.front-board-open .pw-filterbar .mobile-league-nav,
+  html body.terminal-ui .pw-filterbar .mobile-league-nav {
+    display: block !important;
+    flex: 0 0 52px;
+    width: 100%;
+    height: 52px;
+    padding: 4px 0 !important;
+    box-sizing: border-box;
+    overflow-x: auto;
+  }
+  html body.terminal-ui #mobileSportSwitcher {
+    display: flex;
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+    min-width: 0 !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
+  }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-btn {
+    flex: 1 1 0;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 0 4px !important;
+    gap: 4px !important;
+    white-space: nowrap;
+  }
+  html body.terminal-ui #mobileSportSwitcher .league-badge,
+  html body.terminal-ui #mobileSportSwitcher .league-badge-ufc {
+    display: block;
+    flex: 0 0 auto;
+    width: 27px !important;
+    height: 29px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    object-fit: contain;
+  }
+  html body.terminal-ui #mobileSportSwitcher .league-badge-ufc { width: 35px !important; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-label { line-height: 1.1; }
+  html body.terminal-ui #mobileSportSwitcher .sport-switch-label small {
+    display: block;
+    margin-top: 2px;
+    color: var(--ink-dim);
+    font-size: 9px;
+    font-weight: 500;
+  }
+  html body.terminal-ui .pw-filterbar .terminal-board-controls { flex: 0 0 44px; }
+  html body.terminal-ui.coming-soon-active .pw-filterbar {
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    flex-direction: row;
+  }
+  html body.terminal-ui .terminal-scrolled .pw-filterbar .mobile-league-nav { display: none !important; }
+}
+
+/* ── 2027 Scan-First Player Prop Cards ─────────────────────────────────── */
+/* Demote permanent status ribbons, feed health, and audit chrome on the main
+   board so the player cards lead immediately (DOM IDs preserved for tests). */
+html body.terminal-ui .pw-hero-telemetry-suite,
+html body.terminal-ui .pw-receipt-badge,
+html body.terminal-ui #mobileUsageTicker {
+  display: none !important;
+}
+html body.terminal-ui #signalQuickChips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+html body.terminal-ui .card-grid,
+html body.terminal-ui #cardView {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  html body.terminal-ui .card-grid,
+  html body.terminal-ui #cardView {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+@media (min-width: 1120px) {
+  html body.terminal-ui .card-grid,
+  html body.terminal-ui #cardView {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+html body.terminal-ui .ps-scan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  margin: 0;
+  border-radius: 14px;
+  border: 1px solid var(--ps-line, rgba(169, 173, 178, 0.12));
+  background: var(--surface-card, var(--ps-elev, #17181b));
+  box-shadow: var(--specular-card, inset 0 1px 0 0 rgba(196, 200, 205, 0.1));
+  color: var(--ink, #e9ebee);
+  transition: border-color 140ms ease, transform 140ms ease;
+  box-sizing: border-box;
+  min-width: 0;
+}
+html body.terminal-ui .ps-scan-card:hover {
+  border-color: rgba(191, 219, 255, 0.28);
+}
+
+.ps-scan-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.ps-scan-identity {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ps-scan-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ps-scan-player {
+  font-family: "Space Grotesk", var(--terminal-sans, system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ps-scan-meta,
+.ps-scan-card .card-team-matchup {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-dim, #9da3ab);
+  letter-spacing: 0.01em;
+}
+
+.ps-signal-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  border: 1px solid rgba(169, 173, 178, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink-dim, #9da3ab);
+  white-space: nowrap;
+}
+.ps-signal-surge {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.12);
+}
+.ps-signal-var {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+}
+.ps-signal-td {
+  color: var(--signal, #bfdbff);
+  border-color: rgba(191, 219, 255, 0.35);
+  background: rgba(191, 219, 255, 0.12);
+}
+.ps-signal-verified {
+  color: #b6f36b;
+  border-color: rgba(182, 243, 107, 0.4);
+  background: rgba(182, 243, 107, 0.12);
+}
+
+.ps-scan-primary {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(12, 13, 15, 0.55);
+  border: 1px solid rgba(169, 173, 178, 0.09);
+}
+.ps-scan-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(169, 173, 178, 0.14);
+}
+.ps-scan-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ps-scan-metric-book {
+  align-items: flex-end;
+  text-align: right;
+}
+.ps-scan-label {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim, #9da3ab);
+}
+.ps-scan-value {
+  font-family: "Space Grotesk", "IBM Plex Mono", var(--terminal-sans, sans-serif);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+.ps-scan-value-book {
+  color: var(--quote, #8fb5ea);
+}
+.ps-scan-value-empty {
+  color: var(--ink-faint, #6b7077);
+}
+.ps-scan-sub {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--ink-dim, #9da3ab);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ps-scan-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--ink-dim, #9da3ab);
+  min-width: 0;
+}
+.ps-scan-prob {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ps-scan-tier {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink, #e9ebee);
+}
+
+.ps-card-details {
+  border-top: 1px solid rgba(169, 173, 178, 0.1);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.ps-card-details-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim, #9da3ab);
+  padding: 2px 0;
+}
+.ps-card-details-summary::-webkit-details-marker {
+  display: none;
+}
+.ps-card-details-summary:hover {
+  color: var(--ink, #e9ebee);
+}
+.ps-card-details[open] .ps-card-details-chevron {
+  transform: rotate(180deg);
+}
+.ps-card-details-chevron {
+  display: inline-block;
+  transition: transform 140ms ease;
+}
+.ps-card-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  font-size: 12px;
+  color: var(--ink-dim, #9da3ab);
+}
+.ps-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(169, 173, 178, 0.08);
+}
+.ps-details-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ps-details-kv span {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint, #6b7077);
+}
+.ps-details-kv strong {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ink, #e9ebee);
+}
+.ps-details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ps-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ps-details-trust {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint, #6b7077);
+  padding-top: 4px;
+  border-top: 1px dashed rgba(169, 173, 178, 0.12);
+}
+
+/* Light theme contrast overrides for scan-first cards */
+html[data-theme="light"] body.terminal-ui .ps-scan-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-player,
+html[data-theme="light"] body.terminal-ui .ps-scan-value,
+html[data-theme="light"] body.terminal-ui .ps-scan-tier,
+html[data-theme="light"] body.terminal-ui .ps-details-kv strong {
+  color: #0f172a;
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-primary {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-value-book {
+  color: #1d4ed8;
+}

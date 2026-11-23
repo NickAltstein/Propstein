@@ -126,6 +126,22 @@ test('NBA Points board renders minutes band, Role Surge, and fail-closed copy at
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-nba-points-card="1"]', { timeout: 6000 });
 
+    const collapsed = await page.evaluate(() => {
+      const card = document.querySelector('[data-nba-points-card="1"]');
+      const details = card ? card.querySelector('details.ps-card-details') : null;
+      return {
+        txt: card ? card.innerText : '',
+        detailsOpen: details ? details.open : null,
+      };
+    });
+    assert.equal(collapsed.detailsOpen, false);
+    assert.match(collapsed.txt, /Nikola Jokic/);
+    assert.match(collapsed.txt, /27\.5/);
+    assert.match(collapsed.txt, /ROLE SURGE/);
+    assert.doesNotMatch(collapsed.txt, /RESEARCH ONLY/);
+
+    await page.locator('[data-nba-points-card="1"] .ps-card-details-summary').first().click();
+
     const result = await page.evaluate(() => {
       const card = document.querySelector('[data-nba-points-card="1"]');
       const txt = card ? card.innerText : '';
@@ -154,9 +170,12 @@ test('NBA Points board renders minutes band, Role Surge, and fail-closed copy at
     assert.ok(result.scrollWidth <= result.innerWidth + 2, `Horizontal overflow: ${result.scrollWidth} > ${result.innerWidth}`);
 
     // Switch to non-points market (PRA) and confirm multi-stat card updates fail-closed
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(100);
     const praBtn = page.locator('[data-market="pra"]').first();
     await praBtn.click();
     await page.waitForSelector('[data-nba-market="pra"]', { timeout: 5000 });
+    await page.locator('[data-nba-market="pra"] .ps-card-details-summary').first().click();
     const praTxt = await page.locator('[data-nba-market="pra"]').first().innerText();
     assert.match(praTxt, /MODEL FAIR \(PRA\)/);
     assert.match(praTxt, /48\.5/);

@@ -36,6 +36,12 @@ import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote
  *   8. NFL board copy names Polymarket where a missing live price was called a
  *      sportsbook price. The five render goldens change only that copy,
  *      including the picker caveat. Model numbers are unchanged.
+ *   9. Scan-first card redesign (v277): propCard() renders the scan-first
+ *      hierarchy with collapsible <details class="ps-card-details">. Only the
+ *      two card render goldens (renders_cards_receiving_yards.json and
+ *      renders_cards_research_receptions.json) change; evaluations,
+ *      projections, detail modal, ledger, breaker config, dom_access_log, and
+ *      table renders stay byte-identical.
  */
 
 process.env.TZ = 'America/New_York';
