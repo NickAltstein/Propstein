@@ -43,9 +43,30 @@ const FIXTURE_SLATE = [
   },
 ];
 
-test('TD Scorers tab renders fail-closed TD cards cleanly at 390px dark mode', async () => {
-  const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-  const executablePath = fs.existsSync(chromePath) ? chromePath : undefined;
+function findChrome() {
+  const candidates = [
+    process.env.CHROME_PATH,
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+  ].filter(Boolean);
+  return candidates.find((p) => fs.existsSync(p)) || null;
+}
+
+test('viewer/app.js renders fail-closed TD Scorers card contract', () => {
+  const appJs = fs.readFileSync(path.resolve('viewer/app.js'), 'utf8');
+  assert.match(appJs, /function tdScorerCard\(row\)/);
+  assert.match(appJs, /data-td-card="1"/);
+  assert.match(appJs, /MODEL FAIR · RESEARCH ONLY/);
+});
+
+test('TD Scorers tab renders fail-closed TD cards cleanly at 390px dark mode', async (t) => {
+  const executablePath = findChrome();
+  if (!executablePath) {
+    t.skip('No local Chrome/Chromium executable available in this CI environment');
+    return;
+  }
 
   const server = http.createServer((req, res) => {
     const urlPath = (req.url || '/').split('?')[0];
@@ -112,6 +133,7 @@ test('TD Scorers tab renders fail-closed TD cards cleanly at 390px dark mode', a
     assert.ok(result.scrollWidth <= result.innerWidth + 2, `Horizontal overflow: ${result.scrollWidth} > ${result.innerWidth}`);
   } finally {
     await browser.close();
+    if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
     server.close();
   }
 });
