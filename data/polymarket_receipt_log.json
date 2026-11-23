@@ -1,23 +1,5 @@
 [
   {
-    "receipt_id": "pmr_580b291ee8c2178d",
-    "market_id": "polymarket:7123016",
-    "book_id": "polymarket",
-    "raw_payload_hash": "580b291ee8c2178d0f1e05fcbbd29e33983ee582d73b2d3b8e9914597c122a78",
-    "captured_at": "2026-11-22T14:50:17.694350+00:00",
-    "source_url": "https://polymarket.com/market/nfl-ten-dal-2026-11-22-recyd-ceedee-lamb-59pt5",
-    "payload_kind": "polymarket_clob_quote.v1"
-  },
-  {
-    "receipt_id": "pmr_3f600d32f33975a0",
-    "market_id": "polymarket:7123017",
-    "book_id": "polymarket",
-    "raw_payload_hash": "3f600d32f33975a0ba6180d7f6b105fccd42ab734f8f8103268fb418bb5bcd92",
-    "captured_at": "2026-11-22T14:50:17.694370+00:00",
-    "source_url": "https://polymarket.com/market/nfl-ten-dal-2026-11-22-recyd-ceedee-lamb-69pt5",
-    "payload_kind": "polymarket_clob_quote.v1"
-  },
-  {
     "receipt_id": "pmr_eb0b0b48018c1e49",
     "market_id": "polymarket:7123019",
     "book_id": "polymarket",
@@ -3597,6 +3579,24 @@
     "raw_payload_hash": "f534c4a71e420ccb8815eb810e59878b6e10b9957b54bfc8f3a26e0b148df9b4",
     "captured_at": "2026-11-23T01:10:07.985777+00:00",
     "source_url": "https://polymarket.com/market/nfl-cin-was-2026-11-24-recyd-dohnte-meyers-19pt5",
+    "payload_kind": "polymarket_clob_quote.v1"
+  },
+  {
+    "receipt_id": "pmr_a47433df8bcc5f38",
+    "market_id": "polymarket:7214202",
+    "book_id": "polymarket",
+    "raw_payload_hash": "a47433df8bcc5f3834449eb9de5fe35b98aa7c6ce3dc26f536c17ce67b906cd2",
+    "captured_at": "2026-11-23T09:11:30.111000+00:00",
+    "source_url": "https://polymarket.com/market/nfl-cin-was-2026-11-24-recyd-dohnte-meyers-9pt5",
+    "payload_kind": "polymarket_clob_quote.v1"
+  },
+  {
+    "receipt_id": "pmr_a47433df8bcc5f38",
+    "market_id": "polymarket:7214202",
+    "book_id": "polymarket",
+    "raw_payload_hash": "a47433df8bcc5f3834449eb9de5fe35b98aa7c6ce3dc26f536c17ce67b906cd2",
+    "captured_at": "2026-11-23T09:11:30.390100+00:00",
+    "source_url": "https://polymarket.com/market/nfl-cin-was-2026-11-24-recyd-dohnte-meyers-9pt5",
     "payload_kind": "polymarket_clob_quote.v1"
   }
 ]
