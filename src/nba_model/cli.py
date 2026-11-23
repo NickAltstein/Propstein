@@ -83,7 +83,12 @@ def load_world(args) -> dict:
     """provider -> normalized rows/games (+odds+injuries when available)."""
     provider = build_provider(args)
     if args.provider in ("bdl", "nbacom"):
-        dates = pd.date_range(args.start, args.end or args.start, freq="D")
+        end = getattr(args, "end", None) or getattr(args, "date", None) or getattr(args, "start", None)
+        start = getattr(args, "start", None)
+        if not start and end:
+            days = getattr(args, "days", None) or 45
+            start = (pd.Timestamp(end) - pd.Timedelta(days=int(days))).date().isoformat()
+        dates = pd.date_range(start, end, freq="D")
         world = provider.fetch_range([d.date().isoformat() for d in dates])
         world.setdefault("odds", [])
         world.setdefault("injuries", [])

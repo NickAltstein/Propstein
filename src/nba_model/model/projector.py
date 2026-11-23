@@ -116,10 +116,16 @@ class NBAPointsProjector:
 
         ctx = self.context.apply(test, schedule_df=history)
         mins = self.minutes_model.predict(ctx)
-        ctx = ctx.merge(
-            mins[["player_id", "game_id", "minutes_hat", "sd_minutes", "minutes_source", "n_recent"]],
-            on=["player_id", "game_id"], how="left",
-        )
+        min_cols = [
+            c for c in (
+                "player_id", "game_id", "minutes_p10", "minutes_hat", "minutes_p90",
+                "sd_minutes", "minutes_source", "n_recent", "role_surge", "role_surge_reason",
+            )
+            if c in mins.columns
+        ]
+        # Avoid suffix collision if ctx already carries injury role_surge columns
+        ctx_clean = ctx.drop(columns=[c for c in ("role_surge", "role_surge_reason") if c in ctx.columns])
+        ctx = ctx_clean.merge(mins[min_cols], on=["player_id", "game_id"], how="left")
 
         rows = []
         for _, r in ctx.iterrows():
@@ -164,6 +170,12 @@ class NBAPointsProjector:
                 "mean_pts": round(mean_pts, 2),
                 "sd_pts": round(sd_pts, 2),
                 "fair_line": dist.fair_line(),
+                "minutes_p10": round(float(r.get("minutes_p10", max(0.0, minutes_hat - 1.2816 * float(r["sd_minutes"])))), 2),
+                "minutes_hat": round(minutes_hat, 2),
+                "minutes_p90": round(float(r.get("minutes_p90", min(48.0, minutes_hat + 1.2816 * float(r["sd_minutes"])))), 2),
+                "sd_minutes": round(float(r["sd_minutes"]), 2),
+                "role_surge": bool(r.get("role_surge", False)),
+                "role_surge_reason": str(r.get("role_surge_reason", "") or ""),
                 "below_minutes_floor": bool(minutes_hat < MINUTES_FLOOR),
                 "explain": {
                     "ppm_hat": round(float(ppm_hat), 4),

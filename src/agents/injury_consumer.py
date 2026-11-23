@@ -7,8 +7,6 @@ from datetime import datetime, timezone
 import re
 from typing import Any, Mapping, Sequence
 
-from src.crypto_utils import canonical_json_sha256
-
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _FORBIDDEN_ADAPTER_PREFIXES = ("dom", "browser", "scraped", "extension")
 
@@ -136,80 +134,36 @@ def consume_injury_events(
                     rec.status_ts = status_dt.isoformat()
                     state.voided_receipt_ids.add(rec.receipt_id)
 
-            # Vacated share comes ONLY from the model's own usage table (ignore caller-supplied vacated_*).
+            # model_usage_table may be used only to record which teammates are affected.
             usage_entry = model_usage_table.get(player_id) or {}
-            vacated_share = float(usage_entry.get("target_share", 0.0))
             beneficiary_weights: Mapping[str, float] = usage_entry.get("beneficiary_weights") or {}
 
-            # Mark teammates' open hashes CONTEXT_DIRTY and rerun with model usage table share.
+            # Quarantine every open teammate receipt as CONTEXT_DIRTY (never raise edge or re-hash).
             for rec in state.receipts.values():
                 if rec.team.upper() == team and rec.player_id != player_id:
                     rec.state = STATE_CONTEXT_DIRTY
+                    rec.active = False
+                    rec.can_execute = False
+                    rec.status_ts = status_dt.isoformat()
                     state.dirty_receipt_ids.add(rec.receipt_id)
-                    weight = float(beneficiary_weights.get(rec.player_id, 0.0))
-                    if vacated_share <= 0.0 or weight <= 0.0:
-                        rec.active = False
-                        rec.can_execute = False
-                        continue
-                    added_share = vacated_share * weight
-                    new_edge_pp = round(rec.base_edge_pp + added_share * 25.0, 4)
-                    if min_edge_pp <= new_edge_pp <= max_normal_edge_pp:
-                        rec.base_edge_pp = new_edge_pp
-                        rec.receipt_hash = canonical_json_sha256({
-                            "receipt_id": rec.receipt_id,
-                            "player_id": rec.player_id,
-                            "market": rec.market,
-                            "line": rec.line,
-                            "edge_pp": new_edge_pp,
-                            "status_ts": status_dt.isoformat(),
-                        })
-                        rec.active = True
-                        rec.can_execute = True
-                    elif new_edge_pp > max_normal_edge_pp:
-                        rec.active = False
-                        rec.can_execute = False
+                    if rec.player_id in beneficiary_weights:
                         state.diagnostics.append({
                             "receipt_id": rec.receipt_id,
                             "player_id": rec.player_id,
-                            "code": DIAG_ROLE_SURGE_UNCONFIRMED,
-                            "rerun_edge_pp": new_edge_pp,
+                            "code": STATE_CONTEXT_DIRTY,
+                            "requires_model_rerun": True,
                         })
-                    else:
-                        rec.active = False
-                        rec.can_execute = False
 
         elif status in UNCERTAIN_STATUSES:
             # QUESTIONABLE / DOUBTFUL / LIMITED -> availability_uncertain.
-            # Keep old hash in ledger, block action, do NOT rerun distribution.
-            # No new hash until a fresh BookQuoteTape row arrives with source_ts > status_ts.
+            # Quarantine-only: keep old hash untouched, block action, never re-hash or rerun.
             for rec in state.receipts.values():
                 if rec.player_id == player_id:
                     rec.state = STATE_AVAILABILITY_UNCERTAIN
                     rec.status_ts = status_dt.isoformat()
+                    rec.active = False
                     rec.can_execute = False
                     state.uncertain_receipt_ids.add(rec.receipt_id)
-
-                    post_news_tape = []
-                    for row in tape_rows:
-                        validated = _validate_post_news_tape_row(row)
-                        if validated is None:
-                            continue
-                        row_ts = _parse_utc(validated["source_ts"])
-                        if row_ts is not None and row_ts > status_dt and (
-                            str(row.get("player_id") or "") == player_id
-                            or player_id in str(validated["market_id"])
-                        ):
-                            post_news_tape.append(validated)
-
-                    if post_news_tape:
-                        best = post_news_tape[0]
-                        rec.receipt_hash = canonical_json_sha256({
-                            "receipt_id": rec.receipt_id,
-                            "player_id": rec.player_id,
-                            "tape_source_ts": best["source_ts"],
-                            "tape_sha256": best["raw_payload_sha256"],
-                        })
-                        rec.can_execute = True
 
     return state
 

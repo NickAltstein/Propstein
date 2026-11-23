@@ -25,6 +25,7 @@ from scripts.ingest_espn_game_context import (
     NFLVERSE_GAMES_URL,
     evaluate_pricing_context,
     format_provenance_report,
+    load_allowed_context_exclusions,
     load_journal,
     load_schedule_rows,
     write_provenance_report,
@@ -65,7 +66,16 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     journal = load_journal()
-    report = evaluate_pricing_context(schedule, journal, now, failed_fetches=failed)
+    allowed_exclusions, max_excluded = load_allowed_context_exclusions()
+    report = evaluate_pricing_context(
+        schedule,
+        journal,
+        now,
+        failed_fetches=failed,
+        allowed_exclusions=allowed_exclusions,
+        max_excluded_games=max_excluded,
+        block_on_stale=True,
+    )
     print(format_provenance_report(report))
     if args.write_report:
         write_provenance_report(report)

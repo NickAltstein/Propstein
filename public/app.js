@@ -2613,8 +2613,11 @@
 
     // Keep excluded players in the immutable slate artifact for audit, but
     // never surface confirmed nonparticipants as current prop candidates.
+    state.contextMissingGames = Array.isArray(slate)
+      ? slate.filter((row) => row && row.context_status === 'CONTEXT_MISSING')
+      : [];
     state.slate = Array.isArray(slate)
-      ? slate.filter(row => !String(row.excl_reason || '').trim())
+      ? slate.filter((row) => row && row.context_status !== 'CONTEXT_MISSING' && !String(row.excl_reason || '').trim())
       : [];
     state.games = Array.isArray(games) ? games : [];
     // Lock execution only when this slate's own context is unproven.
@@ -3451,7 +3454,11 @@
         </button>`;
       }).join('');
 
-      $('#primeChips').innerHTML = allBtn + gameBtns;
+      const missingList = state.contextMissingGames || [];
+      const missingBanner = missingList.length > 0
+        ? `<span class="chip-context-missing" data-context-missing-banner="1" style="font-size:11px;color:#fbbf24;padding:4px 8px;">${missingList.length} game${missingList.length === 1 ? '' : 's'} unpriced: context missing (${esc(missingList.map((r) => r.matchup || r.game_id).join(', '))})</span>`
+        : '';
+      $('#primeChips').innerHTML = allBtn + gameBtns + missingBanner;
       $$('#primeChips .game-chip').forEach((button) => button.addEventListener('click', () => {
         state.filters.gameId = button.dataset.gameId;
         if ($('#gameFilter')) $('#gameFilter').value = state.filters.gameId || 'ALL';
@@ -3654,6 +3661,8 @@
         if (sampleB !== sampleA) return sampleB - sampleA;
         return String(a.player_display_name).localeCompare(String(b.player_display_name));
       });
+    } else if (state.filters.market === 'anytime_td') {
+      rows.sort((a, b) => (num(b.p_anytime_td) - num(a.p_anytime_td)) || (num(b.proj_yards) - num(a.proj_yards)));
     } else if (typeof adapter.sortDefault === 'function') {
       // Adapter-owned default order (NBA: active-market projection, desc).
       rows.sort((a, b) => adapter.sortDefault(b, state.filters.market) - adapter.sortDefault(a, state.filters.market));
@@ -3676,6 +3685,21 @@
       return;
     }
     if ($('#emptyState')) $('#emptyState').classList.remove('nba-market-only', 'nba-market-view-table', 'nba-market-view-cards', 'nba-market-view-compact-grid');
+    const missingCtx = state.contextMissingGames || [];
+    if (missingCtx.length > 0 && $('#terminalBoardTitle')?.parentElement) {
+      if (!state._contextMissingBannerEl) {
+        const el = document.createElement('p');
+        el.id = 'contextMissingBanner';
+        el.setAttribute('data-context-missing-banner', '1');
+        el.style.cssText = 'font-size:12px;color:#fbbf24;margin:4px 0 8px 0;';
+        $('#terminalBoardTitle').parentElement.insertAdjacentElement('afterend', el);
+        state._contextMissingBannerEl = el;
+      }
+      state._contextMissingBannerEl.textContent = `${missingCtx.length} game${missingCtx.length === 1 ? '' : 's'} unpriced: context missing (${missingCtx.map((r) => r.matchup || r.game_id).join(', ')})`;
+      state._contextMissingBannerEl.hidden = false;
+    } else if (state._contextMissingBannerEl) {
+      state._contextMissingBannerEl.hidden = true;
+    }
     const rows = filteredRows();
     if (rows.length && animatedSlateKey !== state.slateKey && document.body?.classList) {
       animatedSlateKey = state.slateKey;
@@ -7237,7 +7261,91 @@
     return `<p class="cell-sub card-hit-rate">${side} ${line.toFixed(1)} · ${hasBookLine ? 'Book line' : 'Model fair line'} · ${summarize(5)}${values.length > 5 ? ` · ${summarize(10)}` : ''}</p>`;
   }
 
+  function formatTdAmericanOdds(odds) {
+    const n = Number(odds);
+    if (!Number.isFinite(n) || n === 0) return '—';
+    return n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`;
+  }
+
+  function tdScorerCard(row) {
+    const name = row.player_display_name || row.player_name || 'Unknown';
+    const pos = row.position || 'WR';
+    const matchup = `${row.team || ''} vs ${row.opponent_team || ''}`.trim();
+    const pAny = (Number(row.p_anytime_td) * 100).toFixed(1);
+    const p2p = Number.isFinite(Number(row.p_2plus_td)) ? (Number(row.p_2plus_td) * 100).toFixed(1) : '—';
+    const pFirst = Number.isFinite(Number(row.p_first_td)) ? (Number(row.p_first_td) * 100).toFixed(1) : '—';
+    const fairAny = formatTdAmericanOdds(row.fair_odds_anytime);
+    const fair2p = formatTdAmericanOdds(row.fair_odds_2plus);
+    const fairFirst = formatTdAmericanOdds(row.fair_odds_first);
+    const tier = row.td_confidence_tier || row.confidence_tier || 'THIN_SAMPLE';
+    const tdMean = Number.isFinite(Number(row.td_mean)) ? Number(row.td_mean).toFixed(2) : '—';
+    const roleSurge = Number(row.td_role_surge_z) >= 1.5;
+    const vacatedRz = Number(row.td_vacated_rz_opps) > 0;
+    const tags = [
+      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">CONF: ${esc(tier)}</span>`,
+      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">TD λ ${esc(tdMean)}</span>`,
+    ];
+    if (roleSurge) tags.push('<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#34d399;">ROLE SURGE</span>');
+    if (vacatedRz) tags.push(`<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#fbbf24;">VACATED RZ +${Number(row.td_vacated_rz_opps).toFixed(1)}</span>`);
+
+    return `<article class="prop-card td-scorer-card" data-td-card="1" data-player-id="${esc(row.player_id || '')}" style="padding:12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.75);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+        <div>
+          <strong style="font-size:15px;">${esc(name)}</strong>
+          <span style="font-size:12px;opacity:0.75;margin-left:6px;">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${tags.join('')}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0;border-top:1px solid rgba(148,163,184,0.15);border-bottom:1px solid rgba(148,163,184,0.15);font-size:12px;">
+        <div><div style="opacity:0.7;font-size:10px;">ANYTIME TD</div><strong>${esc(pAny)}% (${esc(fairAny)})</strong></div>
+        <div><div style="opacity:0.7;font-size:10px;">2+ TD</div><strong>${esc(p2p)}% (${esc(fair2p)})</strong></div>
+        <div><div style="opacity:0.7;font-size:10px;">FIRST TD</div><strong>${esc(pFirst)}% (${esc(fairFirst)})</strong></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;opacity:0.8;" data-td-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+    </article>`;
+  }
+
+  function nbaPointsCard(row) {
+    const name = row.player_display_name || row.player_name || 'Unknown';
+    const pos = row.position || 'G';
+    const matchup = `${row.team || ''} vs ${row.opponent || row.opponent_team || ''}`.trim();
+    const minHat = Number.isFinite(Number(row.minutes_hat)) ? Number(row.minutes_hat).toFixed(1) : '—';
+    const minP10 = Number.isFinite(Number(row.minutes_p10)) ? Number(row.minutes_p10).toFixed(1) : null;
+    const minP90 = Number.isFinite(Number(row.minutes_p90)) ? Number(row.minutes_p90).toFixed(1) : null;
+    const minBand = minP10 && minP90 ? `${minHat} (${minP10}–${minP90})` : minHat;
+    const fair = Number.isFinite(Number(row.fair_line_points)) ? Number(row.fair_line_points).toFixed(1) : '—';
+    const proj = Number.isFinite(Number(row.proj_points)) ? Number(row.proj_points).toFixed(1) : '—';
+    const surge = Boolean(row.role_surge);
+    const surgeReason = row.role_surge_reason ? String(row.role_surge_reason) : '';
+    const badges = [
+      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">MIN ${esc(minBand)}</span>`,
+    ];
+    if (surge) {
+      badges.push(`<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#34d399;">ROLE SURGE${surgeReason ? ` · ${esc(surgeReason)}` : ''}</span>`);
+    }
+    return `<article class="prop-card nba-points-card" data-nba-points-card="1" data-player-id="${esc(row.player_id || '')}" style="padding:12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.75);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+        <div>
+          <strong style="font-size:15px;">${esc(name)}</strong>
+          <span style="font-size:12px;opacity:0.75;margin-left:6px;">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${badges.join('')}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px 0;border-top:1px solid rgba(148,163,184,0.15);border-bottom:1px solid rgba(148,163,184,0.15);font-size:12px;">
+        <div><div style="opacity:0.7;font-size:10px;">MODEL FAIR (PTS)</div><strong>${esc(fair)}</strong></div>
+        <div><div style="opacity:0.7;font-size:10px;">PROJECTED PTS</div><strong>${esc(proj)}</strong></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;opacity:0.8;" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+    </article>`;
+  }
+
   function propCard(row, index = 0) {
+    if (SPORT_ID === 'nba' && row && Number.isFinite(Number(row.proj_points))) {
+      return nbaPointsCard(row);
+    }
+    if (state.filters.market === 'anytime_td' && row && Number.isFinite(Number(row.p_anytime_td))) {
+      return tdScorerCard(row);
+    }
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const dist = distributionRange(row);

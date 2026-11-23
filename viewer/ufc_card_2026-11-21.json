@@ -1,7 +1,7 @@
 {
   "schema_version": "ufc-card.v1",
   "sport": "ufc",
-  "generated_at": "2026-11-19T02:08:34Z",
+  "generated_at": "2026-11-22T00:48:37Z",
   "event_id": "600061665",
   "event_name": "UFC Fight Night: Procházka vs. Stirling",
   "date": "2026-11-21",
@@ -12,20 +12,91 @@
   },
   "fights": [
     {
+      "fight_id": "401935762",
+      "start": "2026-11-21T15:00Z",
+      "weight_class": "Lightweight",
+      "sched_rounds": 3,
+      "result": "win",
+      "end_round": 1,
+      "went_distance": false,
+      "fighters": [
+        {
+          "id": "4712356",
+          "name": "Shoaib Yousaf",
+          "record": "14-4-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/eng.png",
+          "winner": false,
+          "age": 31,
+          "reach_in": 72.5,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4712356.png"
+        },
+        {
+          "id": "5080723",
+          "name": "John Mitchell",
+          "record": "12-3-0",
+          "flag": "https://a.espncdn.com/i/teamlogos/countries/500/irl.png",
+          "winner": true,
+          "age": 31,
+          "reach_in": 74.5,
+          "stance": "Orthodox",
+          "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5080723.png"
+        }
+      ],
+      "model": {
+        "p": [
+          0.477,
+          0.523
+        ],
+        "elo": [
+          1500.0,
+          1500.0
+        ],
+        "fights": [
+          0,
+          0
+        ],
+        "adjustments": [
+          {
+            "reach": -8.0
+          },
+          {
+            "reach": 8.0
+          }
+        ],
+        "fair_american": [
+          110,
+          -110
+        ],
+        "p_finish": 0.5631,
+        "p_over_by_line": {
+          "1.5": 0.6227,
+          "2.5": 0.4809
+        }
+      },
+      "market": null,
+      "totals": [],
+      "status": "final",
+      "status_events": [],
+      "short_notice": false,
+      "void": false,
+      "edge": "NO EDGE"
+    },
+    {
       "fight_id": "401934356",
       "start": "2026-11-21T15:00Z",
       "weight_class": "Light Heavyweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 2,
+      "went_distance": false,
       "fighters": [
         {
           "id": "5213352",
           "name": "Diyar Nurgozhay",
-          "record": "12-2-0",
+          "record": "13-2-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/kaz.png",
-          "winner": false,
+          "winner": true,
           "age": 29,
           "reach_in": 74.0,
           "stance": "Southpaw",
@@ -34,19 +105,19 @@
         {
           "id": "5220971",
           "name": "Alik Lorenz",
-          "record": "8-2-0",
+          "record": "8-3-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
           "winner": false,
           "age": 29,
-          "reach_in": 77.5,
+          "reach_in": 77.0,
           "stance": "Orthodox",
           "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5220971.png"
         }
       ],
       "model": {
         "p": [
-          0.4879,
-          0.5121
+          0.4936,
+          0.5064
         ],
         "elo": [
           1519.6,
@@ -58,15 +129,15 @@
         ],
         "adjustments": [
           {
-            "reach": -14.0
+            "reach": -12.0
           },
           {
-            "reach": 14.0
+            "reach": 12.0
           }
         ],
         "fair_american": [
-          105,
-          -105
+          103,
+          -103
         ],
         "p_finish": 0.7069,
         "p_over_by_line": {
@@ -76,7 +147,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -87,14 +158,14 @@
       "start": "2026-11-21T15:00Z",
       "weight_class": "Lightweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "3897242",
           "name": "Nikolas Motta",
-          "record": "15-6-0",
+          "record": "15-7-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
           "winner": false,
           "age": 33,
@@ -105,9 +176,9 @@
         {
           "id": "5157806",
           "name": "Dom Mar Fan",
-          "record": "9-3-0",
+          "record": "10-3-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/aus.png",
-          "winner": false,
+          "winner": true,
           "age": 26,
           "reach_in": 75.0,
           "stance": "Orthodox",
@@ -149,7 +220,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -160,14 +231,14 @@
       "start": "2026-11-21T15:00Z",
       "weight_class": "Welterweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "3089915",
           "name": "Jake Matthews",
-          "record": "23-8-0",
+          "record": "23-9-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/aus.png",
           "winner": false,
           "age": 32,
@@ -178,12 +249,12 @@
         {
           "id": "4394753",
           "name": "Tahir Abdullayev",
-          "record": "20-3-0",
+          "record": "21-3-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/aze.png",
-          "winner": false,
+          "winner": true,
           "age": 29,
           "reach_in": 73.0,
-          "stance": "--",
+          "stance": "Orthodox",
           "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/4394753.png"
         }
       ],
@@ -220,7 +291,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -231,16 +302,16 @@
       "start": "2026-11-21T15:00Z",
       "weight_class": "Flyweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": false,
       "fighters": [
         {
           "id": "4684848",
           "name": "Amir Albazi",
-          "record": "17-3-0",
+          "record": "18-3-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/irq.png",
-          "winner": false,
+          "winner": true,
           "age": 33,
           "reach_in": 68.0,
           "stance": "Orthodox",
@@ -249,7 +320,7 @@
         {
           "id": "5074121",
           "name": "Alessandro Costa",
-          "record": "17-5-0",
+          "record": "17-6-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
           "winner": false,
           "age": 30,
@@ -292,7 +363,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -303,27 +374,27 @@
       "start": "2026-11-21T15:00Z",
       "weight_class": "Heavyweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "5145498",
           "name": "Shamil Gaziev",
-          "record": "15-3-0",
+          "record": "15-4-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/brn.png",
           "winner": false,
           "age": 36,
-          "reach_in": 78.5,
+          "reach_in": 78.0,
           "stance": "Orthodox",
           "headshot": "https://a.espncdn.com/i/headshots/mma/players/full/5145498.png"
         },
         {
           "id": "5212856",
           "name": "Tallison Teixeira",
-          "record": "9-2-0",
+          "record": "10-2-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/bra.png",
-          "winner": false,
+          "winner": true,
           "age": 26,
           "reach_in": 83.0,
           "stance": "Orthodox",
@@ -332,8 +403,8 @@
       ],
       "model": {
         "p": [
-          0.4181,
-          0.5819
+          0.4125,
+          0.5875
         ],
         "elo": [
           1549.6,
@@ -345,16 +416,16 @@
         ],
         "adjustments": [
           {
-            "reach": -18.0,
+            "reach": -20.0,
             "age": -48.0
           },
           {
-            "reach": 18.0
+            "reach": 20.0
           }
         ],
         "fair_american": [
-          139,
-          -139
+          142,
+          -142
         ],
         "p_finish": 0.6723,
         "p_over_by_line": {
@@ -364,7 +435,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -375,14 +446,14 @@
       "start": "2026-11-21T15:00Z",
       "weight_class": "Bantamweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "5185662",
           "name": "Aleksandre Topuria",
-          "record": "7-1-0",
+          "record": "7-2-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/geo.png",
           "winner": false,
           "age": 30,
@@ -393,9 +464,9 @@
         {
           "id": "5307799",
           "name": "Santiago Luna",
-          "record": "8-1-0",
+          "record": "9-1-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/mex.png",
-          "winner": false,
+          "winner": true,
           "age": 22,
           "reach_in": 74.0,
           "stance": "Orthodox",
@@ -435,7 +506,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -446,14 +517,14 @@
       "start": "2026-11-21T18:00Z",
       "weight_class": "Middleweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "3154860",
           "name": "Jared Cannonier",
-          "record": "18-10-0",
+          "record": "18-11-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
           "winner": false,
           "age": 42,
@@ -464,9 +535,9 @@
         {
           "id": "4684776",
           "name": "Ikram Aliskerov",
-          "record": "18-2-0",
+          "record": "19-2-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
-          "winner": false,
+          "winner": true,
           "age": 33,
           "reach_in": 76.0,
           "stance": "Southpaw",
@@ -508,7 +579,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -519,16 +590,16 @@
       "start": "2026-11-21T18:00Z",
       "weight_class": "Flyweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "2613374",
           "name": "Kyoji Horiguchi",
-          "record": "36-6-0",
+          "record": "37-6-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/jpn.png",
-          "winner": false,
+          "winner": true,
           "age": 36,
           "reach_in": 63.0,
           "stance": "Orthodox",
@@ -537,7 +608,7 @@
         {
           "id": "4294926",
           "name": "Asu Almabayev",
-          "record": "24-3-0",
+          "record": "24-4-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/kaz.png",
           "winner": false,
           "age": 32,
@@ -580,7 +651,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -591,16 +662,16 @@
       "start": "2026-11-21T18:00Z",
       "weight_class": "Lightweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "3109135",
           "name": "Dan Hooker",
-          "record": "24-15-0",
+          "record": "25-15-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/nzl.png",
-          "winner": false,
+          "winner": true,
           "age": 36,
           "reach_in": 75.0,
           "stance": "Switch",
@@ -609,7 +680,7 @@
         {
           "id": "3045737",
           "name": "Brian Ortega",
-          "record": "16-5-0",
+          "record": "16-6-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
           "winner": false,
           "age": 35,
@@ -655,7 +726,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -666,14 +737,14 @@
       "start": "2026-11-21T18:00Z",
       "weight_class": "Featherweight",
       "sched_rounds": 3,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 3,
+      "went_distance": true,
       "fighters": [
         {
           "id": "3031559",
           "name": "Aljamain Sterling",
-          "record": "26-5-0",
+          "record": "26-6-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png",
           "winner": false,
           "age": 37,
@@ -684,9 +755,9 @@
         {
           "id": "5145681",
           "name": "Kevin Vallejos",
-          "record": "18-1-0",
+          "record": "19-1-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/arg.png",
-          "winner": false,
+          "winner": true,
           "age": 24,
           "reach_in": 68.0,
           "stance": "Switch",
@@ -727,7 +798,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -738,14 +809,14 @@
       "start": "2026-11-21T18:00Z",
       "weight_class": "Light Heavyweight",
       "sched_rounds": 5,
-      "result": null,
-      "end_round": null,
-      "went_distance": null,
+      "result": "win",
+      "end_round": 2,
+      "went_distance": false,
       "fighters": [
         {
           "id": "3156612",
           "name": "Jiří Procházka",
-          "record": "32-6-1",
+          "record": "32-7-1",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/cze.png",
           "winner": false,
           "age": 34,
@@ -756,9 +827,9 @@
         {
           "id": "5216713",
           "name": "Navajo Stirling",
-          "record": "11-0-0",
+          "record": "12-0-0",
           "flag": "https://a.espncdn.com/i/teamlogos/countries/500/nzl.png",
-          "winner": false,
+          "winner": true,
           "age": 29,
           "reach_in": 79.0,
           "stance": "Orthodox",
@@ -801,7 +872,7 @@
       },
       "market": null,
       "totals": [],
-      "status": "scheduled",
+      "status": "final",
       "status_events": [],
       "short_notice": false,
       "void": false,
@@ -813,9 +884,9 @@
   },
   "market_as_of": null,
   "backtest": {
-    "n": 3537,
+    "n": 3549,
     "brier": 0.2431,
-    "log_loss": 0.6792,
+    "log_loss": 0.6793,
     "coinflip_brier": 0.25,
     "coinflip_log_loss": 0.6931,
     "type": "walk-forward results-only (not closing-line CLV)"

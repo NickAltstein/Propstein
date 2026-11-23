@@ -1,29 +1,25 @@
 {
+  "cap_exceeded": false,
+  "excluded": [],
   "failed_fetches": [],
-  "games_in_pricing_window": 13,
-  "games_ingested": 13,
-  "games_ready": 11,
-  "generated_at": "2026-11-19T02:08:32.190824+00:00",
-  "missing_timestamps": [
-    {
-      "game_id": "2026_11_MIA_BUF",
-      "missing": [
-        "weather_observed_at",
-        "weather_values"
-      ]
-    },
-    {
-      "game_id": "2026_11_MIN_SF",
-      "missing": [
-        "weather_observed_at",
-        "weather_values"
-      ]
+  "games_in_pricing_window": 1,
+  "games_ingested": 1,
+  "games_ready": 1,
+  "generated_at": "2026-11-23T20:53:20.080414+00:00",
+  "max_excluded_games": 3,
+  "missing_timestamps": [],
+  "per_game_readiness": {
+    "2026_11_CIN_WAS": {
+      "missing_fields": [],
+      "ready_for_pricing": true,
+      "status": "READY"
     }
-  ],
-  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-19T02-08-30-962605+00-00_139fc6df.json",
-  "ready_for_pricing": false,
+  },
+  "raw_source_payload": "data/raw_espn_captures/espn_2026_w11_2026-11-23T20-53-19-538874+00-00_f16955b1.json",
+  "ready_for_pricing": true,
   "ruleset": "espn-game-context-2026-11-04",
   "season": 2026,
   "stale_captures": [],
+  "unallowed_excluded": [],
   "week": 11
 }

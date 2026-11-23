@@ -22,7 +22,10 @@ from ..config import (
 )
 
 BOOST_STATUSES = {"out", "out (rehab assignment)", "inactive", "suspended"}
+REDISTRIBUTION_STATUSES = BOOST_STATUSES | {"doubtful"}
 VAR_STATUSES = {"questionable", "game time decision", "gtd", "doubtful"}
+VACATED_MIN_PER_OUT = 3.5
+VACATED_MIN_CAP = 8.0
 
 
 def add_availability_adjustments(
@@ -33,6 +36,9 @@ def add_availability_adjustments(
     df["availability_mult"] = 1.0
     df["var_inflation"] = 1.0
     df["teammates_out"] = 0
+    df["vacated_min_boost"] = 0.0
+    df["role_surge"] = False
+    df["role_surge_reason"] = ""
 
     if not injuries:
         df["availability_source"] = "none"
@@ -54,15 +60,23 @@ def add_availability_adjustments(
     )
     df["own_status"] = df["own_status"].fillna("")
 
-    # Teammate-out map per (game_id, team): OUT rows only
+    # Teammate-out map per (game_id, team): OUT rows for availability_mult,
+    # OUT/DOUBTFUL rows for bounded vacated_min_boost / role_surge.
     out_map = (
         inj_df[inj_df["status_key"].isin(BOOST_STATUSES)]
         .groupby(["game_id", "team"])["player_id"]
         .apply(set)
         .to_dict()
     )
+    redist_map = (
+        inj_df[inj_df["status_key"].isin(REDISTRIBUTION_STATUSES)]
+        .groupby(["game_id", "team"])["player_id"]
+        .apply(set)
+        .to_dict()
+    )
 
     boost_values, var_values, n_out_values = [], [], []
+    vacated_min_values, surge_flags, surge_reasons = [], [], []
     for _, row in df.iterrows():
         var = QUESTIONABLE_VAR_INFLATION if row["own_status"] in VAR_STATUSES else 1.0
         var_values.append(var)
@@ -72,16 +86,31 @@ def add_availability_adjustments(
         for out_id in out_ids:
             if out_id == row["player_id"]:
                 continue
-            # Share-based: each Out teammate adds a flat share of the boost
-            # cap. When the upstream report ships a redistribution_plan, the
-            # caller may refine availability_mult per beneficiary (feed wins).
             boost += TEAMMATE_OUT_MINUTES_BOOST
             n_out += 1
         boost_values.append(round(min(boost, TEAMMATE_OUT_BOOST_CAP), 4))
         n_out_values.append(n_out)
 
+        redist_ids = {pid for pid in redist_map.get((row["game_id"], row["team"]), set()) if pid != row["player_id"]}
+        if row["own_status"] in BOOST_STATUSES or not redist_ids:
+            vacated_min_values.append(0.0)
+            surge_flags.append(False)
+            surge_reasons.append("")
+        else:
+            v_min = round(min(len(redist_ids) * VACATED_MIN_PER_OUT, VACATED_MIN_CAP), 2)
+            vacated_min_values.append(v_min)
+            is_surge = v_min >= 3.5
+            surge_flags.append(is_surge)
+            surge_reasons.append(
+                f"+{v_min:.1f} min · {len(redist_ids)} teammate{'s' if len(redist_ids) != 1 else ''} OUT/D"
+                if is_surge else ""
+            )
+
     df["availability_mult"] = 1.0 + pd.Series(boost_values, index=df.index)
     df["var_inflation"] = pd.Series(var_values, index=df.index)
     df["teammates_out"] = pd.Series(n_out_values, index=df.index)
+    df["vacated_min_boost"] = pd.Series(vacated_min_values, index=df.index)
+    df["role_surge"] = pd.Series(surge_flags, index=df.index)
+    df["role_surge_reason"] = pd.Series(surge_reasons, index=df.index)
     df.loc[df["own_status"].isin(BOOST_STATUSES), "availability_mult"] = 0.0
     return df

@@ -1,0 +1,428 @@
+{
+  "source": "viewer/feeds/grades/nfl_2026_w10.json",
+  "generated_at": "2026-11-23T20:51:49.551Z",
+  "record_count": 42,
+  "cards": [
+    {
+      "file": "result-001.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "fe37088457336eafd52bc7713a4a50a226e40ed4a245402f89ba2f462e03d0ab",
+      "model_range": {
+        "p10": 2,
+        "p90": 9
+      }
+    },
+    {
+      "file": "result-002.png",
+      "outcome": "LOSS",
+      "receipt_id": null,
+      "record_sha256": "dd68b77f89c53df3940db564fee8a01312f96c9df9d13eaac8661290eac153f1",
+      "model_range": {
+        "p10": 15.6,
+        "p90": 118.8
+      }
+    },
+    {
+      "file": "result-003.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "bbdbbf8d015c4b22ff824847fa9012080957148b5053fb79f16c5f4a97b5973f",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-004.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "4971ebff238bd9a203cb4176a2f447cf531b6a89087d7fcfd22d1b17c543c5c0",
+      "model_range": {
+        "p10": 0,
+        "p90": 72
+      }
+    },
+    {
+      "file": "result-005.png",
+      "outcome": "LOSS",
+      "receipt_id": null,
+      "record_sha256": "9723c1ba2ceb43494f99bafd932fa600563f29a3453c7914c05a9468c38864f0",
+      "model_range": {
+        "p10": 0,
+        "p90": 5
+      }
+    },
+    {
+      "file": "result-006.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "c9c2c54eef2442a3ee0c52e3e848531b6532dd3978b6c65236502e7a878521b4",
+      "model_range": {
+        "p10": 0,
+        "p90": 66.1
+      }
+    },
+    {
+      "file": "result-007.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "121371c22c077c5b335bb02ae7b4aadbbae96377b8866b3bc5147a07a5416bd4",
+      "model_range": {
+        "p10": 0,
+        "p90": 5
+      }
+    },
+    {
+      "file": "result-008.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "037da893fa38c665e81100283cb56afe278b164bf647e5cc4a19426d753f7bc3",
+      "model_range": {
+        "p10": 0,
+        "p90": 58.1
+      }
+    },
+    {
+      "file": "result-009.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "08a946f15596452363718afb67785bd862d33552902037540d877cad53867546",
+      "model_range": {
+        "p10": 0,
+        "p90": 5
+      }
+    },
+    {
+      "file": "result-010.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "6acf59fe85f27f1332b62dc99d0c8838d21482be4e5a3d7e0efea2acbe68d1fa",
+      "model_range": {
+        "p10": 0,
+        "p90": 57.9
+      }
+    },
+    {
+      "file": "result-011.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "0483f5e5bfa939834fa29eac75ff37779a672003cb889aff62a18998b0fcb76d",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-012.png",
+      "outcome": "LOSS",
+      "receipt_id": null,
+      "record_sha256": "b754c368e0ab75ea00d0b066c7f0626b107c9a710c172032bcec5618a5c3f641",
+      "model_range": {
+        "p10": 0,
+        "p90": 57.2
+      }
+    },
+    {
+      "file": "result-013.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "1260f09b87895f0aebcda2b2579e09f907a869c5b3abf57dd5bfa6d7a71ed3d9",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-014.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "103a98c9416829c59869ee1a84bfba5304317b1e9d99b697b3debdd050449409",
+      "model_range": {
+        "p10": 0,
+        "p90": 54.8
+      }
+    },
+    {
+      "file": "result-015.png",
+      "outcome": "LOSS",
+      "receipt_id": null,
+      "record_sha256": "d9a4af6c063cc91abdfea08e987753e57195eea8c16f8dbbd3c1cb5ee9108635",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-016.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "e58d469df356fab94ec2c1d42f2db9193b9841d69c6ecf3e90638f6ff5c7fc9e",
+      "model_range": {
+        "p10": 0,
+        "p90": 49.7
+      }
+    },
+    {
+      "file": "result-017.png",
+      "outcome": "LOSS",
+      "receipt_id": null,
+      "record_sha256": "6d3000dfc78d51dfc102d7f48721d97b051e1039d05f1aaea93dd61a8d89ab67",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-018.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "eed8a4cb52cda4601c23edfbef48e0224b2e3f25797cb2b1335f109538609085",
+      "model_range": {
+        "p10": 0,
+        "p90": 46.9
+      }
+    },
+    {
+      "file": "result-019.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "34295bdbe3cde709d9328d759a672b52db4158e64de2347137d1687497714676",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-020.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "7301dd2d8738eb9e8911344e4ac771392d3b65536053d0fcfc0778a7d0d0231b",
+      "model_range": {
+        "p10": 0,
+        "p90": 49.4
+      }
+    },
+    {
+      "file": "result-021.png",
+      "outcome": "WIN",
+      "receipt_id": null,
+      "record_sha256": "e80ef10e384f22f91ba0631e90830b2b4b791970e50b3762cfe2a33bbc82dfe8",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-022.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "3c4311dee83514ffd418148aabf4b98ad6383a312c08250e46a3ef93342a832a",
+      "model_range": {
+        "p10": 0,
+        "p90": 45
+      }
+    },
+    {
+      "file": "result-023.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "a09ea22f63b37ccb953f975c0be894b972977df7e7a829e8950049fcded5389d",
+      "model_range": {
+        "p10": 1,
+        "p90": 5
+      }
+    },
+    {
+      "file": "result-024.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "66b4e06e6fb237c26de843c3e4a67415d75f035048d6ded28721a54a9fb7e300",
+      "model_range": {
+        "p10": 0.2,
+        "p90": 40
+      }
+    },
+    {
+      "file": "result-025.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "e56867441bfc2d1718daed7d06be26ee1c4f779a9e2ba6f0632e1f60f1245079",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-026.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "67fb611f8e4ee43838bb8b4fb2053b9cf07e4849633d64d2af2f69cb78a153f8",
+      "model_range": {
+        "p10": 0,
+        "p90": 40
+      }
+    },
+    {
+      "file": "result-027.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "ec4d47de043ffe21a2fc493631f215f3faeba81ea70a75ad2d3ae225e996de19",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-028.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "f8673dfa898b928a4a8156f25c0502edbfcbd822f5ab60fd102b2da574fe3cc1",
+      "model_range": {
+        "p10": 0,
+        "p90": 33.3
+      }
+    },
+    {
+      "file": "result-029.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "52723d3cfabf0f34bdd9afca2b10213f07cbb46156aac06f4cdbd846dd06e655",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-030.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "48fa3a707a912e4de45a83838bc480fe09f95c96f8163c231d6f4c21135d08b2",
+      "model_range": {
+        "p10": 0,
+        "p90": 34.5
+      }
+    },
+    {
+      "file": "result-031.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "702995cd81ccc0c00b2a5c6dd1b4df387c6ea37b756a6e761dd3d95894bc16f8",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-032.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "35813ec7c634bee31363772a85006abc1313b1ac4412817ce1dc8161b8b953ce",
+      "model_range": {
+        "p10": 0,
+        "p90": 35.5
+      }
+    },
+    {
+      "file": "result-033.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "4429e65ea1f010bc237804b4324bc19c0c153176402678a403c7f63fc940042e",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-034.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "d305f41d5451c86e12431d1b13e3782efdbd7aec60963dae040bd3783637b8af",
+      "model_range": {
+        "p10": 0,
+        "p90": 30.3
+      }
+    },
+    {
+      "file": "result-035.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "05a9b08fb6faede05f9302fae47c6b85ba0475866cee27f5d49200c072411d7c",
+      "model_range": {
+        "p10": 0,
+        "p90": 4
+      }
+    },
+    {
+      "file": "result-036.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "c37efb42fdd05a0854f230d91672071dce2c018a590499fc1ff483044d2b3c2a",
+      "model_range": {
+        "p10": 0,
+        "p90": 29.7
+      }
+    },
+    {
+      "file": "result-037.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "d1ebd6acf35790bf5f479e0de05a921705711b23c1df86d6b4b4cbd87e4b8c20",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-038.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "05ee97a5d280b25f46fa72ada32972d893266ce9c3955905c870699ad91494b2",
+      "model_range": {
+        "p10": 0,
+        "p90": 29.2
+      }
+    },
+    {
+      "file": "result-039.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "b8fe20e2c26a0f0b200ebabb74f258e7f0c042ea9b3f646015ffe8eb468c9ad1",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-040.png",
+      "outcome": "NO_QUOTE",
+      "receipt_id": null,
+      "record_sha256": "94f3d50acca1c01d219ca4d6f7b25677c9dbec8caa244fd15369fb564db4582c",
+      "model_range": {
+        "p10": 0,
+        "p90": 25.7
+      }
+    },
+    {
+      "file": "result-041.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "0039f07773a70f328a1b650086ff5da40cbb77df836de754f2c00980fc555e13",
+      "model_range": {
+        "p10": 0,
+        "p90": 3
+      }
+    },
+    {
+      "file": "result-042.png",
+      "outcome": "VOID",
+      "receipt_id": null,
+      "record_sha256": "9fcc6dcdbf76dafeeea9156ef4445adef67b2a462d3c39e8299eee7d5de73589",
+      "model_range": {
+        "p10": 0,
+        "p90": 23.4
+      }
+    }
+  ],
+  "summary_sha256": "af10c1a7874986d77277046a7503ce1fd5a1a97333c311c05f25600ec07d1d4c"
+}

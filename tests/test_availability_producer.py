@@ -358,3 +358,120 @@ def test_sticky_clearing_rule_and_stale_review_report(tmp_path):
         roster_rows=roster_act, now=t_espn + timedelta(hours=49),
     )
     assert "00-0036900" not in r_espn_cleared["excluded_player_ids"]
+
+
+def test_availability_poll_wires_injury_consumer_void_dirty_and_stale_context(tmp_path):
+    from src.agents.injury_consumer import (
+        STATE_AVAILABILITY_VOID,
+        STATE_CONTEXT_DIRTY,
+        STATE_STALE_CONTEXT,
+        ReceiptRecord,
+    )
+
+    jsonl_path = tmp_path / "availability_events.jsonl"
+    report_path = tmp_path / "availability_report.json"
+    receipts_path = tmp_path / "open_receipts.json"
+    roster = [
+        {"gsis_id": "00-0039075", "espn_id": "4426515", "team": "LA", "status": "ACT", "status_description_abbr": "A01"},
+        {"gsis_id": "00-0033908", "espn_id": "2977187", "team": "LA", "status": "ACT", "status_description_abbr": "A01"},
+    ]
+    open_receipts = [
+        ReceiptRecord(
+            receipt_id="rcpt-nacua",
+            player_id="00-0039075",
+            team="LA",
+            market="receiving_yards",
+            receipt_hash="a" * 64,
+            line=74.5,
+            base_projection=82.0,
+            base_edge_pp=11.0,
+        ),
+        ReceiptRecord(
+            receipt_id="rcpt-kupp",
+            player_id="00-0033908",
+            team="LA",
+            market="receiving_yards",
+            receipt_hash="b" * 64,
+            line=68.5,
+            base_projection=73.0,
+            base_edge_pp=10.2,
+        ),
+    ]
+    usage_table = {
+        "00-0039075": {
+            "target_share": 0.28,
+            "beneficiary_weights": {"00-0033908": 0.25},
+        }
+    }
+    now = datetime(2026, 11, 18, 15, 0, tzinfo=timezone.utc)
+    report = run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=_espn_payload([_espn_entry("Puka Nacua", "LAR", "Out", "4426515")], timestamp=now.isoformat()),
+        roster_rows=roster,
+        now=now,
+        open_receipts=open_receipts,
+        receipts_path=receipts_path,
+        model_usage_table=usage_table,
+        news_week=11,
+        board_week=11,
+        capture_week=11,
+    )
+    assert report["receipt_consumer"]["status"] == "OK"
+    assert report["receipt_consumer"]["healthy"] is True
+    assert report["receipt_consumer"]["voided_receipt_ids"] == ["rcpt-nacua"]
+    assert report["receipt_consumer"]["dirty_receipt_ids"] == ["rcpt-kupp"]
+
+    persisted = {r["receipt_id"]: r for r in json.loads(receipts_path.read_text(encoding="utf-8"))}
+    assert persisted["rcpt-nacua"]["state"] == STATE_AVAILABILITY_VOID
+    assert persisted["rcpt-nacua"]["active"] is False
+    assert persisted["rcpt-nacua"]["can_execute"] is False
+    assert persisted["rcpt-nacua"]["excluded_from_n"] is True
+    assert persisted["rcpt-kupp"]["state"] == STATE_CONTEXT_DIRTY
+    assert persisted["rcpt-kupp"]["active"] is False
+    assert persisted["rcpt-kupp"]["can_execute"] is False
+    assert persisted["rcpt-kupp"]["base_edge_pp"] == 10.2
+    assert persisted["rcpt-kupp"]["receipt_hash"] == "b" * 64
+
+    # Stale context (e.g., ESPN fetch failure) pauses action fields across open receipts
+    stale_report = run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=None,
+        espn_error="timeout",
+        roster_rows=roster,
+        now=now + timedelta(minutes=5),
+        receipts_path=receipts_path,
+        model_usage_table=usage_table,
+        news_week=11,
+        board_week=11,
+        capture_week=11,
+    )
+    assert stale_report["stale_context"] is True
+    assert stale_report["receipt_consumer"]["gate_paused"] is True
+    assert stale_report["receipt_consumer"]["pause_reason"] == STATE_STALE_CONTEXT
+    paused = {r["receipt_id"]: r for r in json.loads(receipts_path.read_text(encoding="utf-8"))}
+    assert all(r["active"] is False and r["can_execute"] is False and r["state"] == STATE_STALE_CONTEXT for r in paused.values())
+
+
+def test_availability_poll_fails_closed_with_no_receipt_source(tmp_path):
+    jsonl_path = tmp_path / "availability_events.jsonl"
+    report_path = tmp_path / "availability_report.json"
+    missing_receipts = tmp_path / "missing_open_receipts.json"
+    now = datetime(2026, 11, 18, 15, 0, tzinfo=timezone.utc)
+    report = run_availability_poll(
+        jsonl_path=jsonl_path,
+        report_path=report_path,
+        espn_payload=_espn_payload([], timestamp=now.isoformat()),
+        roster_rows=[],
+        now=now,
+        receipts_path=missing_receipts,
+        news_week=11,
+        board_week=11,
+        capture_week=11,
+    )
+    rc = report["receipt_consumer"]
+    assert rc["status"] == "NO_RECEIPT_SOURCE"
+    assert rc["healthy"] is False
+    assert rc["gate_paused"] is True
+    assert rc["pause_reason"] == "NO_RECEIPT_SOURCE"

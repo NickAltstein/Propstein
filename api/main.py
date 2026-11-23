@@ -655,6 +655,32 @@ async def legacy_stripe_webhook(request: Request):
 # MarketEdge rows lack verification evidence and cannot be actionable.
 # ---------------------------------------------------------------------------
 
+from src.contracts.book_quote_tape import (
+    best_price_view,
+    best_price_views_by_class,
+    filter_fresh_tape,
+    sanitize_legacy_edge_rows,
+)
+
+_BOOK_QUOTE_TAPE: list[dict[str, Any]] = []
+
+
+def set_book_quote_tape(rows: list[dict[str, Any]]) -> None:
+    """Replace the in-memory timestamped tape for deterministic evaluation/testing."""
+    _BOOK_QUOTE_TAPE.clear()
+    _BOOK_QUOTE_TAPE.extend(rows)
+
+
+def _load_tape_rows() -> list[dict[str, Any]]:
+    if _BOOK_QUOTE_TAPE:
+        return list(_BOOK_QUOTE_TAPE)
+    tape_path = os.path.join(BASE_DIR, "data", "book_quote_tape.jsonl")
+    if os.path.exists(tape_path):
+        with open(tape_path, "r", encoding="utf-8") as handle:
+            return [json.loads(line) for line in handle if line.strip()]
+    return []
+
+
 @app.get("/v1/edges")
 @app.get("/api/v1/edges")
 def get_v1_edges(
@@ -667,6 +693,11 @@ def get_v1_edges(
 ):
     """Serve only fresh, explicitly verified source quotes that passed policy."""
     from src.services.actionable_edges import decide_feed
+
+    raw_tape = _load_tape_rows()
+    fresh_tape = filter_fresh_tape(raw_tape, policy_version="verification.v1")
+    best_prices = best_price_view(raw_tape, evidential_class="confirmatory", policy_version="verification.v1")
+    best_prices_by_class = best_price_views_by_class(raw_tape, policy_version="verification.v1")
 
     path = resolve_file("LIVE_ODDS_FEED_PATH", "live_odds_feed.json")
     try:
@@ -682,9 +713,10 @@ def get_v1_edges(
         edges = [edge for edge in edges if player.lower() in edge["player_name"].lower()]
     if market:
         edges = [edge for edge in edges if edge["market"] == market]
-    edges = edges[:limit]
+    edges = sanitize_legacy_edge_rows(edges[:limit], fresh_tape)
     return {"status": "success", "source": "verified_feed", "count": len(edges),
-            "slate": feed.get("slate"), "data": edges}
+            "slate": feed.get("slate"), "tape": fresh_tape, "best_price": best_prices,
+            "best_price_by_class": best_prices_by_class, "data": edges}
 
 
 @app.get("/v1/diagnostics")

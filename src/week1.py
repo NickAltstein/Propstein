@@ -35,13 +35,21 @@ VIEWER_GATE_EDGE = 0.10
 VIEWER_KELLY_CAP = 0.03
 
 
-def project(season: int, week: int, include_all: bool = False) -> tuple[pd.DataFrame, ReceivingModel]:
+def project(
+    season: int,
+    week: int,
+    include_all: bool = False,
+    exclude_games: list[str] | set[str] | None = None,
+) -> tuple[pd.DataFrame, ReceivingModel]:
     panel = build_panel()
     panel = panel[(panel.season < season) |
                   ((panel.season == season) & (panel.week < week))]
     model = ReceivingModel.fit(panel)
 
-    slate = build_slate(season, week, include_all=include_all)
+    slate = build_slate(season, week, include_all=include_all, exclude_games=exclude_games)
+    if exclude_games and "game_id" in slate.columns:
+        excl_set = {str(g) for g in exclude_games if g}
+        slate = slate[~slate["game_id"].astype(str).isin(excl_set)].copy()
     inj = load_injuries(season, week)
     out = injury_exclusions(inj)
     quest = questionable_flags(inj)
@@ -201,11 +209,12 @@ def main():
     ap.add_argument("--week", type=int, default=1)
     ap.add_argument("--odds", action="store_true", help="pull live odds (needs key)")
     ap.add_argument("--all-games", action="store_true", help="include all games on slate regardless of kickoff time")
+    ap.add_argument("--exclude-game", action="append", default=[], help="game_id to exclude from model pricing (CONTEXT_MISSING)")
     ap.add_argument("--out", default="slate_projections.csv")
     ap.add_argument("--top", type=int, default=25)
     a = ap.parse_args()
 
-    slate, model = project(a.season, a.week, include_all=a.all_games)
+    slate, model = project(a.season, a.week, include_all=a.all_games, exclude_games=a.exclude_game)
     ok = slate[slate.excl_reason == ""]
 
     settled_scored = score_settled_games(a.season, a.week, model)

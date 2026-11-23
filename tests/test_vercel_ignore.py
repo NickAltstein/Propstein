@@ -20,10 +20,15 @@ def commit(repo: Path, name: str) -> str:
     return run(repo, "rev-parse", "HEAD")
 
 
-def check(repo: Path, base: str) -> int:
+def check(repo: Path, base: str, vercel_env: str | None = None) -> int:
+    env = {**os.environ, "VERCEL_GIT_PREVIOUS_SHA": base}
+    if vercel_env is None:
+        env.pop("VERCEL_ENV", None)
+    else:
+        env["VERCEL_ENV"] = vercel_env
     return subprocess.run(
         ["bash", str(SCRIPT)], cwd=repo,
-        env={**os.environ, "VERCEL_GIT_PREVIOUS_SHA": base},
+        env=env,
         capture_output=True, text=True, check=False,
     ).returncode
 
@@ -44,3 +49,7 @@ def test_missing_base_builds_and_data_only_commit_skips(tmp_path: Path):
     second = run(tmp_path, "rev-parse", "HEAD")
     commit(tmp_path, "viewer changed")
     assert check(tmp_path, second) == 1
+    assert check(tmp_path, second, vercel_env="preview") == 0
+    assert check(tmp_path, "deadbeef", vercel_env="preview") == 0
+    assert check(tmp_path, second, vercel_env="production") == 1
+    assert check(tmp_path, "deadbeef", vercel_env="production") == 1

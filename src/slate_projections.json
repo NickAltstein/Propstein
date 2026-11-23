@@ -1,2584 +1,615 @@
 [
   {
-    "player_id": "00-0039064",
-    "player_display_name": "Zay Flowers",
+    "player_id": "00-0036900",
+    "player_display_name": "Ja'Marr Chase",
     "position_hist": "WR",
-    "team": "BAL",
-    "targets": 6,
-    "receptions": 3,
-    "receiving_yards": 6,
-    "receiving_air_yards": 9,
-    "receiving_yards_after_catch": 11,
-    "target_share": 0.375,
-    "air_yards_share": 0.2647058823529412,
+    "team": "CIN",
+    "targets": 14,
+    "receptions": 11,
+    "receiving_yards": 231,
+    "receiving_air_yards": 173,
+    "receiving_yards_after_catch": 97,
+    "target_share": 0.3333333333333333,
+    "air_yards_share": 0.6528301886792452,
     "receiving_tds": 0,
-    "adot": 1.5,
-    "catch_rate_g": 0.5,
-    "ypr_g": 2.0,
-    "f_targets": 7.393522146512457,
-    "f_tgt_share": 0.3111567494023272,
-    "f_ay_share": 0.31371454118554654,
-    "f_rec": 4.077982155055316,
-    "f_yards": 46.22618670654905,
-    "f_adot": 5.882586839819305,
-    "f_catch_rate": 0.4912239004545197,
-    "f_ypr": 10.496582428844087,
-    "c_targets": 7.017543859649122,
-    "c_yards": 65.54385964912281,
-    "games_prior": 58,
-    "f_tgt_sd": 2.5071326821120348,
-    "current_team": "BAL",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 3,
-    "full_name": "Zay Flowers",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 5.085715713180973,
-    "mu_ypr": 12.36699514633653,
-    "proj_rec": 5.085715713180973,
-    "proj_yards": 62.89502154055652,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 56.0,
-    "p_rec_at_fair_line": 0.5338,
-    "recent_receiving_games": [
-      {
-        "receptions": 3,
-        "yards": 6
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 8,
-        "yards": 137
-      },
-      {
-        "receptions": 6,
-        "yards": 66
-      },
-      {
-        "receptions": 8,
-        "yards": 53
-      },
-      {
-        "receptions": 8,
-        "yards": 118
-      },
-      {
-        "receptions": 5,
-        "yards": 84
-      },
-      {
-        "receptions": 5,
-        "yards": 150
-      },
-      {
-        "receptions": 4,
-        "yards": 138
-      },
-      {
-        "receptions": 4,
-        "yards": 30
-      }
-    ]
-  },
-  {
-    "player_id": "00-0038544",
-    "player_display_name": "Quentin Johnston",
-    "position_hist": "WR",
-    "team": "LAC",
-    "targets": 4,
-    "receptions": 1,
-    "receiving_yards": 58,
-    "receiving_air_yards": 91,
-    "receiving_yards_after_catch": 53,
-    "target_share": 0.13333333333333333,
-    "air_yards_share": 0.2973856209150327,
-    "receiving_tds": 1,
-    "adot": 22.75,
-    "catch_rate_g": 0.25,
-    "ypr_g": 58.0,
-    "f_targets": 3.991305368258594,
-    "f_tgt_share": 0.13128480016971938,
-    "f_ay_share": 0.275178090904594,
-    "f_rec": 1.9879751858479726,
-    "f_yards": 47.64808318211385,
-    "f_adot": 18.406573297166837,
-    "f_catch_rate": 0.49444935193002876,
-    "f_ypr": 36.60370540537849,
-    "c_targets": 5.254901960784314,
-    "c_yards": 40.76470588235294,
-    "games_prior": 52,
-    "f_tgt_sd": 1.885091888628093,
-    "current_team": "LAC",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 3,
-    "full_name": "Quentin Johnston",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.2324970843886667,
-    "mu_ypr": 14.303966654466114,
-    "proj_rec": 2.2324970843886667,
-    "proj_yards": 31.933563851288312,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 25.0,
-    "p_rec_at_fair_line": 0.6208,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 58
-      },
-      {
-        "receptions": 4,
-        "yards": 37
-      },
-      {
-        "receptions": 1,
-        "yards": 57
-      },
-      {
-        "receptions": 1,
-        "yards": 44
-      },
-      {
-        "receptions": 3,
-        "yards": 40
-      },
-      {
-        "receptions": 1,
-        "yards": 7
-      },
-      {
-        "receptions": 2,
-        "yards": 17
-      },
-      {
-        "receptions": 5,
-        "yards": 98
-      },
-      {
-        "receptions": 4,
-        "yards": 104
-      },
-      {
-        "receptions": 2,
-        "yards": 8
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040727",
-    "player_display_name": "Tre Harris",
-    "position_hist": "WR",
-    "team": "LAC",
-    "targets": 7,
-    "receptions": 3,
-    "receiving_yards": 6,
-    "receiving_air_yards": 75,
-    "receiving_yards_after_catch": 11,
-    "target_share": 0.23333333333333334,
-    "air_yards_share": 0.24509803921568626,
-    "receiving_tds": 0,
-    "adot": 10.714285714285714,
-    "catch_rate_g": 0.42857142857142855,
-    "ypr_g": 2.0,
-    "f_targets": 5.084098470779345,
-    "f_tgt_share": 0.176975416229948,
-    "f_ay_share": 0.2118417808394291,
-    "f_rec": 2.9101645721691174,
-    "f_yards": 26.712083255719826,
-    "f_adot": 9.894767485449055,
-    "f_catch_rate": 0.6226769972910718,
-    "f_ypr": 10.206366582713853,
-    "c_targets": 3.227272727272727,
-    "c_yards": 26.363636363636363,
-    "games_prior": 23,
-    "f_tgt_sd": 1.995530720671284,
-    "current_team": "LAC",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 1,
-    "full_name": "Tre Harris",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.5124176837999097,
-    "mu_ypr": 12.001629727448202,
-    "proj_rec": 2.5124176837999097,
-    "proj_yards": 30.153106761659554,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 24.5,
-    "p_rec_at_fair_line": 0.4432,
-    "recent_receiving_games": [
-      {
-        "receptions": 3,
-        "yards": 6
-      },
-      {
-        "receptions": 3,
-        "yards": 31
-      },
-      {
-        "receptions": 2,
-        "yards": 16
-      },
-      {
-        "receptions": 3,
-        "yards": 60
-      },
-      {
-        "receptions": 6,
-        "yards": 76
-      },
-      {
-        "receptions": 1,
-        "yards": 53
-      },
-      {
-        "receptions": 3,
-        "yards": 20
-      },
-      {
-        "receptions": 2,
-        "yards": 28
-      },
-      {
-        "receptions": 1,
-        "yards": 8
-      },
-      {
-        "receptions": 4,
-        "yards": 54
-      }
-    ]
-  },
-  {
-    "player_id": "00-0034753",
-    "player_display_name": "Mark Andrews",
-    "position_hist": "TE",
-    "team": "BAL",
-    "targets": 2,
-    "receptions": 2,
-    "receiving_yards": 19,
-    "receiving_air_yards": 15,
-    "receiving_yards_after_catch": 4,
-    "target_share": 0.125,
-    "air_yards_share": 0.4411764705882353,
-    "receiving_tds": 0,
-    "adot": 7.5,
-    "catch_rate_g": 1.0,
-    "ypr_g": 9.5,
-    "f_targets": 3.5568064350348685,
-    "f_tgt_share": 0.1447198641684569,
-    "f_ay_share": 0.2412198981631278,
-    "f_rec": 2.68120744566923,
-    "f_yards": 19.09806162335598,
-    "f_adot": 6.5909800650031825,
-    "f_catch_rate": 0.7856881691106568,
-    "f_ypr": 7.199400645773654,
-    "c_targets": 5.75968992248062,
-    "c_yards": 47.82945736434109,
-    "games_prior": 130,
-    "f_tgt_sd": 1.3562026818605377,
-    "current_team": "BAL",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 8,
-    "full_name": "Mark Andrews",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.883021647826444,
-    "def_rec_idx": 0.7594480775619226,
-    "def_tgt_idx": 0.7011672695506981,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.576665834243906,
-    "mu_ypr": 10.343923095490624,
-    "proj_rec": 2.576665834243906,
-    "proj_yards": 26.652833232197157,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4574,
-    "recent_receiving_games": [
-      {
-        "receptions": 2,
-        "yards": 19
-      },
-      {
-        "receptions": 3,
-        "yards": 14
-      },
-      {
-        "receptions": 3,
-        "yards": 23
-      },
-      {
-        "receptions": 1,
-        "yards": 4
-      },
-      {
-        "receptions": 4,
-        "yards": 28
-      },
-      {
-        "receptions": 5,
-        "yards": 27
-      },
-      {
-        "receptions": 3,
-        "yards": 24
-      },
-      {
-        "receptions": 6,
-        "yards": 49
-      },
-      {
-        "receptions": 4,
-        "yards": 49
-      },
-      {
-        "receptions": 2,
-        "yards": 14
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040189",
-    "player_display_name": "Oronde Gadsden II",
-    "position_hist": "TE",
-    "team": "LAC",
-    "targets": 3,
-    "receptions": 2,
-    "receiving_yards": 17,
-    "receiving_air_yards": 25,
-    "receiving_yards_after_catch": 8,
-    "target_share": 0.1,
-    "air_yards_share": 0.08169934640522876,
-    "receiving_tds": 0,
-    "adot": 8.333333333333334,
-    "catch_rate_g": 0.6666666666666666,
-    "ypr_g": 8.5,
-    "f_targets": 3.8421180714034793,
-    "f_tgt_share": 0.12488265085273106,
-    "f_ay_share": 0.12887950960345348,
-    "f_rec": 2.7386493736933866,
-    "f_yards": 24.350030273544142,
-    "f_adot": 10.470915256032864,
-    "f_catch_rate": 0.6531866333352737,
-    "f_ypr": 8.754943675133074,
-    "c_targets": 4.318181818181818,
-    "c_yards": 37.22727272727273,
-    "games_prior": 23,
-    "f_tgt_sd": 2.3299294900428698,
-    "current_team": "LAC",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 1,
-    "full_name": "Oronde Gadsden II",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9434555199785339,
-    "def_rec_idx": 0.850111654010828,
-    "def_tgt_idx": 0.8513800684594405,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.3672479227789376,
-    "mu_ypr": 11.004332424428052,
-    "proj_rec": 2.3672479227789376,
-    "proj_yards": 26.049983073296215,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.0,
-    "p_rec_at_fair_line": 0.4101,
-    "recent_receiving_games": [
-      {
-        "receptions": 2,
-        "yards": 17
-      },
-      {
-        "receptions": 5,
-        "yards": 52
-      },
-      {
-        "receptions": 3,
-        "yards": 17
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 5,
-        "yards": 36
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 18
-      },
-      {
-        "receptions": 2,
-        "yards": 32
-      },
-      {
-        "receptions": 2,
-        "yards": 23
-      },
-      {
-        "receptions": 3,
-        "yards": 32
-      }
-    ]
-  },
-  {
-    "player_id": "00-0036550",
-    "player_display_name": "Rashod Bateman",
-    "position_hist": "WR",
-    "team": "BAL",
-    "targets": 2,
-    "receptions": 1,
-    "receiving_yards": 6,
-    "receiving_air_yards": 10,
-    "receiving_yards_after_catch": 1,
-    "target_share": 0.125,
-    "air_yards_share": 0.29411764705882354,
-    "receiving_tds": 0,
-    "adot": 5.0,
-    "catch_rate_g": 0.5,
-    "ypr_g": 6.0,
-    "f_targets": 2.8336520851721114,
-    "f_tgt_share": 0.11675832154124333,
-    "f_ay_share": 0.27441292913455984,
-    "f_rec": 1.488055839080932,
-    "f_yards": 20.926313743855893,
-    "f_adot": 11.054188528062857,
-    "f_catch_rate": 0.4622107552079655,
-    "f_ypr": 14.339130656062581,
-    "c_targets": 4.1571428571428575,
-    "c_yards": 34.785714285714285,
-    "games_prior": 71,
-    "f_tgt_sd": 2.7222627143085,
-    "current_team": "BAL",
+    "adot": 12.357142857142858,
+    "catch_rate_g": 0.7857142857142857,
+    "ypr_g": 21.0,
+    "f_targets": 12.0438572105233,
+    "f_tgt_share": 0.3297227667427804,
+    "f_ay_share": 0.506830504807839,
+    "f_rec": 9.168276621946998,
+    "f_yards": 151.5231255640296,
+    "f_adot": 10.709490810779439,
+    "f_catch_rate": 0.7656534719310606,
+    "f_ypr": 15.708005574886256,
+    "c_targets": 9.767441860465116,
+    "c_yards": 87.02325581395348,
+    "games_prior": 87,
+    "f_tgt_sd": 4.356850107261305,
+    "current_team": "CIN",
     "position": "WR",
     "status": "ACT",
     "years_exp": 5,
-    "full_name": "Rashod Bateman",
+    "full_name": "Ja'Marr Chase",
     "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
+    "game_id": "2026_11_CIN_WAS",
     "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
     "is_dome": 0,
-    "wind": 6.0,
+    "wind": 15.0,
     "unposted_lines": 0,
     "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
     "pos_WR": 1,
     "pos_TE": 0,
     "pos_RB": 0,
     "is_week1": 0,
     "excl_reason": "",
     "questionable": 0,
-    "mu_rec": 1.9723121515028952,
-    "mu_ypr": 12.460618513272912,
-    "proj_rec": 1.9723121515028952,
-    "proj_yards": 24.576229308970106,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5603,
+    "mu_rec": 8.248233701348182,
+    "mu_ypr": 13.536859167849643,
+    "proj_rec": 8.248233701348182,
+    "proj_yards": 111.65517799866153,
+    "fair_line_rec": 7.5,
+    "fair_line_yards": 103.0,
+    "p_rec_at_fair_line": 0.529,
     "recent_receiving_games": [
       {
-        "receptions": 1,
-        "yards": 6
+        "receptions": 11,
+        "yards": 231
       },
       {
-        "receptions": 1,
-        "yards": 22
+        "receptions": 10,
+        "yards": 155
       },
       {
-        "receptions": 2,
-        "yards": 33
-      },
-      {
-        "receptions": 0,
-        "yards": 0
+        "receptions": 11,
+        "yards": 141
       },
       {
         "receptions": 5,
         "yards": 62
       },
       {
-        "receptions": 2,
-        "yards": 46
+        "receptions": 6,
+        "yards": 77
       },
       {
-        "receptions": 2,
-        "yards": 37
+        "receptions": 3,
+        "yards": 27
+      },
+      {
+        "receptions": 9,
+        "yards": 98
       },
       {
         "receptions": 7,
-        "yards": 88
+        "yards": 75
       },
       {
-        "receptions": 0,
-        "yards": 0
+        "receptions": 2,
+        "yards": 12
       },
       {
-        "receptions": 1,
-        "yards": 7
+        "receptions": 8,
+        "yards": 96
       }
     ]
   },
   {
-    "player_id": "00-0040184",
-    "player_display_name": "KeAndre Lambert-Smith",
+    "player_id": "00-0036410",
+    "player_display_name": "Tee Higgins",
     "position_hist": "WR",
-    "team": "LAC",
-    "targets": 4,
-    "receptions": 1,
-    "receiving_yards": 50,
-    "receiving_air_yards": 80,
+    "team": "CIN",
+    "targets": 6,
+    "receptions": 5,
+    "receiving_yards": 66,
+    "receiving_air_yards": 59,
     "receiving_yards_after_catch": 14,
-    "target_share": 0.13333333333333333,
-    "air_yards_share": 0.26143790849673204,
+    "target_share": 0.14285714285714285,
+    "air_yards_share": 0.22264150943396227,
     "receiving_tds": 0,
-    "adot": 20.0,
-    "catch_rate_g": 0.25,
-    "ypr_g": 50.0,
-    "f_targets": 3.363232798262997,
-    "f_tgt_share": 0.10118835732317431,
-    "f_ay_share": 0.17049987308899073,
-    "f_rec": 1.365727686176349,
-    "f_yards": 24.760343481654957,
-    "f_adot": 15.143375664717954,
-    "f_catch_rate": 0.40237172954794215,
-    "f_ypr": 22.77836078909904,
-    "c_targets": 1.75,
-    "c_yards": 6.916666666666667,
-    "games_prior": 13,
-    "f_tgt_sd": 3.0237157840738176,
-    "current_team": "LAC",
+    "adot": 9.833333333333334,
+    "catch_rate_g": 0.8333333333333334,
+    "ypr_g": 13.2,
+    "f_targets": 7.279990010247879,
+    "f_tgt_share": 0.19548706835428387,
+    "f_ay_share": 0.2947352181822665,
+    "f_rec": 5.903065983105268,
+    "f_yards": 81.95014012287118,
+    "f_adot": 11.039047043518686,
+    "f_catch_rate": 0.8056767580331188,
+    "f_ypr": 13.34388182956355,
+    "c_targets": 7.522222222222222,
+    "c_yards": 68.87777777777778,
+    "games_prior": 91,
+    "f_tgt_sd": 3.814914340921881,
+    "current_team": "CIN",
     "position": "WR",
     "status": "ACT",
-    "years_exp": 1,
-    "full_name": "KeAndre Lambert-Smith",
+    "years_exp": 6,
+    "full_name": "Tee Higgins",
     "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
+    "game_id": "2026_11_CIN_WAS",
     "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
     "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
     "is_dome": 0,
-    "wind": 6.0,
+    "wind": 15.0,
     "unposted_lines": 0,
     "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
     "pos_WR": 1,
     "pos_TE": 0,
     "pos_RB": 0,
     "is_week1": 0,
     "excl_reason": "",
     "questionable": 0,
-    "mu_rec": 1.7184589170026952,
-    "mu_ypr": 13.2052810660633,
-    "proj_rec": 1.7184589170026952,
-    "proj_yards": 22.692732999503335,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.4934,
+    "mu_rec": 4.717047973125105,
+    "mu_ypr": 12.757512758915459,
+    "proj_rec": 4.717047973125105,
+    "proj_yards": 60.17779970155983,
+    "fair_line_rec": 4.5,
+    "fair_line_yards": 53.5,
+    "p_rec_at_fair_line": 0.4809,
     "recent_receiving_games": [
       {
-        "receptions": 1,
-        "yards": 50
-      },
-      {
-        "receptions": 0,
-        "yards": 0
+        "receptions": 5,
+        "yards": 66
       },
       {
         "receptions": 5,
         "yards": 32
       },
       {
-        "receptions": 2,
-        "yards": 24
+        "receptions": 10,
+        "yards": 155
       },
       {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 10
-      },
-      {
-        "receptions": 1,
-        "yards": 16
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 1
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040870",
-    "player_display_name": "Ja'Kobi Lane",
-    "position_hist": "WR",
-    "team": "BAL",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 2.0615384615384618,
-    "f_tgt_share": 0.06790773572265325,
-    "f_ay_share": 0.1024993658570162,
-    "f_rec": 1.4051282051282052,
-    "f_yards": 14.041025641025643,
-    "f_adot": 11.412307692307692,
-    "f_catch_rate": 0.7702564102564102,
-    "f_ypr": 10.907692307692306,
-    "c_targets": 3.5,
-    "c_yards": 22.25,
-    "games_prior": 5,
-    "f_tgt_sd": 1.9148542155126762,
-    "current_team": "BAL",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 0,
-    "full_name": "Ja'Kobi Lane",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.7495050194813073,
-    "mu_ypr": 11.824835674029183,
-    "proj_rec": 1.7495050194813073,
-    "proj_yards": 20.687609366255682,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.502,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 13
-      },
-      {
-        "receptions": 3,
-        "yards": 25
-      },
-      {
-        "receptions": 4,
-        "yards": 40
-      },
-      {
-        "receptions": 1,
-        "yards": 11
-      }
-    ]
-  },
-  {
-    "player_id": "00-0038046",
-    "player_display_name": "Charlie Kolar",
-    "position_hist": "TE",
-    "team": "LAC",
-    "targets": 3,
-    "receptions": 3,
-    "receiving_yards": 31,
-    "receiving_air_yards": 17,
-    "receiving_yards_after_catch": 14,
-    "target_share": 0.1,
-    "air_yards_share": 0.05555555555555555,
-    "receiving_tds": 0,
-    "adot": 5.666666666666667,
-    "catch_rate_g": 1.0,
-    "ypr_g": 10.333333333333334,
-    "f_targets": 3.44457064768708,
-    "f_tgt_share": 0.11738975460270071,
-    "f_ay_share": 0.0997634706960263,
-    "f_rec": 2.2003545361683168,
-    "f_yards": 23.476727101291424,
-    "f_adot": 5.87083500953656,
-    "f_catch_rate": 0.6712449735822235,
-    "f_ypr": 12.505352402915921,
-    "c_targets": 1.5263157894736843,
-    "c_yards": 13.342105263157896,
-    "games_prior": 39,
-    "f_tgt_sd": 2.1998376563477846,
-    "current_team": "LAC",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 4,
-    "full_name": "Charlie Kolar",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9434555199785339,
-    "def_rec_idx": 0.850111654010828,
-    "def_tgt_idx": 0.8513800684594405,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.979129681395875,
-    "mu_ypr": 10.19066095317492,
-    "proj_rec": 1.979129681395875,
-    "proj_yards": 20.168639565470464,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.562,
-    "recent_receiving_games": [
-      {
-        "receptions": 3,
-        "yards": 31
-      },
-      {
-        "receptions": 1,
-        "yards": 20
-      },
-      {
-        "receptions": 3,
-        "yards": 20
-      },
-      {
-        "receptions": 3,
-        "yards": 37
-      },
-      {
-        "receptions": 3,
-        "yards": 21
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 18
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 19
-      }
-    ]
-  },
-  {
-    "player_id": "00-0032398",
-    "player_display_name": "Chris Moore",
-    "position_hist": "WR",
-    "team": "BAL",
-    "targets": 1,
-    "receptions": 1,
-    "receiving_yards": 4,
-    "receiving_air_yards": 4,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.05,
-    "air_yards_share": 0.022099447513812154,
-    "receiving_tds": 1,
-    "adot": 4.0,
-    "catch_rate_g": 1.0,
-    "ypr_g": 4.0,
-    "f_targets": 1.8290677120730883,
-    "f_tgt_share": 0.07234596475903475,
-    "f_ay_share": 0.14220836392534286,
-    "f_rec": 0.9885519057582495,
-    "f_yards": 15.302985884244578,
-    "f_adot": 18.009299394703884,
-    "f_catch_rate": 0.6713806692184727,
-    "f_ypr": 16.028157618478296,
-    "c_targets": 2.3592233009708736,
-    "c_yards": 19.184466019417474,
-    "games_prior": 104,
-    "f_tgt_sd": 2.199837656347785,
-    "current_team": "BAL",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 10,
-    "full_name": "Chris Moore",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.5136807236087233,
-    "mu_ypr": 13.056026638996862,
-    "proj_rec": 1.5136807236087233,
-    "proj_yards": 19.762655850371537,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4335,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 4
-      },
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 1,
-        "yards": 53
-      },
-      {
-        "receptions": 1,
-        "yards": 15
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 28
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 59
-      },
-      {
-        "receptions": 3,
-        "yards": 46
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040887",
-    "player_display_name": "Josh Cuevas",
-    "position_hist": "TE",
-    "team": "BAL",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 1.6922305764411032,
-    "f_tgt_share": 0.056792923777843396,
-    "f_ay_share": 0.06513897863611195,
-    "f_rec": 1.1779448621553887,
-    "f_yards": 16.428070175438602,
-    "f_adot": 6.33160453808752,
-    "f_catch_rate": 0.680551053484603,
-    "f_ypr": 14.6709886547812,
-    "c_targets": 2.1666666666666665,
-    "c_yards": 22.333333333333332,
-    "games_prior": 7,
-    "f_tgt_sd": 1.7224014243685084,
-    "current_team": "BAL",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 0,
-    "full_name": "Josh Cuevas",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.883021647826444,
-    "def_rec_idx": 0.7594480775619226,
-    "def_tgt_idx": 0.7011672695506981,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.704354261113985,
-    "mu_ypr": 10.921199332544386,
-    "proj_rec": 1.704354261113985,
-    "proj_yards": 18.613592618897233,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4894,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 15
-      },
-      {
-        "receptions": 2,
-        "yards": 35
-      },
-      {
-        "receptions": 4,
-        "yards": 44
-      },
-      {
-        "receptions": 2,
-        "yards": 26
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 14
-      }
-    ]
-  },
-  {
-    "player_id": "00-0034975",
-    "player_display_name": "Justice Hill",
-    "position_hist": "RB",
-    "team": "BAL",
-    "targets": 3,
-    "receptions": 3,
-    "receiving_yards": 7,
-    "receiving_air_yards": -19,
-    "receiving_yards_after_catch": 26,
-    "target_share": 0.1875,
-    "air_yards_share": -0.5588235294117647,
-    "receiving_tds": 0,
-    "adot": -6.333333333333333,
-    "catch_rate_g": 1.0,
-    "ypr_g": 2.3333333333333335,
-    "f_targets": 4.155132901934511,
-    "f_tgt_share": 0.17431115414006418,
-    "f_ay_share": -0.20258484996077356,
-    "f_rec": 2.9320041503306618,
-    "f_yards": 13.42558792249497,
-    "f_adot": -2.8590976751072885,
-    "f_catch_rate": 0.7870604792573437,
-    "f_ypr": 4.738398894303389,
-    "c_targets": 1.9120879120879122,
-    "c_yards": 11.098901098901099,
-    "games_prior": 92,
-    "f_tgt_sd": 2.416461403433896,
-    "current_team": "BAL",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 7,
-    "full_name": "Justice Hill",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.6334646351048279,
-    "def_rec_idx": 0.698441821027087,
-    "def_tgt_idx": 0.8326183673112734,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.632247432832951,
-    "mu_ypr": 7.015169862850809,
-    "proj_rec": 2.632247432832951,
-    "proj_yards": 18.465662862376124,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4696,
-    "recent_receiving_games": [
-      {
-        "receptions": 3,
-        "yards": 7
-      },
-      {
-        "receptions": 4,
-        "yards": 20
-      },
-      {
-        "receptions": 3,
-        "yards": 26
-      },
-      {
-        "receptions": 3,
-        "yards": 9
-      },
-      {
-        "receptions": 2,
-        "yards": 5
+        "receptions": 6,
+        "yards": 148
       },
       {
         "receptions": 2,
         "yards": 22
       },
       {
-        "receptions": 0,
-        "yards": 0
+        "receptions": 11,
+        "yards": 157
       },
       {
-        "receptions": 2,
-        "yards": 12
-      },
-      {
-        "receptions": 1,
-        "yards": 10
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040879",
-    "player_display_name": "Matthew Hibner",
-    "position_hist": "TE",
-    "team": "BAL",
-    "targets": 2,
-    "receptions": 1,
-    "receiving_yards": 5,
-    "receiving_air_yards": 21,
-    "receiving_yards_after_catch": 1,
-    "target_share": 0.125,
-    "air_yards_share": 0.6176470588235294,
-    "receiving_tds": 0,
-    "adot": 10.5,
-    "catch_rate_g": 0.5,
-    "ypr_g": 5.0,
-    "f_targets": 1.3522906793048977,
-    "f_tgt_share": 0.0690436331840156,
-    "f_ay_share": 0.22300839680527282,
-    "f_rec": 0.7630331753554505,
-    "f_yards": 7.935229067930491,
-    "f_adot": 5.962845010615711,
-    "f_catch_rate": 0.4893842887473462,
-    "f_ypr": 11.280701754385966,
-    "c_targets": 1.2,
-    "c_yards": 14.0,
-    "games_prior": 6,
-    "f_tgt_sd": 0.8366600265340756,
-    "current_team": "BAL",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 0,
-    "full_name": "Matthew Hibner",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.883021647826444,
-    "def_rec_idx": 0.7594480775619226,
-    "def_tgt_idx": 0.7011672695506981,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.4114848011834031,
-    "mu_ypr": 11.13067349236835,
-    "proj_rec": 1.4114848011834031,
-    "proj_yards": 15.710776461412916,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4018,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 5
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 34
-      },
-      {
-        "receptions": 2,
-        "yards": 23
-      },
-      {
-        "receptions": 1,
-        "yards": 13
-      }
-    ]
-  },
-  {
-    "player_id": "00-0038454",
-    "player_display_name": "Keaton Mitchell",
-    "position_hist": "RB",
-    "team": "LAC",
-    "targets": 4,
-    "receptions": 3,
-    "receiving_yards": 34,
-    "receiving_air_yards": 7,
-    "receiving_yards_after_catch": 35,
-    "target_share": 0.13333333333333333,
-    "air_yards_share": 0.02287581699346405,
-    "receiving_tds": 0,
-    "adot": 1.75,
-    "catch_rate_g": 0.75,
-    "ypr_g": 11.333333333333334,
-    "f_targets": 3.1295387211409063,
-    "f_tgt_share": 0.1089874677568077,
-    "f_ay_share": -0.0064447224463056235,
-    "f_rec": 2.4771080322955044,
-    "f_yards": 18.80232351347064,
-    "f_adot": -0.8165809602918999,
-    "f_catch_rate": 0.7155382143880669,
-    "f_ypr": 7.44083989785386,
-    "c_targets": 1.3548387096774193,
-    "c_yards": 8.161290322580646,
-    "games_prior": 32,
-    "f_tgt_sd": 2.1213203435596424,
-    "current_team": "LAC",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 3,
-    "full_name": "Keaton Mitchell",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.8184953471853665,
-    "def_rec_idx": 1.0743329773929375,
-    "def_tgt_idx": 1.0649425106737274,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 2.017415131675889,
-    "mu_ypr": 7.129970885312874,
-    "proj_rec": 2.017415131675889,
-    "proj_yards": 14.384111152438727,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.5714,
-    "recent_receiving_games": [
-      {
-        "receptions": 3,
-        "yards": 34
-      },
-      {
-        "receptions": 3,
-        "yards": 17
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 3,
-        "yards": 18
+        "receptions": 6,
+        "yards": 90
       },
       {
         "receptions": 5,
-        "yards": 24
+        "yards": 95
       },
       {
         "receptions": 3,
-        "yards": -5
-      },
-      {
-        "receptions": 1,
-        "yards": 15
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 7
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040075",
-    "player_display_name": "LaJohntay Wester",
-    "position_hist": "WR",
-    "team": "BAL",
-    "targets": 1,
-    "receptions": 1,
-    "receiving_yards": 14,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 14,
-    "target_share": 0.0625,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": 0.0,
-    "catch_rate_g": 1.0,
-    "ypr_g": 14.0,
-    "f_targets": 0.546540715363748,
-    "f_tgt_share": 0.0276208481560759,
-    "f_ay_share": -0.0019599818148055732,
-    "f_rec": 0.5270288863123469,
-    "f_yards": 7.3574698417864575,
-    "f_adot": -2.109486314210723,
-    "f_catch_rate": 0.9640044994375703,
-    "f_ypr": 14.23472065991751,
-    "c_targets": 0.22727272727272727,
-    "c_yards": 2.0,
-    "games_prior": 23,
-    "f_tgt_sd": 0.9161253813129043,
-    "current_team": "BAL",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 1,
-    "full_name": "LaJohntay Wester",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.4138682836746779,
-    "mu_ypr": 9.584669647476185,
-    "proj_rec": 1.4138682836746779,
-    "proj_yards": 13.551460424065933,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4025,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 14
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 15
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 14
-      },
-      {
-        "receptions": 2,
-        "yards": 15
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0038573",
-    "player_display_name": "Derius Davis",
-    "position_hist": "WR",
-    "team": "LAC",
-    "targets": 2,
-    "receptions": 1,
-    "receiving_yards": 15,
-    "receiving_air_yards": 19,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.06666666666666667,
-    "air_yards_share": 0.06209150326797386,
-    "receiving_tds": 1,
-    "adot": 9.5,
-    "catch_rate_g": 0.5,
-    "ypr_g": 15.0,
-    "f_targets": 0.8013912871627765,
-    "f_tgt_share": 0.02679546274158174,
-    "f_ay_share": 0.028707518949299342,
-    "f_rec": 0.41536031061912565,
-    "f_yards": 5.499935457597602,
-    "f_adot": 13.415461548058673,
-    "f_catch_rate": 0.5722707445346653,
-    "f_ypr": 9.052987150435968,
-    "c_targets": 0.8,
-    "c_yards": 3.88,
-    "games_prior": 51,
-    "f_tgt_sd": 0.5345224838248492,
-    "current_team": "LAC",
-    "position": "WR",
-    "status": "ACT",
-    "years_exp": 3,
-    "full_name": "Derius Davis",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.1111315076826513,
-    "mu_ypr": 11.696671100579875,
-    "proj_rec": 1.1111315076826513,
-    "proj_yards": 12.996539794855414,
-    "fair_line_rec": 0.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.6495,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 15
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 7
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040666",
-    "player_display_name": "Omarion Hampton",
-    "position_hist": "RB",
-    "team": "LAC",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 1.7642084243760774,
-    "f_tgt_share": 0.05680606210521996,
-    "f_ay_share": 0.005746063544710007,
-    "f_rec": 1.4870947524286893,
-    "f_yards": 7.171772842776052,
-    "f_adot": 0.05697233035988729,
-    "f_catch_rate": 0.8098733098079118,
-    "f_ypr": 4.880576934456012,
-    "c_targets": 3.0,
-    "c_yards": 15.9375,
-    "games_prior": 17,
-    "f_tgt_sd": 2.5035688811888406,
-    "current_team": "LAC",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 1,
-    "full_name": "Omarion Hampton",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.8184953471853665,
-    "def_rec_idx": 1.0743329773929375,
-    "def_tgt_idx": 1.0649425106737274,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.7704153628673787,
-    "mu_ypr": 7.13874097263035,
-    "proj_rec": 1.7704153628673787,
-    "proj_yards": 12.638536689475584,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.5077,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 7
-      },
-      {
-        "receptions": 4,
-        "yards": 21
-      },
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 2,
-        "yards": 8
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 21
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 8,
-        "yards": 31
-      },
-      {
-        "receptions": 1,
-        "yards": 10
-      }
-    ]
-  },
-  {
-    "player_id": "00-0039391",
-    "player_display_name": "Kimani Vidal",
-    "position_hist": "RB",
-    "team": "LAC",
-    "targets": 3,
-    "receptions": 1,
-    "receiving_yards": 6,
-    "receiving_air_yards": -8,
-    "receiving_yards_after_catch": 10,
-    "target_share": 0.1,
-    "air_yards_share": -0.026143790849673203,
-    "receiving_tds": 0,
-    "adot": -2.6666666666666665,
-    "catch_rate_g": 0.3333333333333333,
-    "ypr_g": 6.0,
-    "f_targets": 2.6271892914138677,
-    "f_tgt_share": 0.08663325841696115,
-    "f_ay_share": -0.01903529679772698,
-    "f_rec": 1.5453844490724906,
-    "f_yards": 8.131432623498473,
-    "f_adot": -1.728557271809115,
-    "f_catch_rate": 0.6246702821803272,
-    "f_ypr": 5.325476258480178,
-    "c_targets": 1.6071428571428572,
-    "c_yards": 8.857142857142858,
-    "games_prior": 29,
-    "f_tgt_sd": 1.4577379737113252,
-    "current_team": "LAC",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 2,
-    "full_name": "Kimani Vidal",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.8184953471853665,
-    "def_rec_idx": 1.0743329773929375,
-    "def_tgt_idx": 1.0649425106737274,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.7463550404864463,
-    "mu_ypr": 7.06674343677722,
-    "proj_rec": 1.7463550404864463,
-    "proj_yards": 12.341043020640411,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.5011,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 2,
-        "yards": 7
-      },
-      {
-        "receptions": 3,
-        "yards": 19
-      },
-      {
-        "receptions": 1,
-        "yards": -1
-      },
-      {
-        "receptions": 2,
-        "yards": 11
-      },
-      {
-        "receptions": 1,
-        "yards": 14
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": -2
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 15
-      }
-    ]
-  },
-  {
-    "player_id": "00-0034798",
-    "player_display_name": "Durham Smythe",
-    "position_hist": "TE",
-    "team": "BAL",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 0.5453175430862659,
-    "f_tgt_share": 0.019218205308277544,
-    "f_ay_share": 0.0021056020072186743,
-    "f_rec": 0.2854691969042636,
-    "f_yards": 1.6197251188801702,
-    "f_adot": 0.7144802389814942,
-    "f_catch_rate": 0.5332148827439489,
-    "f_ypr": 5.671234149402384,
-    "c_targets": 1.8673469387755102,
-    "c_yards": 12.826530612244898,
-    "games_prior": 99,
-    "f_tgt_sd": 0.9258200997725514,
-    "current_team": "BAL",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 8,
-    "full_name": "Durham Smythe",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.883021647826444,
-    "def_rec_idx": 0.7594480775619226,
-    "def_tgt_idx": 0.7011672695506981,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.2400703445314865,
-    "mu_ypr": 8.922433666728132,
-    "proj_rec": 1.2400703445314865,
-    "proj_yards": 11.06444539115889,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3461,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 4
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 11
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 2
-      },
-      {
-        "receptions": 1,
-        "yards": 4
-      },
-      {
-        "receptions": 1,
-        "yards": 8
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0032764",
-    "player_display_name": "Derrick Henry",
-    "position_hist": "RB",
-    "team": "BAL",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 1.1774455021020642,
-    "f_tgt_share": 0.041132674112196975,
-    "f_ay_share": -0.010880306384462414,
-    "f_rec": 0.9526993979539793,
-    "f_yards": 4.509754291813145,
-    "f_adot": -1.567614591023086,
-    "f_catch_rate": 0.8215140653404903,
-    "f_ypr": 5.1685924459386,
-    "c_targets": 1.61875,
-    "c_yards": 11.725,
-    "games_prior": 161,
-    "f_tgt_sd": 0.707106781186548,
-    "current_team": "BAL",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 10,
-    "full_name": "Derrick Henry",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.6334646351048279,
-    "def_rec_idx": 0.698441821027087,
-    "def_tgt_idx": 0.8326183673112734,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.386462662749497,
-    "mu_ypr": 7.2364133697768676,
-    "proj_rec": 1.386462662749497,
-    "proj_yards": 10.033016949416895,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3938,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 7
-      },
-      {
-        "receptions": 1,
-        "yards": 4
-      },
-      {
-        "receptions": 1,
-        "yards": 2
-      },
-      {
-        "receptions": 1,
-        "yards": 18
-      },
-      {
-        "receptions": 2,
-        "yards": 6
-      },
-      {
-        "receptions": 1,
-        "yards": 0
-      },
-      {
-        "receptions": 3,
-        "yards": 19
-      },
-      {
-        "receptions": 1,
-        "yards": 19
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0039796",
-    "player_display_name": "Rasheen Ali",
-    "position_hist": "RB",
-    "team": "BAL",
-    "targets": 0,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 0,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.0,
-    "air_yards_share": 0.0,
-    "receiving_tds": 0,
-    "adot": null,
-    "catch_rate_g": null,
-    "ypr_g": null,
-    "f_targets": 0.05419019419715017,
-    "f_tgt_share": 0.002802203178154631,
-    "f_ay_share": 0.00014679608185427445,
-    "f_rec": 0.04289071162250365,
-    "f_yards": 0.2496367874467851,
-    "f_adot": -0.9664125577316286,
-    "f_catch_rate": 0.8287037155054418,
-    "f_ypr": 6.058346839546192,
-    "c_targets": 0.48148148148148145,
-    "c_yards": 2.5185185185185186,
-    "games_prior": 28,
-    "f_tgt_sd": 0.0,
-    "current_team": "BAL",
-    "position": "RB",
-    "status": "ACT",
-    "years_exp": 2,
-    "full_name": "Rasheen Ali",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.6334646351048279,
-    "def_rec_idx": 0.698441821027087,
-    "def_tgt_idx": 0.8326183673112734,
-    "pos_WR": 0,
-    "pos_TE": 0,
-    "pos_RB": 1,
-    "is_week1": 0,
-    "excl_reason": "",
-    "questionable": 0,
-    "mu_rec": 1.1073445275600866,
-    "mu_ypr": 7.718717937080217,
-    "proj_rec": 1.1073445275600866,
-    "proj_yards": 8.547280067405659,
-    "fair_line_rec": 0.5,
-    "fair_line_yards": 5.0,
-    "p_rec_at_fair_line": 0.6484,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 8
-      }
-    ]
-  },
-  {
-    "player_id": "00-0033885",
-    "player_display_name": "David Njoku",
-    "position_hist": "TE",
-    "team": "LAC",
-    "targets": 3,
-    "receptions": 1,
-    "receiving_yards": 9,
-    "receiving_air_yards": 25,
-    "receiving_yards_after_catch": 8,
-    "target_share": 0.11538461538461539,
-    "air_yards_share": 0.09293680297397769,
-    "receiving_tds": 0,
-    "adot": 8.333333333333334,
-    "catch_rate_g": 0.3333333333333333,
-    "ypr_g": 9.0,
-    "f_targets": 3.213682459436317,
-    "f_tgt_share": 0.1148019145763247,
-    "f_ay_share": 0.0709099302196399,
-    "f_rec": 2.3025954733234526,
-    "f_yards": 21.156104420832875,
-    "f_adot": 4.936074224100572,
-    "f_catch_rate": 0.7164726350247128,
-    "f_ypr": 7.64652392498521,
-    "c_targets": 5.247787610619469,
-    "c_yards": 36.46017699115044,
-    "games_prior": 114,
-    "f_tgt_sd": 2.7255405754769866,
-    "current_team": "LAC",
-    "position": "TE",
-    "status": "ACT",
-    "years_exp": 9,
-    "full_name": "David Njoku",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9434555199785339,
-    "def_rec_idx": 0.850111654010828,
-    "def_tgt_idx": 0.8513800684594405,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "espn: injured reserve",
-    "questionable": 1,
-    "mu_rec": 2.342635755150371,
-    "mu_ypr": 9.288032671232692,
-    "proj_rec": 2.342635755150371,
-    "proj_yards": 21.758477430634517,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.4044,
-    "recent_receiving_games": [
-      {
-        "receptions": 1,
-        "yards": 9
-      },
-      {
-        "receptions": 5,
-        "yards": 58
-      },
-      {
-        "receptions": 1,
-        "yards": 1
-      },
-      {
-        "receptions": 2,
-        "yards": 4
-      },
-      {
-        "receptions": 1,
-        "yards": 7
-      },
-      {
-        "receptions": 2,
-        "yards": 21
-      },
-      {
-        "receptions": 4,
-        "yards": 37
-      },
-      {
-        "receptions": 3,
-        "yards": 28
+        "yards": 59
       },
       {
         "receptions": 6,
         "yards": 67
-      },
-      {
-        "receptions": 2,
-        "yards": 11
       }
     ]
   },
   {
-    "player_id": "00-0039915",
-    "player_display_name": "Ladd McConkey",
+    "player_id": "00-0031588",
+    "player_display_name": "Stefon Diggs",
     "position_hist": "WR",
-    "team": "LAC",
-    "targets": 6,
-    "receptions": 4,
-    "receiving_yards": 86,
-    "receiving_air_yards": 60,
-    "receiving_yards_after_catch": 24,
-    "target_share": 0.2,
-    "air_yards_share": 0.3821656050955414,
-    "receiving_tds": 0,
-    "adot": 10.0,
-    "catch_rate_g": 0.6666666666666666,
-    "ypr_g": 21.5,
-    "f_targets": 3.885251777895109,
-    "f_tgt_share": 0.1299308862220082,
-    "f_ay_share": 0.22012382514464401,
-    "f_rec": 2.5829096959320084,
-    "f_yards": 47.86935362738279,
-    "f_adot": 11.07664180885326,
-    "f_catch_rate": 0.6704448752380354,
-    "f_ypr": 18.034049719241228,
-    "c_targets": 6.378378378378378,
-    "c_yards": 57.78378378378378,
-    "games_prior": 38,
-    "f_tgt_sd": 2.133909892327099,
-    "current_team": "LAC",
+    "team": "WAS",
+    "targets": 10,
+    "receptions": 6,
+    "receiving_yards": 83,
+    "receiving_air_yards": 56,
+    "receiving_yards_after_catch": 44,
+    "target_share": 0.30303030303030304,
+    "air_yards_share": 0.27586206896551724,
+    "receiving_tds": 1,
+    "adot": 5.6,
+    "catch_rate_g": 0.6,
+    "ypr_g": 13.833333333333334,
+    "f_targets": 7.482211282476996,
+    "f_tgt_share": 0.23180949566858106,
+    "f_ay_share": 0.22573888372939963,
+    "f_rec": 4.619263494386866,
+    "f_yards": 57.836500715444295,
+    "f_adot": 8.198452326404814,
+    "f_catch_rate": 0.6222448474591099,
+    "f_ypr": 12.885673293859936,
+    "c_targets": 8.44516129032258,
+    "c_yards": 71.52903225806452,
+    "games_prior": 156,
+    "f_tgt_sd": 2.0000000000000018,
+    "current_team": "WAS",
     "position": "WR",
     "status": "ACT",
-    "years_exp": 2,
-    "full_name": "Ladd McConkey",
+    "years_exp": 11,
+    "full_name": "Stefon Diggs",
     "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
+    "game_id": "2026_11_CIN_WAS",
     "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
     "is_dome": 0,
-    "wind": 6.0,
+    "wind": 15.0,
     "unposted_lines": 0,
     "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
     "pos_WR": 1,
     "pos_TE": 0,
     "pos_RB": 0,
     "is_week1": 0,
-    "excl_reason": "espn: out",
-    "questionable": 1,
-    "mu_rec": 2.7573957656914008,
-    "mu_ypr": 12.800993509019296,
-    "proj_rec": 2.7573957656914008,
-    "proj_yards": 35.29740529841291,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 29.0,
-    "p_rec_at_fair_line": 0.4962,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 4.82269925133369,
+    "mu_ypr": 11.97117813470163,
+    "proj_rec": 4.82269925133369,
+    "proj_yards": 57.733391827807786,
+    "fair_line_rec": 4.5,
+    "fair_line_yards": 51.5,
+    "p_rec_at_fair_line": 0.4964,
+    "recent_receiving_games": [
+      {
+        "receptions": 6,
+        "yards": 83
+      },
+      {
+        "receptions": 3,
+        "yards": 51
+      },
+      {
+        "receptions": 3,
+        "yards": 38
+      },
+      {
+        "receptions": 6,
+        "yards": 44
+      },
+      {
+        "receptions": 5,
+        "yards": 35
+      },
+      {
+        "receptions": 4,
+        "yards": 33
+      },
+      {
+        "receptions": 5,
+        "yards": 47
+      },
+      {
+        "receptions": 4,
+        "yards": 55
+      },
+      {
+        "receptions": 3,
+        "yards": 43
+      },
+      {
+        "receptions": 6,
+        "yards": 101
+      }
+    ]
+  },
+  {
+    "player_id": "00-0037809",
+    "player_display_name": "Chig Okonkwo",
+    "position_hist": "TE",
+    "team": "WAS",
+    "targets": 8,
+    "receptions": 4,
+    "receiving_yards": 24,
+    "receiving_air_yards": 35,
+    "receiving_yards_after_catch": 17,
+    "target_share": 0.24242424242424243,
+    "air_yards_share": 0.1724137931034483,
+    "receiving_tds": 0,
+    "adot": 4.375,
+    "catch_rate_g": 0.5,
+    "ypr_g": 6.0,
+    "f_targets": 6.496444697993746,
+    "f_tgt_share": 0.20397753238357852,
+    "f_ay_share": 0.15428293523246991,
+    "f_rec": 4.2502856120453245,
+    "f_yards": 38.533100442960816,
+    "f_adot": 6.378619765595232,
+    "f_catch_rate": 0.649103848210631,
+    "f_ypr": 9.277330080953124,
+    "c_targets": 4.208333333333333,
+    "c_yards": 31.333333333333332,
+    "games_prior": 73,
+    "f_tgt_sd": 1.5979898086569353,
+    "current_team": "WAS",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 4,
+    "full_name": "Chig Okonkwo",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.2789213020916115,
+    "def_rec_idx": 1.1371220931577075,
+    "def_tgt_idx": 1.165262114326517,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 3.5600242516923255,
+    "mu_ypr": 10.47577216106484,
+    "proj_rec": 3.5600242516923255,
+    "proj_yards": 37.294002948594155,
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 32.0,
+    "p_rec_at_fair_line": 0.4562,
     "recent_receiving_games": [
       {
         "receptions": 4,
-        "yards": 86
+        "yards": 24
       },
       {
-        "receptions": 1,
-        "yards": 17
+        "receptions": 6,
+        "yards": 57
       },
       {
-        "receptions": 0,
-        "yards": 0
+        "receptions": 2,
+        "yards": 32
+      },
+      {
+        "receptions": 7,
+        "yards": 69
+      },
+      {
+        "receptions": 4,
+        "yards": 60
+      },
+      {
+        "receptions": 2,
+        "yards": 5
+      },
+      {
+        "receptions": 2,
+        "yards": 16
+      },
+      {
+        "receptions": 2,
+        "yards": 2
+      },
+      {
+        "receptions": 3,
+        "yards": 55
+      },
+      {
+        "receptions": 6,
+        "yards": 44
+      }
+    ]
+  },
+  {
+    "player_id": "00-0041040",
+    "player_display_name": "Antonio Williams",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 2,
+    "receptions": 2,
+    "receiving_yards": 42,
+    "receiving_air_yards": 24,
+    "receiving_yards_after_catch": 18,
+    "target_share": 0.06060606060606061,
+    "air_yards_share": 0.11822660098522167,
+    "receiving_tds": 1,
+    "adot": 12.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 21.0,
+    "f_targets": 4.352207242928893,
+    "f_tgt_share": 0.13953006448128202,
+    "f_ay_share": 0.1778476855035323,
+    "f_rec": 2.9580756013745706,
+    "f_yards": 38.13819719799102,
+    "f_adot": 11.007680978815,
+    "f_catch_rate": 0.7708621275631585,
+    "f_ypr": 13.940037007665875,
+    "c_targets": 4.875,
+    "c_yards": 35.5,
+    "games_prior": 9,
+    "f_tgt_sd": 1.8850918886280925,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 0,
+    "full_name": "Antonio Williams",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.731732199880747,
+    "mu_ypr": 12.556907239941761,
+    "proj_rec": 2.731732199880747,
+    "proj_yards": 34.30210783826459,
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 28.5,
+    "p_rec_at_fair_line": 0.4908,
+    "recent_receiving_games": [
+      {
+        "receptions": 2,
+        "yards": 42
+      },
+      {
+        "receptions": 3,
+        "yards": 25
+      },
+      {
+        "receptions": 5,
+        "yards": 54
+      },
+      {
+        "receptions": 3,
+        "yards": 50
+      },
+      {
+        "receptions": 3,
+        "yards": 31
+      },
+      {
+        "receptions": 3,
+        "yards": 21
+      },
+      {
+        "receptions": 2,
+        "yards": 15
+      },
+      {
+        "receptions": 3,
+        "yards": 24
+      },
+      {
+        "receptions": 4,
+        "yards": 64
+      }
+    ]
+  },
+  {
+    "player_id": "00-0037742",
+    "player_display_name": "Treylon Burks",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 3,
+    "receptions": 2,
+    "receiving_yards": 27,
+    "receiving_air_yards": 50,
+    "receiving_yards_after_catch": 2,
+    "target_share": 0.09090909090909091,
+    "air_yards_share": 0.24630541871921183,
+    "receiving_tds": 0,
+    "adot": 16.666666666666668,
+    "catch_rate_g": 0.6666666666666666,
+    "ypr_g": 13.5,
+    "f_targets": 3.99153945210047,
+    "f_tgt_share": 0.13668307365221333,
+    "f_ay_share": 0.25968233831899284,
+    "f_rec": 2.3576602634750374,
+    "f_yards": 43.800858684668846,
+    "f_adot": 17.38430441186808,
+    "f_catch_rate": 0.5845419517100685,
+    "f_ypr": 18.92794639758632,
+    "c_targets": 3.4871794871794872,
+    "c_yards": 27.23076923076923,
+    "games_prior": 40,
+    "f_tgt_sd": 1.772810520855837,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 4,
+    "full_name": "Treylon Burks",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.1998984239991155,
+    "mu_ypr": 14.342313592362558,
+    "proj_rec": 2.1998984239991155,
+    "proj_yards": 31.551633068339484,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 25.0,
+    "p_rec_at_fair_line": 0.6137,
+    "recent_receiving_games": [
+      {
+        "receptions": 2,
+        "yards": 27
+      },
+      {
+        "receptions": 3,
+        "yards": 81
       },
       {
         "receptions": 4,
         "yards": 66
       },
       {
-        "receptions": 3,
-        "yards": 35
-      },
-      {
-        "receptions": 5,
-        "yards": 82
-      },
-      {
-        "receptions": 1,
-        "yards": 31
-      },
-      {
-        "receptions": 4,
-        "yards": 43
-      },
-      {
         "receptions": 2,
-        "yards": 20
-      },
-      {
-        "receptions": 1,
-        "yards": 12
-      }
-    ]
-  },
-  {
-    "player_id": "00-0040311",
-    "player_display_name": "Theo Wease Jr.",
-    "position_hist": "WR",
-    "team": "LAC",
-    "targets": 3,
-    "receptions": 2,
-    "receiving_yards": 21,
-    "receiving_air_yards": 20,
-    "receiving_yards_after_catch": 2,
-    "target_share": 0.08333333333333333,
-    "air_yards_share": 0.10101010101010101,
-    "receiving_tds": 0,
-    "adot": 6.666666666666667,
-    "catch_rate_g": 0.6666666666666666,
-    "ypr_g": 10.5,
-    "f_targets": 2.651282051282051,
-    "f_tgt_share": 0.09633795323450496,
-    "f_ay_share": 0.15443143701764395,
-    "f_rec": 1.784615384615385,
-    "f_yards": 29.933333333333334,
-    "f_adot": 11.477606837606839,
-    "f_catch_rate": 0.7740170940170941,
-    "f_ypr": 19.705128205128208,
-    "c_targets": 2.75,
-    "c_yards": 38.75,
-    "games_prior": 5,
-    "f_tgt_sd": 2.0615528128088303,
-    "current_team": "LAC",
-    "position": "WR",
-    "status": "DEV",
-    "years_exp": 1,
-    "full_name": "Theo Wease Jr.",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "BAL",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 0,
-    "team_spread": -4.5,
-    "total_line": 38.5,
-    "implied_team_total": 17.0,
-    "implied_opp_total": 21.5,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 1.2781558654307672,
-    "def_rec_idx": 1.1097040930782656,
-    "def_tgt_idx": 1.0610359798187086,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "not on active roster",
-    "questionable": 0,
-    "mu_rec": 2.0995468105384916,
-    "mu_ypr": 13.363936896436584,
-    "proj_rec": 2.0995468105384916,
-    "proj_yards": 28.058211087151097,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 22.0,
-    "p_rec_at_fair_line": 0.5909,
-    "recent_receiving_games": [
-      {
-        "receptions": 2,
-        "yards": 21
-      },
-      {
-        "receptions": 1,
-        "yards": 16
-      },
-      {
-        "receptions": 3,
-        "yards": 44
-      },
-      {
-        "receptions": 1,
-        "yards": 63
-      },
-      {
-        "receptions": 2,
-        "yards": 32
-      }
-    ]
-  },
-  {
-    "player_id": "00-0039792",
-    "player_display_name": "Devontez Walker",
-    "position_hist": "WR",
-    "team": "BAL",
-    "targets": 2,
-    "receptions": 0,
-    "receiving_yards": 0,
-    "receiving_air_yards": 56,
-    "receiving_yards_after_catch": 0,
-    "target_share": 0.06451612903225806,
-    "air_yards_share": 0.20512820512820512,
-    "receiving_tds": 0,
-    "adot": 28.0,
-    "catch_rate_g": 0.0,
-    "ypr_g": null,
-    "f_targets": 1.7938093969796371,
-    "f_tgt_share": 0.06333207279888406,
-    "f_ay_share": 0.16100336616240912,
-    "f_rec": 0.771128584320116,
-    "f_yards": 10.564780490046937,
-    "f_adot": 22.8941389380635,
-    "f_catch_rate": 0.42286126382500183,
-    "f_ypr": 16.972207552721816,
-    "c_targets": 1.2,
-    "c_yards": 15.466666666666667,
-    "games_prior": 16,
-    "f_tgt_sd": 0.7559289460184545,
-    "current_team": "BAL",
-    "position": "WR",
-    "status": "INA",
-    "years_exp": 2,
-    "full_name": "Devontez Walker",
-    "changed_team": 0,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.9096065978778459,
-    "def_rec_idx": 0.9990114256744015,
-    "def_tgt_idx": 0.9100590890888182,
-    "pos_WR": 1,
-    "pos_TE": 0,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "not on active roster",
-    "questionable": 0,
-    "mu_rec": 1.31616010716518,
-    "mu_ypr": 14.834157143273005,
-    "proj_rec": 1.31616010716518,
-    "proj_yards": 19.52412585539532,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.3712,
-    "recent_receiving_games": [
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 2,
-        "yards": 9
-      },
-      {
-        "receptions": 1,
-        "yards": 19
-      },
-      {
-        "receptions": 0,
-        "yards": 0
+        "yards": 26
       },
       {
         "receptions": 1,
@@ -2586,7 +617,625 @@
       },
       {
         "receptions": 2,
+        "yards": 13
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 12
+      },
+      {
+        "receptions": 1,
+        "yards": 11
+      },
+      {
+        "receptions": 2,
+        "yards": 30
+      }
+    ]
+  },
+  {
+    "player_id": "00-0038597",
+    "player_display_name": "Chase Brown",
+    "position_hist": "RB",
+    "team": "CIN",
+    "targets": 9,
+    "receptions": 8,
+    "receiving_yards": 39,
+    "receiving_air_yards": 2,
+    "receiving_yards_after_catch": 32,
+    "target_share": 0.21428571428571427,
+    "air_yards_share": 0.007547169811320755,
+    "receiving_tds": 2,
+    "adot": 0.2222222222222222,
+    "catch_rate_g": 0.8888888888888888,
+    "ypr_g": 4.875,
+    "f_targets": 6.606122369025609,
+    "f_tgt_share": 0.16950582849995355,
+    "f_ay_share": -0.012371655586651042,
+    "f_rec": 5.883945349416521,
+    "f_yards": 31.526805706520474,
+    "f_adot": -0.7928668103050908,
+    "f_catch_rate": 0.8962439009922593,
+    "f_ypr": 5.412147602872371,
+    "c_targets": 4.018867924528302,
+    "c_yards": 21.88679245283019,
+    "games_prior": 54,
+    "f_tgt_sd": 3.0207614933986426,
+    "current_team": "CIN",
+    "position": "RB",
+    "status": "ACT",
+    "years_exp": 3,
+    "full_name": "Chase Brown",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0174116495547607,
+    "def_rec_idx": 1.1316729525443214,
+    "def_tgt_idx": 1.26257563444476,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 3.976103201870486,
+    "mu_ypr": 7.342988768257883,
+    "proj_rec": 3.976103201870486,
+    "proj_yards": 29.196481152769184,
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 25.5,
+    "p_rec_at_fair_line": 0.5275,
+    "recent_receiving_games": [
+      {
+        "receptions": 8,
+        "yards": 39
+      },
+      {
+        "receptions": 3,
+        "yards": 18
+      },
+      {
+        "receptions": 8,
         "yards": 46
+      },
+      {
+        "receptions": 4,
+        "yards": 19
+      },
+      {
+        "receptions": 3,
+        "yards": 21
+      },
+      {
+        "receptions": 11,
+        "yards": 71
+      },
+      {
+        "receptions": 2,
+        "yards": 8
+      },
+      {
+        "receptions": 3,
+        "yards": 2
+      },
+      {
+        "receptions": 5,
+        "yards": 22
+      },
+      {
+        "receptions": 4,
+        "yards": 18
+      }
+    ]
+  },
+  {
+    "player_id": "00-0036415",
+    "player_display_name": "Van Jefferson",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 7,
+    "receptions": 5,
+    "receiving_yards": 58,
+    "receiving_air_yards": 86,
+    "receiving_yards_after_catch": 19,
+    "target_share": 0.20588235294117646,
+    "air_yards_share": 0.3453815261044177,
+    "receiving_tds": 1,
+    "adot": 12.285714285714286,
+    "catch_rate_g": 0.7142857142857143,
+    "ypr_g": 11.6,
+    "f_targets": 4.05003355516139,
+    "f_tgt_share": 0.1266109610499181,
+    "f_ay_share": 0.21652966996296155,
+    "f_rec": 2.6556043951226727,
+    "f_yards": 33.79861803016988,
+    "f_adot": 11.29901096859313,
+    "f_catch_rate": 0.5800290730831408,
+    "f_ypr": 15.134239767360999,
+    "c_targets": 3.5294117647058822,
+    "c_yards": 26.188235294117646,
+    "games_prior": 86,
+    "f_tgt_sd": 2.065879266282796,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 6,
+    "full_name": "Van Jefferson",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.227664895892401,
+    "mu_ypr": 12.25165679918221,
+    "proj_rec": 2.227664895892401,
+    "proj_yards": 27.292585768059666,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 21.5,
+    "p_rec_at_fair_line": 0.6198,
+    "recent_receiving_games": [
+      {
+        "receptions": 5,
+        "yards": 58
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 3,
+        "yards": 46
+      },
+      {
+        "receptions": 2,
+        "yards": 24
+      },
+      {
+        "receptions": 1,
+        "yards": 43
+      },
+      {
+        "receptions": 2,
+        "yards": 17
+      },
+      {
+        "receptions": 3,
+        "yards": 20
+      },
+      {
+        "receptions": 1,
+        "yards": 11
+      },
+      {
+        "receptions": 3,
+        "yards": 22
+      },
+      {
+        "receptions": 1,
+        "yards": 21
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040785",
+    "player_display_name": "Dohnte Meyers",
+    "position_hist": "WR",
+    "team": "CIN",
+    "targets": 2,
+    "receptions": 2,
+    "receiving_yards": 20,
+    "receiving_air_yards": 17,
+    "receiving_yards_after_catch": 3,
+    "target_share": 0.047619047619047616,
+    "air_yards_share": 0.06415094339622641,
+    "receiving_tds": 1,
+    "adot": 8.5,
+    "catch_rate_g": 1.0,
+    "ypr_g": 10.0,
+    "f_targets": 2.762675125561724,
+    "f_tgt_share": 0.0751757856488069,
+    "f_ay_share": 0.08048752223340609,
+    "f_rec": 2.153317472905102,
+    "f_yards": 28.471266190853825,
+    "f_adot": 7.37066349458102,
+    "f_catch_rate": 0.7775099127676448,
+    "f_ypr": 13.960976648975095,
+    "c_targets": 3.25,
+    "c_yards": 27.75,
+    "games_prior": 9,
+    "f_tgt_sd": 2.659215781283755,
+    "current_team": "CIN",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 0,
+    "full_name": "Dohnte Meyers",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.1762426967652635,
+    "mu_ypr": 12.19005444190776,
+    "proj_rec": 2.1762426967652635,
+    "proj_yards": 26.528516952372723,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 21.0,
+    "p_rec_at_fair_line": 0.6084,
+    "recent_receiving_games": [
+      {
+        "receptions": 2,
+        "yards": 20
+      },
+      {
+        "receptions": 2,
+        "yards": 47
+      },
+      {
+        "receptions": 3,
+        "yards": 34
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 12
+      },
+      {
+        "receptions": 7,
+        "yards": 82
+      },
+      {
+        "receptions": 3,
+        "yards": 29
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 18
+      }
+    ]
+  },
+  {
+    "player_id": "00-0034829",
+    "player_display_name": "Mike Gesicki",
+    "position_hist": "TE",
+    "team": "CIN",
+    "targets": 2,
+    "receptions": 1,
+    "receiving_yards": 9,
+    "receiving_air_yards": 15,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.047619047619047616,
+    "air_yards_share": 0.05660377358490566,
+    "receiving_tds": 0,
+    "adot": 7.5,
+    "catch_rate_g": 0.5,
+    "ypr_g": 9.0,
+    "f_targets": 2.786534477016429,
+    "f_tgt_share": 0.07216844725208124,
+    "f_ay_share": 0.08035250834706587,
+    "f_rec": 1.9450019753465702,
+    "f_yards": 23.07473625284265,
+    "f_adot": 7.860856801400851,
+    "f_catch_rate": 0.7223964900339063,
+    "f_ypr": 9.622691012507985,
+    "c_targets": 4.421875,
+    "c_yards": 31.9140625,
+    "games_prior": 129,
+    "f_tgt_sd": 2.2038926600773596,
+    "current_team": "CIN",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 8,
+    "full_name": "Mike Gesicki",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.1548038224633341,
+    "def_rec_idx": 1.1465715088874529,
+    "def_tgt_idx": 1.1100908895722104,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.1079793603409414,
+    "mu_ypr": 10.60651609366723,
+    "proj_rec": 2.1079793603409414,
+    "proj_yards": 22.358317010574545,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.5929,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 2,
+        "yards": 11
+      },
+      {
+        "receptions": 4,
+        "yards": 76
+      },
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 3,
+        "yards": 40
+      },
+      {
+        "receptions": 3,
+        "yards": 37
+      },
+      {
+        "receptions": 5,
+        "yards": 78
+      },
+      {
+        "receptions": 2,
+        "yards": 13
+      },
+      {
+        "receptions": 2,
+        "yards": 47
+      }
+    ]
+  },
+  {
+    "player_id": "00-0038839",
+    "player_display_name": "Mitchell Tinsley",
+    "position_hist": "WR",
+    "team": "CIN",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 4,
+    "receiving_air_yards": 4,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.03571428571428571,
+    "air_yards_share": 0.021164021164021163,
+    "receiving_tds": 0,
+    "adot": 4.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 4.0,
+    "f_targets": 2.5109349418354165,
+    "f_tgt_share": 0.06381238076689094,
+    "f_ay_share": 0.08871380469102247,
+    "f_rec": 1.2666436880654892,
+    "f_yards": 13.95381301163292,
+    "f_adot": 9.376470733058413,
+    "f_catch_rate": 0.699873207361359,
+    "f_ypr": 9.434249314560187,
+    "c_targets": 3.2,
+    "c_yards": 17.2,
+    "games_prior": 11,
+    "f_tgt_sd": 3.1052950170405937,
+    "current_team": "CIN",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 3,
+    "full_name": "Mitchell Tinsley",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.820549323669312,
+    "mu_ypr": 12.123673563215858,
+    "proj_rec": 1.820549323669312,
+    "proj_yards": 22.07174570590015,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 16.5,
+    "p_rec_at_fair_line": 0.5213,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 1,
+        "yards": 7
+      },
+      {
+        "receptions": 3,
+        "yards": 49
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 16
+      },
+      {
+        "receptions": 2,
+        "yards": 22
+      },
+      {
+        "receptions": 2,
+        "yards": 29
+      },
+      {
+        "receptions": 1,
+        "yards": 27
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0039912",
+    "player_display_name": "Ben Sinnott",
+    "position_hist": "TE",
+    "team": "WAS",
+    "targets": 4,
+    "receptions": 4,
+    "receiving_yards": 42,
+    "receiving_air_yards": 27,
+    "receiving_yards_after_catch": 15,
+    "target_share": 0.12121212121212122,
+    "air_yards_share": 0.1330049261083744,
+    "receiving_tds": 1,
+    "adot": 6.75,
+    "catch_rate_g": 1.0,
+    "ypr_g": 10.5,
+    "f_targets": 1.999919953782708,
+    "f_tgt_share": 0.06914628528258591,
+    "f_ay_share": 0.06833300482045115,
+    "f_rec": 1.7785123508846001,
+    "f_yards": 17.22062569368799,
+    "f_adot": 6.521624705657509,
+    "f_catch_rate": 0.7362285495893436,
+    "f_ypr": 8.702071491020392,
+    "c_targets": 1.0526315789473684,
+    "c_yards": 7.7894736842105265,
+    "games_prior": 20,
+    "f_tgt_sd": 1.1952286093343936,
+    "current_team": "WAS",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 2,
+    "full_name": "Ben Sinnott",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.2789213020916115,
+    "def_rec_idx": 1.1371220931577075,
+    "def_tgt_idx": 1.165262114326517,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.724869874101531,
+    "mu_ypr": 10.524481160286308,
+    "proj_rec": 1.724869874101531,
+    "proj_yards": 18.15336049392698,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4951,
+    "recent_receiving_games": [
+      {
+        "receptions": 4,
+        "yards": 42
       },
       {
         "receptions": 0,
@@ -2598,82 +1247,23 @@
       },
       {
         "receptions": 1,
-        "yards": 30
+        "yards": 6
       },
       {
-        "receptions": 0,
-        "yards": 0
-      }
-    ]
-  },
-  {
-    "player_id": "00-0032394",
-    "player_display_name": "Nick Vannett",
-    "position_hist": "TE",
-    "team": "BAL",
-    "targets": 2,
-    "receptions": 2,
-    "receiving_yards": 26,
-    "receiving_air_yards": -2,
-    "receiving_yards_after_catch": 28,
-    "target_share": 0.07692307692307693,
-    "air_yards_share": -0.006688963210702341,
-    "receiving_tds": 0,
-    "adot": -1.0,
-    "catch_rate_g": 1.0,
-    "ypr_g": 13.0,
-    "f_targets": 1.493660475923606,
-    "f_tgt_share": 0.05154368992967173,
-    "f_ay_share": 0.0036874670008145774,
-    "f_rec": 1.3332909641661606,
-    "f_yards": 13.478843462989579,
-    "f_adot": 1.1169281417521142,
-    "f_catch_rate": 0.8921649865797614,
-    "f_ypr": 8.994543565016318,
-    "c_targets": 1.922077922077922,
-    "c_yards": 12.805194805194805,
-    "games_prior": 78,
-    "f_tgt_sd": 0.4629100498862773,
-    "current_team": "BAL",
-    "position": "TE",
-    "status": "DEV",
-    "years_exp": 10,
-    "full_name": "Nick Vannett",
-    "changed_team": 1,
-    "game_id": "2026_10_LAC_BAL",
-    "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
-    "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
-    "is_dome": 0,
-    "wind": 6.0,
-    "unposted_lines": 0,
-    "is_open_field": 0,
-    "def_yards_idx": 0.883021647826444,
-    "def_rec_idx": 0.7594480775619226,
-    "def_tgt_idx": 0.7011672695506981,
-    "pos_WR": 0,
-    "pos_TE": 1,
-    "pos_RB": 0,
-    "is_week1": 0,
-    "excl_reason": "not on active roster",
-    "questionable": 0,
-    "mu_rec": 1.5897007042473543,
-    "mu_ypr": 9.031967556725514,
-    "proj_rec": 1.5897007042473543,
-    "proj_yards": 14.358125185665806,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4563,
-    "recent_receiving_games": [
-      {
         "receptions": 2,
-        "yards": 26
+        "yards": 3
+      },
+      {
+        "receptions": 3,
+        "yards": 29
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 1,
+        "yards": 36
       },
       {
         "receptions": 1,
@@ -2681,43 +1271,336 @@
       },
       {
         "receptions": 1,
-        "yards": 7
-      },
-      {
-        "receptions": 1,
         "yards": 4
-      },
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 1,
-        "yards": 6
-      },
-      {
-        "receptions": 2,
-        "yards": 33
-      },
-      {
-        "receptions": 0,
-        "yards": 0
-      },
-      {
-        "receptions": 4,
-        "yards": 25
       }
     ]
   },
   {
-    "player_id": "00-0035924",
-    "player_display_name": "Jonathan Ward",
+    "player_id": "00-0033699",
+    "player_display_name": "Austin Ekeler",
     "position_hist": "RB",
-    "team": "BAL",
+    "team": "WAS",
+    "targets": 4,
+    "receptions": 4,
+    "receiving_yards": 26,
+    "receiving_air_yards": 11,
+    "receiving_yards_after_catch": 15,
+    "target_share": 0.12121212121212122,
+    "air_yards_share": 0.054187192118226604,
+    "receiving_tds": 0,
+    "adot": 2.75,
+    "catch_rate_g": 1.0,
+    "ypr_g": 6.5,
+    "f_targets": 2.6645942699547223,
+    "f_tgt_share": 0.08045558766530686,
+    "f_ay_share": 0.008410697743489778,
+    "f_rec": 2.3162320104205367,
+    "f_yards": 16.364452480512316,
+    "f_adot": -0.3655123231430354,
+    "f_catch_rate": 0.8488464279246919,
+    "f_ypr": 7.658711158200854,
+    "c_targets": 5.1,
+    "c_yards": 36.13333333333333,
+    "games_prior": 121,
+    "f_tgt_sd": 1.2464234547582276,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "ACT",
+    "years_exp": 9,
+    "full_name": "Austin Ekeler",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 2.390234803148449,
+    "mu_ypr": 7.39509547370918,
+    "proj_rec": 2.390234803148449,
+    "proj_yards": 17.67601457386525,
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.4154,
+    "recent_receiving_games": [
+      {
+        "receptions": 4,
+        "yards": 26
+      },
+      {
+        "receptions": 2,
+        "yards": 18
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 4
+      },
+      {
+        "receptions": 1,
+        "yards": 15
+      },
+      {
+        "receptions": 1,
+        "yards": 11
+      },
+      {
+        "receptions": 2,
+        "yards": 7
+      },
+      {
+        "receptions": 3,
+        "yards": 31
+      },
+      {
+        "receptions": 2,
+        "yards": 20
+      },
+      {
+        "receptions": 2,
+        "yards": 2
+      }
+    ]
+  },
+  {
+    "player_id": "00-0035631",
+    "player_display_name": "Drew Sample",
+    "position_hist": "TE",
+    "team": "CIN",
+    "targets": 3,
+    "receptions": 3,
+    "receiving_yards": 15,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 15,
+    "target_share": 0.07142857142857142,
+    "air_yards_share": 0.0,
+    "receiving_tds": 1,
+    "adot": 0.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 5.0,
+    "f_targets": 2.251323515661542,
+    "f_tgt_share": 0.06292148260452365,
+    "f_ay_share": 0.0028945573185503,
+    "f_rec": 2.1388606821707032,
+    "f_yards": 14.219129486016227,
+    "f_adot": 0.5596404871113482,
+    "f_catch_rate": 0.9433712941621437,
+    "f_ypr": 6.52306811980111,
+    "c_targets": 2.0675675675675675,
+    "c_yards": 11.945945945945946,
+    "games_prior": 75,
+    "f_tgt_sd": 0.7559289460184547,
+    "current_team": "CIN",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 7,
+    "full_name": "Drew Sample",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.1548038224633341,
+    "def_rec_idx": 1.1465715088874529,
+    "def_tgt_idx": 1.1100908895722104,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.9186312702946988,
+    "mu_ypr": 9.207645891422073,
+    "proj_rec": 1.9186312702946988,
+    "proj_yards": 17.666077333082896,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.5468,
+    "recent_receiving_games": [
+      {
+        "receptions": 3,
+        "yards": 15
+      },
+      {
+        "receptions": 2,
+        "yards": 24
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 1,
+        "yards": 0
+      },
+      {
+        "receptions": 3,
+        "yards": 19
+      },
+      {
+        "receptions": 3,
+        "yards": 17
+      },
+      {
+        "receptions": 1,
+        "yards": 8
+      },
+      {
+        "receptions": 2,
+        "yards": 31
+      },
+      {
+        "receptions": 2,
+        "yards": 12
+      },
+      {
+        "receptions": 1,
+        "yards": 14
+      }
+    ]
+  },
+  {
+    "player_id": "00-0037256",
+    "player_display_name": "Rachaad White",
+    "position_hist": "RB",
+    "team": "WAS",
+    "targets": 2,
+    "receptions": 1,
+    "receiving_yards": 5,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 2,
+    "target_share": 0.06060606060606061,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": 0.0,
+    "catch_rate_g": 0.5,
+    "ypr_g": 5.0,
+    "f_targets": 2.6744229585394867,
+    "f_tgt_share": 0.08404008896486356,
+    "f_ay_share": -0.0032622917564493624,
+    "f_rec": 1.8680909015322769,
+    "f_yards": 16.632371271114767,
+    "f_adot": -0.25309864757076533,
+    "f_catch_rate": 0.6884938840464748,
+    "f_ypr": 8.221633585052373,
+    "c_targets": 3.4383561643835616,
+    "c_yards": 21.63013698630137,
+    "games_prior": 74,
+    "f_tgt_sd": 1.8077215335491092,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "ACT",
+    "years_exp": 4,
+    "full_name": "Rachaad White",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 1,
+    "mu_rec": 2.1230002720756436,
+    "mu_ypr": 7.616446362414606,
+    "proj_rec": 2.1230002720756436,
+    "proj_yards": 16.169717699655752,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.5963,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 2,
+        "yards": 41
+      },
+      {
+        "receptions": 2,
+        "yards": 5
+      },
+      {
+        "receptions": 4,
+        "yards": 30
+      },
+      {
+        "receptions": 1,
+        "yards": 2
+      },
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 6,
+        "yards": 40
+      },
+      {
+        "receptions": 2,
+        "yards": 5
+      },
+      {
+        "receptions": 2,
+        "yards": 18
+      },
+      {
+        "receptions": 2,
+        "yards": 7
+      }
+    ]
+  },
+  {
+    "player_id": "00-0039355",
+    "player_display_name": "Luke McCaffrey",
+    "position_hist": "WR",
+    "team": "WAS",
     "targets": 0,
     "receptions": 0,
     "receiving_yards": 0,
@@ -2729,54 +1612,573 @@
     "adot": null,
     "catch_rate_g": null,
     "ypr_g": null,
-    "f_targets": 0.09125053334381852,
-    "f_tgt_share": 0.003010515926168881,
-    "f_ay_share": 0.00040514809565791917,
-    "f_rec": 0.060272731128570296,
-    "f_yards": 0.2831037984009267,
-    "f_adot": 1.924976451072288,
-    "f_catch_rate": 0.7430197567356939,
-    "f_ypr": 4.697046128489285,
-    "c_targets": 0.32,
-    "c_yards": 2.08,
-    "games_prior": 26,
-    "f_tgt_sd": 0.744023809142845,
-    "current_team": "BAL",
-    "position": "RB",
-    "status": "DEV",
-    "years_exp": 6,
-    "full_name": "Jonathan Ward",
-    "changed_team": 1,
-    "game_id": "2026_10_LAC_BAL",
+    "f_targets": 0.44974678101187116,
+    "f_tgt_share": 0.014054843947698615,
+    "f_ay_share": 0.0199971984420714,
+    "f_rec": 0.3140390704790296,
+    "f_yards": 2.6479694278002985,
+    "f_adot": 12.104215091738146,
+    "f_catch_rate": 0.6916005867707358,
+    "f_ypr": 8.269157764514006,
+    "c_targets": 1.5185185185185186,
+    "c_yards": 13.962962962962964,
+    "games_prior": 28,
+    "f_tgt_sd": 1.125991626459604,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "ACT",
+    "years_exp": 2,
+    "full_name": "Luke McCaffrey",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
     "season": 2026,
-    "week": 10,
-    "opponent_team": "LAC",
-    "pricing_cutoff_timestamp": "2026-11-17T01:15:00+00:00",
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
     "is_home": 1,
-    "team_spread": 4.5,
-    "total_line": 38.5,
-    "implied_team_total": 21.5,
-    "implied_opp_total": 17.0,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
     "is_dome": 0,
-    "wind": 6.0,
+    "wind": 15.0,
     "unposted_lines": 0,
     "is_open_field": 0,
-    "def_yards_idx": 0.6334646351048279,
-    "def_rec_idx": 0.698441821027087,
-    "def_tgt_idx": 0.8326183673112734,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.2511025024865725,
+    "mu_ypr": 12.207264539659434,
+    "proj_rec": 1.2511025024865725,
+    "proj_yards": 15.272539214083515,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.3497,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 3,
+        "yards": 24
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 33
+      }
+    ]
+  },
+  {
+    "player_id": "00-0039631",
+    "player_display_name": "Cam Grandy",
+    "position_hist": "TE",
+    "team": "CIN",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 1,
+    "receiving_air_yards": -4,
+    "receiving_yards_after_catch": 5,
+    "target_share": 0.03225806451612903,
+    "air_yards_share": -0.021505376344086023,
+    "receiving_tds": 0,
+    "adot": -4.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 1.0,
+    "f_targets": 1.075829383886256,
+    "f_tgt_share": 0.03189555200818445,
+    "f_ay_share": -0.0054258140195359,
+    "f_rec": 1.075829383886256,
+    "f_yards": 5.110584518167457,
+    "f_adot": -0.9289099526066349,
+    "f_catch_rate": 1.0,
+    "f_ypr": 4.655608214849922,
+    "c_targets": 1.2,
+    "c_yards": 6.8,
+    "games_prior": 6,
+    "f_tgt_sd": 0.4472135954999579,
+    "current_team": "CIN",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 2,
+    "full_name": "Cam Grandy",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.1548038224633341,
+    "def_rec_idx": 1.1465715088874529,
+    "def_tgt_idx": 1.1100908895722104,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.5991658031302909,
+    "mu_ypr": 9.424913789043195,
+    "proj_rec": 1.5991658031302909,
+    "proj_yards": 15.071999828889014,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4591,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 1
+      },
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 1,
+        "yards": 7
+      },
+      {
+        "receptions": 2,
+        "yards": 12
+      },
+      {
+        "receptions": 1,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0036628",
+    "player_display_name": "John Bates",
+    "position_hist": "TE",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.5714038977306662,
+    "f_tgt_share": 0.021441639781828246,
+    "f_ay_share": 0.0037149630719314902,
+    "f_rec": 0.49702525192297387,
+    "f_yards": 2.667731569811109,
+    "f_adot": 1.7254729037055467,
+    "f_catch_rate": 0.9111719720922735,
+    "f_ypr": 5.150862350414277,
+    "c_targets": 1.71875,
+    "c_yards": 11.28125,
+    "games_prior": 65,
+    "f_tgt_sd": 0.8864052604279187,
+    "current_team": "WAS",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 5,
+    "full_name": "John Bates",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.2789213020916115,
+    "def_rec_idx": 1.1371220931577075,
+    "def_tgt_idx": 1.165262114326517,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.4681212006126312,
+    "mu_ypr": 9.365744228827086,
+    "proj_rec": 1.4681212006126312,
+    "proj_yards": 13.750047661856444,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4195,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 1,
+        "yards": 1
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 2,
+        "yards": 13
+      },
+      {
+        "receptions": 2,
+        "yards": 13
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 19
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0033526",
+    "player_display_name": "Samaje Perine",
+    "position_hist": "RB",
+    "team": "CIN",
+    "targets": 4,
+    "receptions": 4,
+    "receiving_yards": 25,
+    "receiving_air_yards": -7,
+    "receiving_yards_after_catch": 32,
+    "target_share": 0.09523809523809523,
+    "air_yards_share": -0.026415094339622643,
+    "receiving_tds": 0,
+    "adot": -1.75,
+    "catch_rate_g": 1.0,
+    "ypr_g": 6.25,
+    "f_targets": 1.8637211634151183,
+    "f_tgt_share": 0.04580593502450207,
+    "f_ay_share": -0.008151737581662566,
+    "f_rec": 1.7484405000222951,
+    "f_yards": 11.408472516840286,
+    "f_adot": -0.20285547955052147,
+    "f_catch_rate": 0.8702629403358124,
+    "f_ypr": 7.377417148677468,
+    "c_targets": 2.024793388429752,
+    "c_yards": 13.801652892561984,
+    "games_prior": 122,
+    "f_tgt_sd": 1.1877349391654217,
+    "current_team": "CIN",
+    "position": "RB",
+    "status": "ACT",
+    "years_exp": 9,
+    "full_name": "Samaje Perine",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0174116495547607,
+    "def_rec_idx": 1.1316729525443214,
+    "def_tgt_idx": 1.26257563444476,
     "pos_WR": 0,
     "pos_TE": 0,
     "pos_RB": 1,
     "is_week1": 0,
-    "excl_reason": "not on active roster",
+    "excl_reason": "",
     "questionable": 0,
-    "mu_rec": 1.0695814843135274,
-    "mu_ypr": 8.053871123405292,
-    "proj_rec": 1.0695814843135274,
-    "proj_yards": 8.614271430641688,
-    "fair_line_rec": 0.5,
-    "fair_line_yards": 4.5,
-    "p_rec_at_fair_line": 0.6363,
+    "mu_rec": 1.729240500853095,
+    "mu_ypr": 7.765840980017799,
+    "proj_rec": 1.729240500853095,
+    "proj_yards": 13.42900674583147,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4964,
+    "recent_receiving_games": [
+      {
+        "receptions": 4,
+        "yards": 25
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 10
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 1,
+        "yards": 16
+      },
+      {
+        "receptions": 3,
+        "yards": 30
+      },
+      {
+        "receptions": 3,
+        "yards": 10
+      }
+    ]
+  },
+  {
+    "player_id": "00-0039686",
+    "player_display_name": "Colson Yankoff",
+    "position_hist": "TE",
+    "team": "WAS",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 6,
+    "receiving_air_yards": 5,
+    "receiving_yards_after_catch": 1,
+    "target_share": 0.029411764705882353,
+    "air_yards_share": 0.020080321285140562,
+    "receiving_tds": 0,
+    "adot": 5.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 6.0,
+    "f_targets": 0.53457757651657,
+    "f_tgt_share": 0.01611613998030771,
+    "f_ay_share": 0.010122435968016978,
+    "f_rec": 0.41614369825236686,
+    "f_yards": 2.5939460500592793,
+    "f_adot": 7.946347687400319,
+    "f_catch_rate": 0.5911961722488038,
+    "f_ypr": 6.781575757575758,
+    "c_targets": 0.3333333333333333,
+    "c_yards": 1.619047619047619,
+    "games_prior": 22,
+    "f_tgt_sd": 0.7559289460184544,
+    "current_team": "WAS",
+    "position": "TE",
+    "status": "ACT",
+    "years_exp": 2,
+    "full_name": "Colson Yankoff",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.2789213020916115,
+    "def_rec_idx": 1.1371220931577075,
+    "def_tgt_idx": 1.165262114326517,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.237653505628303,
+    "mu_ypr": 10.650716399405795,
+    "proj_rec": 1.237653505628303,
+    "proj_yards": 13.181896489177438,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.3453,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 2
+      },
+      {
+        "receptions": 1,
+        "yards": 14
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040208",
+    "player_display_name": "Tahj Brooks",
+    "position_hist": "RB",
+    "team": "CIN",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.02530685474440698,
+    "f_tgt_share": 0.0007617189281357029,
+    "f_ay_share": -0.000197336424446183,
+    "f_rec": 0.01952243080282824,
+    "f_yards": 0.17570187722545413,
+    "f_adot": -2.228571428571429,
+    "f_catch_rate": 0.7714285714285715,
+    "f_ypr": 9.0,
+    "c_targets": 0.1111111111111111,
+    "c_yards": 0.5,
+    "games_prior": 19,
+    "f_tgt_sd": 0.3535533905932738,
+    "current_team": "CIN",
+    "position": "RB",
+    "status": "ACT",
+    "years_exp": 1,
+    "full_name": "Tahj Brooks",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0174116495547607,
+    "def_rec_idx": 1.1316729525443214,
+    "def_tgt_idx": 1.26257563444476,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "",
+    "questionable": 0,
+    "mu_rec": 1.2369739160958246,
+    "mu_ypr": 8.21537035657457,
+    "proj_rec": 1.2369739160958246,
+    "proj_yards": 10.162198842149598,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.345,
     "recent_receiving_games": [
       {
         "receptions": 0,
@@ -2803,8 +2205,527 @@
         "yards": 0
       },
       {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
         "receptions": 1,
-        "yards": 3
+        "yards": 9
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0035659",
+    "player_display_name": "Terry McLaurin",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 27,
+    "receiving_air_yards": 23,
+    "receiving_yards_after_catch": 4,
+    "target_share": 0.02857142857142857,
+    "air_yards_share": 0.07744107744107744,
+    "receiving_tds": 0,
+    "adot": 23.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 27.0,
+    "f_targets": 4.416638866822444,
+    "f_tgt_share": 0.160642482378498,
+    "f_ay_share": 0.2302927127270173,
+    "f_rec": 2.968605404031477,
+    "f_yards": 47.863563665931785,
+    "f_adot": 15.300003216328221,
+    "f_catch_rate": 0.8133286559391546,
+    "f_ypr": 19.297452114093844,
+    "c_targets": 7.315315315315315,
+    "c_yards": 64.54054054054055,
+    "games_prior": 112,
+    "f_tgt_sd": 2.3260942125619684,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "RES",
+    "years_exp": 7,
+    "full_name": "Terry McLaurin",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 3.3571946273247817,
+    "mu_ypr": 13.763465459995972,
+    "proj_rec": 3.3571946273247817,
+    "proj_yards": 46.20663229566868,
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 39.5,
+    "p_rec_at_fair_line": 0.4192,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 27
+      },
+      {
+        "receptions": 4,
+        "yards": 62
+      },
+      {
+        "receptions": 6,
+        "yards": 77
+      },
+      {
+        "receptions": 2,
+        "yards": 50
+      },
+      {
+        "receptions": 2,
+        "yards": 14
+      },
+      {
+        "receptions": 4,
+        "yards": 57
+      },
+      {
+        "receptions": 5,
+        "yards": 63
+      },
+      {
+        "receptions": 3,
+        "yards": 53
+      },
+      {
+        "receptions": 3,
+        "yards": 69
+      },
+      {
+        "receptions": 3,
+        "yards": 41
+      }
+    ]
+  },
+  {
+    "player_id": "00-0039814",
+    "player_display_name": "Erick All",
+    "position_hist": "TE",
+    "team": "CIN",
+    "targets": 3,
+    "receptions": 3,
+    "receiving_yards": 26,
+    "receiving_air_yards": 6,
+    "receiving_yards_after_catch": 20,
+    "target_share": 0.10714285714285714,
+    "air_yards_share": 0.02575107296137339,
+    "receiving_tds": 0,
+    "adot": 2.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 8.666666666666666,
+    "f_targets": 2.7512336636507255,
+    "f_tgt_share": 0.09149394419181131,
+    "f_ay_share": 0.0331357521228771,
+    "f_rec": 2.5260203935085457,
+    "f_yards": 20.879758724687637,
+    "f_adot": 3.0409191440471064,
+    "f_catch_rate": 0.8951486428263682,
+    "f_ypr": 8.222296108843201,
+    "c_targets": 2.8,
+    "c_yards": 18.8,
+    "games_prior": 11,
+    "f_tgt_sd": 0.9258200997725514,
+    "current_team": "CIN",
+    "position": "TE",
+    "status": "RES",
+    "years_exp": 2,
+    "full_name": "Erick All",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.1548038224633341,
+    "def_rec_idx": 1.1465715088874529,
+    "def_tgt_idx": 1.1100908895722104,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 2.2687158080890613,
+    "mu_ypr": 10.14104536938474,
+    "proj_rec": 2.2687158080890613,
+    "proj_yards": 23.007149940071532,
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 18.0,
+    "p_rec_at_fair_line": 0.3871,
+    "recent_receiving_games": [
+      {
+        "receptions": 3,
+        "yards": 26
+      },
+      {
+        "receptions": 3,
+        "yards": 25
+      },
+      {
+        "receptions": 2,
+        "yards": 5
+      },
+      {
+        "receptions": 2,
+        "yards": 24
+      },
+      {
+        "receptions": 2,
+        "yards": 32
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 10
+      },
+      {
+        "receptions": 2,
+        "yards": 10
+      },
+      {
+        "receptions": 4,
+        "yards": 28
+      },
+      {
+        "receptions": 4,
+        "yards": 22
+      }
+    ]
+  },
+  {
+    "player_id": "00-0034613",
+    "player_display_name": "Tanner Hudson",
+    "position_hist": "TE",
+    "team": "CIN",
+    "targets": 3,
+    "receptions": 3,
+    "receiving_yards": 14,
+    "receiving_air_yards": 9,
+    "receiving_yards_after_catch": 5,
+    "target_share": 0.0967741935483871,
+    "air_yards_share": 0.0391304347826087,
+    "receiving_tds": 1,
+    "adot": 3.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 4.666666666666667,
+    "f_targets": 2.0382354279700996,
+    "f_tgt_share": 0.05935903121160777,
+    "f_ay_share": 0.027097988148827964,
+    "f_rec": 1.961953886734109,
+    "f_yards": 10.973108754959625,
+    "f_adot": 3.3645677687873548,
+    "f_catch_rate": 0.980006663439347,
+    "f_ypr": 5.371856567154782,
+    "c_targets": 2.6666666666666665,
+    "c_yards": 18.583333333333332,
+    "games_prior": 49,
+    "f_tgt_sd": 1.3562026818605373,
+    "current_team": "CIN",
+    "position": "TE",
+    "status": "RES",
+    "years_exp": 8,
+    "full_name": "Tanner Hudson",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.1548038224633341,
+    "def_rec_idx": 1.1465715088874529,
+    "def_tgt_idx": 1.1100908895722104,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 1.952949777936688,
+    "mu_ypr": 9.851269725151479,
+    "proj_rec": 1.952949777936688,
+    "proj_yards": 19.239035022129,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.5555,
+    "recent_receiving_games": [
+      {
+        "receptions": 3,
+        "yards": 14
+      },
+      {
+        "receptions": 1,
+        "yards": 2
+      },
+      {
+        "receptions": 2,
+        "yards": 13
+      },
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 2,
+        "yards": 31
+      },
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 3,
+        "yards": 16
+      },
+      {
+        "receptions": 1,
+        "yards": 11
+      },
+      {
+        "receptions": 1,
+        "yards": 14
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      }
+    ]
+  },
+  {
+    "player_id": "00-0036626",
+    "player_display_name": "Dyami Brown",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 1.3955128736771045,
+    "f_tgt_share": 0.045139377196260065,
+    "f_ay_share": 0.07362159836517908,
+    "f_rec": 0.8912896065443411,
+    "f_yards": 9.462260878807982,
+    "f_adot": 14.1925362193913,
+    "f_catch_rate": 0.6501609674443145,
+    "f_ypr": 7.88907128095245,
+    "c_targets": 2.3134328358208953,
+    "c_yards": 16.492537313432837,
+    "games_prior": 68,
+    "f_tgt_sd": 1.9594095320493148,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "RES",
+    "years_exp": 5,
+    "full_name": "Dyami Brown",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 1.4160410217181996,
+    "mu_ypr": 12.277752364784945,
+    "proj_rec": 1.4160410217181996,
+    "proj_yards": 17.385801003033116,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4032,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 6
+      },
+      {
+        "receptions": 1,
+        "yards": 2
+      },
+      {
+        "receptions": 3,
+        "yards": 65
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 4,
+        "yards": 21
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 8
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040164",
+    "player_display_name": "Jaylin Lane",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.46922375563586716,
+    "f_tgt_share": 0.017417949339257898,
+    "f_ay_share": 0.009514188491279373,
+    "f_rec": 0.3772707503782034,
+    "f_yards": 6.0096431827310015,
+    "f_adot": 5.012185654406151,
+    "f_catch_rate": 0.8315919923835402,
+    "f_ypr": 16.087120578628042,
+    "c_targets": 1.8888888888888888,
+    "c_yards": 13.88888888888889,
+    "games_prior": 19,
+    "f_tgt_sd": 0.5175491695067654,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "RES",
+    "years_exp": 1,
+    "full_name": "Jaylin Lane",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 1.4718284312919465,
+    "mu_ypr": 11.223030199835433,
+    "proj_rec": 1.4718284312919465,
+    "proj_yards": 16.518374933365926,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4207,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 21
+      },
+      {
+        "receptions": 0,
+        "yards": 0
       },
       {
         "receptions": 1,
@@ -2813,6 +2734,874 @@
       {
         "receptions": 0,
         "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 13
+      },
+      {
+        "receptions": 1,
+        "yards": 41
+      }
+    ]
+  },
+  {
+    "player_id": "00-0033955",
+    "player_display_name": "Jeremy McNichols",
+    "position_hist": "RB",
+    "team": "WAS",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 7,
+    "receiving_air_yards": 1,
+    "receiving_yards_after_catch": 6,
+    "target_share": 0.037037037037037035,
+    "air_yards_share": 0.0035714285714285713,
+    "receiving_tds": 0,
+    "adot": 1.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 7.0,
+    "f_targets": 1.165180347314972,
+    "f_tgt_share": 0.05200545358728723,
+    "f_ay_share": 0.0017110832338226565,
+    "f_rec": 1.088958813636962,
+    "f_yards": 6.674174238428961,
+    "f_adot": 0.7296831065974914,
+    "f_catch_rate": 0.961972249860287,
+    "f_ypr": 6.731079229162983,
+    "c_targets": 1.53125,
+    "c_yards": 8.09375,
+    "games_prior": 65,
+    "f_tgt_sd": 1.0606601717798212,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "RES",
+    "years_exp": 9,
+    "full_name": "Jeremy McNichols",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "availability: ir (nflverse_roster)",
+    "questionable": 0,
+    "mu_rec": 1.6377199082076361,
+    "mu_ypr": 7.705123449157554,
+    "proj_rec": 1.6377199082076361,
+    "proj_yards": 12.618834067882814,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4704,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 7
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 8
+      },
+      {
+        "receptions": 3,
+        "yards": 12
+      },
+      {
+        "receptions": 2,
+        "yards": 9
+      },
+      {
+        "receptions": 1,
+        "yards": 16
+      },
+      {
+        "receptions": 1,
+        "yards": 2
+      },
+      {
+        "receptions": 2,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 16
+      },
+      {
+        "receptions": 1,
+        "yards": 4
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040242",
+    "player_display_name": "Jacory Croskey-Merritt",
+    "position_hist": "RB",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 1.212072426688635,
+    "f_tgt_share": 0.035196161437679716,
+    "f_ay_share": 0.004911685923656387,
+    "f_rec": 0.7654683244473185,
+    "f_yards": 8.892919021341717,
+    "f_adot": 1.00610350066273,
+    "f_catch_rate": 0.792584023825194,
+    "f_ypr": 9.206004424147963,
+    "c_targets": 0.9523809523809523,
+    "c_yards": 5.142857142857143,
+    "games_prior": 22,
+    "f_tgt_sd": 1.3562026818605375,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "RES",
+    "years_exp": 1,
+    "full_name": "Jacory Croskey-Merritt",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "espn: injured reserve",
+    "questionable": 1,
+    "mu_rec": 1.5116665718855633,
+    "mu_ypr": 8.068511738582393,
+    "proj_rec": 1.5116665718855633,
+    "proj_yards": 12.196899480081271,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4329,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 35
+      },
+      {
+        "receptions": 1,
+        "yards": 7
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 1,
+        "yards": -7
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0038619",
+    "player_display_name": "Andrei Iosivas",
+    "position_hist": "WR",
+    "team": "CIN",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 7,
+    "receiving_air_yards": 6,
+    "receiving_yards_after_catch": 1,
+    "target_share": 0.03225806451612903,
+    "air_yards_share": 0.03468208092485549,
+    "receiving_tds": 0,
+    "adot": 6.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 7.0,
+    "f_targets": 2.483328647784905,
+    "f_tgt_share": 0.07227987976853446,
+    "f_ay_share": 0.08005758885935467,
+    "f_rec": 1.7388251762386222,
+    "f_yards": 14.608658204093096,
+    "f_adot": 7.814334524933722,
+    "f_catch_rate": 0.7640030594703158,
+    "f_ypr": 8.494926221969866,
+    "c_targets": 3.340909090909091,
+    "c_yards": 23.681818181818183,
+    "games_prior": 45,
+    "f_tgt_sd": 2.187627547301936,
+    "current_team": "CIN",
+    "position": "WR",
+    "status": "RES",
+    "years_exp": 3,
+    "full_name": "Andrei Iosivas",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "injury: out/doubtful",
+    "questionable": 0,
+    "mu_rec": 1.933313699805293,
+    "mu_ypr": 11.681983525191452,
+    "proj_rec": 1.933313699805293,
+    "proj_yards": 22.584938790152368,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.5506,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 7
+      },
+      {
+        "receptions": 2,
+        "yards": 12
+      },
+      {
+        "receptions": 2,
+        "yards": 10
+      },
+      {
+        "receptions": 4,
+        "yards": 41
+      },
+      {
+        "receptions": 1,
+        "yards": 21
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 17
+      },
+      {
+        "receptions": 1,
+        "yards": 29
+      },
+      {
+        "receptions": 4,
+        "yards": 61
+      },
+      {
+        "receptions": 3,
+        "yards": 20
+      }
+    ]
+  },
+  {
+    "player_id": "00-0038465",
+    "player_display_name": "Malik Heath",
+    "position_hist": "WR",
+    "team": "WAS",
+    "targets": 1,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 8,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.034482758620689655,
+    "air_yards_share": 0.023323615160349854,
+    "receiving_tds": 0,
+    "adot": 8.0,
+    "catch_rate_g": 0.0,
+    "ypr_g": null,
+    "f_targets": 1.2683131640198,
+    "f_tgt_share": 0.040051537424152635,
+    "f_ay_share": 0.027456929381112053,
+    "f_rec": 0.8847405891938764,
+    "f_yards": 9.834221674986534,
+    "f_adot": 7.042696750762682,
+    "f_catch_rate": 0.6515335561338473,
+    "f_ypr": 11.673166328440535,
+    "c_targets": 1.8695652173913044,
+    "c_yards": 13.391304347826088,
+    "games_prior": 24,
+    "f_tgt_sd": 1.6903085094570331,
+    "current_team": "WAS",
+    "position": "WR",
+    "status": "DEV",
+    "years_exp": 3,
+    "full_name": "Malik Heath",
+    "changed_team": 1,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 0.9074719182885629,
+    "def_rec_idx": 0.9291881351479392,
+    "def_tgt_idx": 0.9211891506185138,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "not on active roster",
+    "questionable": 0,
+    "mu_rec": 1.523832349389958,
+    "mu_ypr": 11.363500715073853,
+    "proj_rec": 1.523832349389958,
+    "proj_yards": 17.316069991945454,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4366,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 11
+      },
+      {
+        "receptions": 3,
+        "yards": 29
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 9
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 37
+      },
+      {
+        "receptions": 3,
+        "yards": 53
+      },
+      {
+        "receptions": 1,
+        "yards": 3
+      },
+      {
+        "receptions": 2,
+        "yards": 15
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040202",
+    "player_display_name": "Devin Neal",
+    "position_hist": "RB",
+    "team": "WAS",
+    "targets": 1,
+    "receptions": 1,
+    "receiving_yards": 4,
+    "receiving_air_yards": 3,
+    "receiving_yards_after_catch": 1,
+    "target_share": 0.03225806451612903,
+    "air_yards_share": 0.011152416356877323,
+    "receiving_tds": 0,
+    "adot": 3.0,
+    "catch_rate_g": 1.0,
+    "ypr_g": 4.0,
+    "f_targets": 2.0890827385672748,
+    "f_tgt_share": 0.06428468370281702,
+    "f_ay_share": -0.014743089980920112,
+    "f_rec": 1.883531588686228,
+    "f_yards": 13.379011366640235,
+    "f_adot": -0.916839718343478,
+    "f_catch_rate": 0.9690655209452204,
+    "f_ypr": 7.248253968253969,
+    "c_targets": 2.25,
+    "c_yards": 12.5,
+    "games_prior": 9,
+    "f_tgt_sd": 2.3145502494313783,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "DEV",
+    "years_exp": 1,
+    "full_name": "Devin Neal",
+    "changed_team": 1,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "not on active roster",
+    "questionable": 0,
+    "mu_rec": 2.0310083847237475,
+    "mu_ypr": 7.619690424643335,
+    "proj_rec": 2.0310083847237475,
+    "proj_yards": 15.475655141449865,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.5747,
+    "recent_receiving_games": [
+      {
+        "receptions": 1,
+        "yards": 4
+      },
+      {
+        "receptions": 1,
+        "yards": 14
+      },
+      {
+        "receptions": 3,
+        "yards": 22
+      },
+      {
+        "receptions": 5,
+        "yards": 43
+      },
+      {
+        "receptions": 3,
+        "yards": 9
+      },
+      {
+        "receptions": 1,
+        "yards": 1
+      },
+      {
+        "receptions": 3,
+        "yards": 11
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0037011",
+    "player_display_name": "Tre' McKitty",
+    "position_hist": "TE",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.6737645784397049,
+    "f_tgt_share": 0.01811749362554169,
+    "f_ay_share": 0.008690988306076447,
+    "f_rec": 0.2794302399326645,
+    "f_yards": 2.1604695795542472,
+    "f_adot": 2.5773361333725346,
+    "f_catch_rate": 0.3782425441860201,
+    "f_ypr": 7.851680794352187,
+    "c_targets": 1.368421052631579,
+    "c_yards": 6.157894736842105,
+    "games_prior": 20,
+    "f_tgt_sd": 1.9955307206712847,
+    "current_team": "WAS",
+    "position": "TE",
+    "status": "CUT",
+    "years_exp": 5,
+    "full_name": "Tre' McKitty",
+    "changed_team": 1,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.2789213020916115,
+    "def_rec_idx": 1.1371220931577075,
+    "def_tgt_idx": 1.165262114326517,
+    "pos_WR": 0,
+    "pos_TE": 1,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "not on active roster",
+    "questionable": 0,
+    "mu_rec": 1.3614764670916688,
+    "mu_ypr": 9.875639251411288,
+    "proj_rec": 1.3614764670916688,
+    "proj_yards": 13.445450438283252,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.3858,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 10
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 1,
+        "yards": 8
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 3,
+        "yards": 21
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0040534",
+    "player_display_name": "Ke'Shawn Williams",
+    "position_hist": "WR",
+    "team": "CIN",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.14988092450556542,
+    "f_tgt_share": 0.004541846197138347,
+    "f_ay_share": 0.0027962859049545786,
+    "f_rec": 0.14988092450556542,
+    "f_yards": 0.7494046225278271,
+    "f_adot": 5.0,
+    "f_catch_rate": 1.0,
+    "f_ypr": 5.0,
+    "c_targets": 0.09090909090909091,
+    "c_yards": 0.45454545454545453,
+    "games_prior": 12,
+    "f_tgt_sd": 0.3535533905932738,
+    "current_team": "CIN",
+    "position": "WR",
+    "status": "DEV",
+    "years_exp": 1,
+    "full_name": "Ke'Shawn Williams",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "WAS",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 0,
+    "team_spread": 6.0,
+    "total_line": 54.5,
+    "implied_team_total": 30.25,
+    "implied_opp_total": 24.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.0488851335188105,
+    "def_rec_idx": 1.165739398772793,
+    "def_tgt_idx": 1.1408924489966006,
+    "pos_WR": 1,
+    "pos_TE": 0,
+    "pos_RB": 0,
+    "is_week1": 0,
+    "excl_reason": "not on active roster",
+    "questionable": 0,
+    "mu_rec": 1.1896154823259601,
+    "mu_ypr": 11.124835828453682,
+    "proj_rec": 1.1896154823259601,
+    "proj_yards": 13.234276939863049,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.3291,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 1,
+        "yards": 5
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      }
+    ]
+  },
+  {
+    "player_id": "00-0035567",
+    "player_display_name": "Craig Reynolds",
+    "position_hist": "RB",
+    "team": "WAS",
+    "targets": 0,
+    "receptions": 0,
+    "receiving_yards": 0,
+    "receiving_air_yards": 0,
+    "receiving_yards_after_catch": 0,
+    "target_share": 0.0,
+    "air_yards_share": 0.0,
+    "receiving_tds": 0,
+    "adot": null,
+    "catch_rate_g": null,
+    "ypr_g": null,
+    "f_targets": 0.11099591688990096,
+    "f_tgt_share": 0.0034294672776124645,
+    "f_ay_share": -0.0014720306987755308,
+    "f_rec": 0.05245909170328471,
+    "f_yards": 0.7528477698924554,
+    "f_adot": -2.4173691022625317,
+    "f_catch_rate": 0.5288871885447705,
+    "f_ypr": 12.483681187173532,
+    "c_targets": 0.7837837837837838,
+    "c_yards": 6.972972972972973,
+    "games_prior": 38,
+    "f_tgt_sd": 0.9161253813129043,
+    "current_team": "WAS",
+    "position": "RB",
+    "status": "DEV",
+    "years_exp": 7,
+    "full_name": "Craig Reynolds",
+    "changed_team": 0,
+    "game_id": "2026_11_CIN_WAS",
+    "season": 2026,
+    "week": 11,
+    "opponent_team": "CIN",
+    "pricing_cutoff_timestamp": "2026-11-24T01:15:00+00:00",
+    "is_home": 1,
+    "team_spread": -6.0,
+    "total_line": 54.5,
+    "implied_team_total": 24.25,
+    "implied_opp_total": 30.25,
+    "is_dome": 0,
+    "wind": 15.0,
+    "unposted_lines": 0,
+    "is_open_field": 0,
+    "def_yards_idx": 1.004359017939697,
+    "def_rec_idx": 1.0334960288887503,
+    "def_tgt_idx": 1.0530037598847355,
+    "pos_WR": 0,
+    "pos_TE": 0,
+    "pos_RB": 1,
+    "is_week1": 0,
+    "excl_reason": "not on active roster",
+    "questionable": 0,
+    "mu_rec": 1.3069559885132254,
+    "mu_ypr": 7.834754271720403,
+    "proj_rec": 1.3069559885132254,
+    "proj_yards": 10.239679013954554,
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3682,
+    "recent_receiving_games": [
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 0,
+        "yards": 0
+      },
+      {
+        "receptions": 2,
+        "yards": 35
+      },
+      {
+        "receptions": 1,
+        "yards": 5
       },
       {
         "receptions": 0,
