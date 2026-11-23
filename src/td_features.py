@@ -103,14 +103,16 @@ def extract_pbp_player_weeks(pbp: pd.DataFrame) -> pd.DataFrame:
     if rush_mask.any():
         r = df.loc[rush_mask].copy()
         r_td = pd.to_numeric(r.get("rush_touchdown", 0), errors="coerce").fillna(0).astype(int)
+        r_pos = r["rusher_position"].fillna("RB").astype(str) if "rusher_position" in r.columns else "RB"
+        r_name = r["rusher_player_name"].fillna("").astype(str) if "rusher_player_name" in r.columns else r["rusher_player_id"].astype(str)
         records.append(pd.DataFrame({
             "player_id": r["rusher_player_id"].astype(str),
-            "player_name": r.get("rusher_player_name", r["rusher_player_id"]).fillna("").astype(str),
+            "player_name": r_name,
             "season": r["season"].astype(int),
             "week": r["week"].astype(int),
             "team": r["posteam"].astype(str),
             "opponent_team": r["defteam"].astype(str),
-            "position": r.get("rusher_position", "RB").fillna("RB").astype(str),
+            "position": r_pos,
             "rz_targets": 0,
             "rz_carries": is_rz.loc[rush_mask].astype(int).values,
             "rz_opps": is_rz.loc[rush_mask].astype(int).values,
@@ -128,14 +130,16 @@ def extract_pbp_player_weeks(pbp: pd.DataFrame) -> pd.DataFrame:
         p = df.loc[rec_mask].copy()
         p_td = pd.to_numeric(p.get("pass_touchdown", 0), errors="coerce").fillna(0).astype(int)
         rz_m = is_rz.loc[rec_mask].astype(int).values
+        p_pos = p["receiver_position"].fillna("WR").astype(str) if "receiver_position" in p.columns else "WR"
+        p_name = p["receiver_player_name"].fillna("").astype(str) if "receiver_player_name" in p.columns else p["receiver_player_id"].astype(str)
         records.append(pd.DataFrame({
             "player_id": p["receiver_player_id"].astype(str),
-            "player_name": p.get("receiver_player_name", p["receiver_player_id"]).fillna("").astype(str),
+            "player_name": p_name,
             "season": p["season"].astype(int),
             "week": p["week"].astype(int),
             "team": p["posteam"].astype(str),
             "opponent_team": p["defteam"].astype(str),
-            "position": p.get("receiver_position", "WR").fillna("WR").astype(str),
+            "position": p_pos,
             "rz_targets": rz_m,
             "rz_carries": 0,
             "rz_opps": rz_m,
