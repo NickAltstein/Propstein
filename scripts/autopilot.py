@@ -909,6 +909,26 @@ def main() -> int:
         print("[autopilot] model skipped; cached projections are not copied to a new week")
     games_path = write_games(season, week, games)
     injuries_path = write_injuries(season, week, games)
+    if not context_blocked and not args.skip_model:
+        try:
+            if str(ROOT) not in sys.path:
+                sys.path.insert(0, str(ROOT))
+            from src.td_slate import run_td_slate_pipeline as _run_td_slate
+            _td_res = _run_td_slate(
+                season,
+                week,
+                VIEWER,
+                games=games,
+                exclude_games=ctx_status.get("excluded_games"),
+                injuries_path=injuries_path,
+            )
+            if _td_res is not None:
+                print(
+                    f"[autopilot] td_board: {_td_res['td_rows']} rows -> {_td_res['td_board_path']} "
+                    f"(enriched {_td_res['slate_enriched_rows']} slate rows)"
+                )
+        except Exception as exc:
+            print(f"  [warn] td_board skipped: {exc}", file=sys.stderr)
     if context_blocked or args.skip_model:
         ensure_schedule_only_slate(season, week)
     write_snapshots_stub(season, week)
