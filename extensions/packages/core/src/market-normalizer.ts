@@ -54,17 +54,63 @@ export const NFL_TEAM_ALIASES: Readonly<Record<string, string>> = {
   WAS: "WAS", WASHINGTON: "WAS", COMMANDERS: "WAS", "WSH": "WAS",
 };
 
+export const NBA_TEAM_ALIASES: Readonly<Record<string, string>> = {
+  ATL: "ATL", HAWKS: "ATL",
+  BOS: "BOS", BOSTON: "BOS", CELTICS: "BOS",
+  BKN: "BKN", BRK: "BKN", BROOKLYN: "BKN", NETS: "BKN",
+  CHA: "CHA", CHO: "CHA", CHARLOTTE: "CHA", HORNETS: "CHA",
+  CHI: "CHI", BULLS: "CHI",
+  CLE: "CLE", CAVALIERS: "CLE", CAVS: "CLE",
+  DAL: "DAL", MAVERICKS: "DAL", MAVS: "DAL",
+  DEN: "DEN", NUGGETS: "DEN",
+  DET: "DET", PISTONS: "DET",
+  GSW: "GSW", GS: "GSW", "GOLDEN STATE": "GSW", WARRIORS: "GSW",
+  HOU: "HOU", ROCKETS: "HOU",
+  IND: "IND", PACERS: "IND",
+  LAC: "LAC", CLIPPERS: "LAC", "LA CLIPPERS": "LAC",
+  LAL: "LAL", LAKERS: "LAL", "LA LAKERS": "LAL",
+  MEM: "MEM", MEMPHIS: "MEM", GRIZZLIES: "MEM",
+  MIA: "MIA", HEAT: "MIA",
+  MIL: "MIL", MILWAUKEE: "MIL", BUCKS: "MIL",
+  MIN: "MIN", TIMBERWOLVES: "MIN", WOLVES: "MIN",
+  NOP: "NOP", NO: "NOP", PELICANS: "NOP",
+  NYK: "NYK", "NEW YORK KNICKS": "NYK", KNICKS: "NYK",
+  OKC: "OKC", "OKLAHOMA CITY": "OKC", THUNDER: "OKC",
+  ORL: "ORL", ORLANDO: "ORL", MAGIC: "ORL",
+  PHI: "PHI", "76ERS": "PHI", SIXERS: "PHI",
+  PHX: "PHX", PHO: "PHX", PHOENIX: "PHX", SUNS: "PHX",
+  POR: "POR", PORTLAND: "POR", "TRAIL BLAZERS": "POR", BLAZERS: "POR",
+  SAC: "SAC", SACRAMENTO: "SAC", KINGS: "SAC",
+  SAS: "SAS", SA: "SAS", "SAN ANTONIO": "SAS", SPURS: "SAS",
+  TOR: "TOR", TORONTO: "TOR", RAPTORS: "TOR",
+  UTA: "UTA", UTAH: "UTA", JAZZ: "UTA",
+  WAS: "WAS", WIZARDS: "WAS",
+};
+
 const NAME_SUFFIXES = ["JR", "SR", "II", "III", "IV", "V"];
 
-/** Canonical, comparison-safe player name key. */
+/** Special Latin letters that Unicode NFKD does not decompose to ASCII. */
+const UNICODE_FOLD_MAP: Readonly<Record<string, string>> = {
+  "\u0111": "d", // đ (Đorđe, Đurišić)
+  "\u0142": "l", // ł (Łukasz)
+  "\u00f8": "o", // ø
+  "\u00df": "ss", // ß
+  "\u00e6": "ae", // æ
+  "\u0153": "oe", // œ
+  "\u0131": "i", // ı (Turkish dotless i)
+};
+
+/** Canonical, comparison-safe player name key with NBA/NFL Unicode folding. */
 export function playerNameKey(rawName: string): string {
   let n = (rawName ?? "").toLowerCase().normalize("NFKD");
-  // Strip combining marks left by NFKD for accented characters.
+  // Strip combining marks left by NFKD for accented characters (ć, č, š, ž, ņ, ģ, ū, ö, ü, etc.).
   n = n.replace(/[\u0300-\u036f]/g, "");
+  // Fold non-decomposing Latin characters (đ, ł, ø, ß, æ, œ, ı).
+  n = n.replace(/[\u0111\u0142\u00f8\u00df\u00e6\u0153\u0131]/g, (ch) => UNICODE_FOLD_MAP[ch] ?? ch);
   // Apostrophes and periods are REMOVED (Ja'Marr → jamarr) so books that
   // render the same name with or without punctuation still match.
   n = n.replace(/[.'`’]/g, "");
-  // Hyphens/dashes become spaces (Amon-Ra → amon ra).
+  // Hyphens/dashes become spaces (Amon-Ra → amon ra, Gilgeous-Alexander → gilgeous alexander).
   n = n.replace(/[-–—]/g, " ");
   // Collapse whitespace.
   n = n.replace(/\s+/g, " ").trim();
@@ -86,10 +132,13 @@ export function isInitialsForm(rawName: string): boolean {
 }
 
 /** Canonical team abbreviation or undefined when unrecognized. */
-export function canonicalTeam(rawTeam: string | undefined): string | undefined {
+export function canonicalTeam(rawTeam: string | undefined, league?: string): string | undefined {
   if (!rawTeam) return undefined;
   const key = rawTeam.trim().toUpperCase().replace(/\./g, "");
-  return NFL_TEAM_ALIASES[key];
+  if (league?.toUpperCase() === "NBA") {
+    return NBA_TEAM_ALIASES[key] ?? NFL_TEAM_ALIASES[key];
+  }
+  return NFL_TEAM_ALIASES[key] ?? NBA_TEAM_ALIASES[key];
 }
 
 // ---------------------------------------------------------------------------
@@ -117,7 +166,14 @@ export function classifyMarketLabel(label: string): MarketClassification {
 
   const mentionsReception = /reception|catch|record a reception|receptions/.test(t);
   const mentionsYards = /receiving yards|rec yards/.test(t);
-  const mentionsAnytimeTd = /anytime (touchdown|td)|to score a (touchdown|td)/.test(t);
+  const mentionsFirstTd = /\b(first|1st)\s+(touchdown|td)\b|\bfirst_td\b/.test(t);
+  const mentionsTwoPlusTd = /\b(2\+|2 or more|two\+|two or more)\s+(touchdowns?|tds?)\b|\btwo_plus_td\b/.test(t);
+  const mentionsAnytimeTd = /anytime (touchdown|td)|to score a (touchdown|td)|\banytime_td\b/.test(t);
+  const mentionsPra = /\b(pts?\s*\+\s*rebs?\s*\+\s*asts?|points?\s*\+\s*rebounds?\s*\+\s*assists?|points?,?\s*rebounds?\s*(?:&|and|\+)\s*assists?|pra|nba_pra)\b/.test(t);
+  const mentionsThrees = /\b(3[\s-]*(?:pointers?|pt|pts)\s*(?:made)?|three[\s-]*pointers?\s*(?:made)?|3pm|threes|nba_threes)\b/.test(t);
+  const mentionsRebounds = /\b(rebounds?|rebs?|nba_rebounds)\b/.test(t);
+  const mentionsAssists = /\b(assists?|asts?|nba_assists)\b/.test(t);
+  const mentionsPoints = /\b(player\s+points?|points?|pts|nba_points)\b/.test(t) && !/fantasy|three|3[\s-]*pt/.test(t);
 
   const hasDrive = DRIVE_MARKERS.some((m) => t.includes(m));
   const hasNextPlay = NEXT_PLAY_MARKERS.some((m) => t.includes(m));
@@ -150,8 +206,29 @@ export function classifyMarketLabel(label: string): MarketClassification {
   if (mentionsYards) {
     return { code: "game_receiving_yards_over", reasons: [] };
   }
+  if (mentionsFirstTd) {
+    return { code: "first_td", reasons: [] };
+  }
+  if (mentionsTwoPlusTd) {
+    return { code: "two_plus_td", reasons: [] };
+  }
   if (mentionsAnytimeTd) {
-    return { code: "game_anytime_td", reasons: [] };
+    return { code: "anytime_td", reasons: [] };
+  }
+  if (mentionsPra) {
+    return { code: "nba_pra", reasons: [] };
+  }
+  if (mentionsThrees) {
+    return { code: "nba_threes", reasons: [] };
+  }
+  if (mentionsRebounds && !mentionsAssists && !mentionsPoints) {
+    return { code: "nba_rebounds", reasons: [] };
+  }
+  if (mentionsAssists && !mentionsRebounds && !mentionsPoints) {
+    return { code: "nba_assists", reasons: [] };
+  }
+  if (mentionsPoints && !mentionsRebounds && !mentionsAssists) {
+    return { code: "nba_points", reasons: [] };
   }
   return { code: "unknown", reasons: [`unrecognized market label "${label}"`] };
 }
@@ -197,8 +274,8 @@ export function normalizeObservedMarket(observed: ObservedMarket): NormalizedMar
   }
 
   // --- Teams ---
-  const homeKey = canonicalTeam(observed.homeTeam);
-  const awayKey = canonicalTeam(observed.awayTeam);
+  const homeKey = canonicalTeam(observed.homeTeam, observed.league);
+  const awayKey = canonicalTeam(observed.awayTeam, observed.league);
   if ((observed.homeTeam && !homeKey) || (observed.awayTeam && !awayKey)) {
     ambiguityReasons.push("one or more team names unrecognized");
     notes.push(`teams as displayed: ${observed.awayTeam ?? "?"} @ ${observed.homeTeam ?? "?"}`);

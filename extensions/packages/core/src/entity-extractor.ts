@@ -42,15 +42,19 @@ export function extractLastName(rawName: string): string {
  * Maps raw market title/label into canonical market scope token.
  */
 export function normalizeMarketScope(rawMarket: string): string {
-  const norm = rawMarket.toLowerCase().replace(/[^a-z0-9]/g, " ").trim();
+  const norm = rawMarket.toLowerCase().replace(/[^a-z0-9+]/g, " ").trim();
 
-  if (/\b(points|pts)\b/.test(norm)) return "pts";
+  if (/\b(first|1st)\s*(td|touchdown)\b|\bfirst_td\b/.test(norm)) return "first_td";
+  if (/\b(2\+|two\s*plus|2\s*or\s*more)\s*(tds?|touchdowns?)\b|\btwo_plus_td\b/.test(norm)) return "two_plus_td";
+  if (/\banytime\s*(td|touchdown)\b|\banytime_td\b/.test(norm)) return "anytime_td";
+  if (/\b(pra|nba_pra)\b|pts?\s*\+\s*rebs?\s*\+\s*asts?|points?\s*\+\s*rebounds?\s*\+\s*assists?/.test(norm)) return "pra";
+  if (/\b(threes?|3\s*pt|3pm|three\s*pointers?|nba_threes)\b/.test(norm)) return "threes";
+  if (/\b(points|pts|nba_points)\b/.test(norm)) return "pts";
   if (/\b(receiving\s*yards?|rec\s*yds?)\b/.test(norm)) return "rec_yds";
   if (/\b(receptions?|catches|recs?)\b/.test(norm)) return "receptions";
-  if (/\b(assists?|asts?)\b/.test(norm)) return "ast";
-  if (/\b(rebounds?|rebs?)\b/.test(norm)) return "reb";
+  if (/\b(assists?|asts?|nba_assists)\b/.test(norm)) return "ast";
+  if (/\b(rebounds?|rebs?|nba_rebounds)\b/.test(norm)) return "reb";
   if (/\b(rushing\s*yards?|rush\s*yds?)\b/.test(norm)) return "rush_yds";
-  if (/\b(threes?|3\s*pt|three\s*pointers?)\b/.test(norm)) return "threes";
 
   return norm.replace(/\s+/g, "_");
 }

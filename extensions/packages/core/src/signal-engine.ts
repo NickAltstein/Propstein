@@ -159,9 +159,9 @@ export function evaluateSignal(input: SignalEvaluationInput): SignalSnapshot {
     return snapshot("NORMALIZED", false, undefined, freshness);
   }
 
-  if (match.status === "UNVERIFIED") {
+  if (match.status === "UNVERIFIED" || match.status === "UNMATCHED") {
     reasons.push(...match.reasons, ...normalized.ambiguityReasons);
-    reasons.push("unverified matches never produce value alerts");
+    reasons.push("unverified or unmatched observations never produce value alerts");
     return snapshot("UNVERIFIED", false, undefined, freshness);
   }
 
@@ -233,7 +233,13 @@ export function evaluateSignal(input: SignalEvaluationInput): SignalSnapshot {
     return snapshot("UNVERIFIED", false, undefined, freshness);
   }
 
-  // ---- Stage 5: ALERTABLE / BELOW_THRESHOLD ---------------------------
+  // ---- Stage 5: ALERTABLE / BELOW_THRESHOLD / OBSERVED ------------------
+  // In OBSERVED-only mode, signals NEVER transition to ALERTABLE.
+  if (config.observedOnly) {
+    reasons.push("OBSERVED · RESEARCH mode active — alerting is disabled");
+    return snapshot("OBSERVED", false, undefined, freshness, evaluation);
+  }
+
   const evForDecision = evaluation.alertableEvPerUnit;
   const wasAlerting = input.previousState === "ALERTABLE";
   // Hysteresis: active alerts persist until the exit threshold; new alerts
@@ -295,6 +301,7 @@ export function signalStatusLabel(s: SignalSnapshot): string {
   if (s.withdrawn && s.withdrawalReason === "SOURCE_TIMESTAMP_UNVERIFIED") return "STALE · SOURCE UNVERIFIED";
   if (s.withdrawn && s.withdrawalReason === "NOT_VISIBLE") return "NOT VISIBLE";
   switch (s.state) {
+    case "OBSERVED": return "OBSERVED · RESEARCH";
     case "ALERTABLE": return "ALERTABLE";
     case "BELOW_THRESHOLD": return "BELOW THRESHOLD";
     case "UNVERIFIED": return "UNVERIFIED";

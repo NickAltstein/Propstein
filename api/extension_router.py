@@ -362,10 +362,67 @@ def _no_coverage(reasons: list[str]) -> dict:
 # ---------------------------------------------------------------------------
 
 
+OBSERVED_PREGAME_MARKETS: tuple[str, ...] = (
+    "anytime_td",
+    "first_td",
+    "two_plus_td",
+    "nba_points",
+    "nba_rebounds",
+    "nba_assists",
+    "nba_threes",
+    "nba_pra",
+)
+MIN_PREGAME_PARSE_CONFIDENCE = 0.90
+
+
+def _observed_capabilities(killed: bool) -> dict:
+    """Return the exact capability-flag document for OBSERVED pregame mode.
+
+    When EXTENSION_KILL_SWITCH=1 is active, every adapter is forced False and
+    mode becomes HALTED. Real-user alerting, live drive feeds, and bet
+    placement are permanently False in OBSERVED mode.
+    """
+    raw = os.environ.get("EXTENSION_OBSERVED_PREGAME_ADAPTERS", "")
+    enabled = {token.strip().lower() for token in raw.split(",") if token.strip()}
+    if killed:
+        adapters = {
+            "demobook": False,
+            "draftkings": False,
+            "fanduel": False,
+            "prizepicks": False,
+            "polymarket": False,
+        }
+        return {
+            "mode": "HALTED",
+            "alertingEnabled": False,
+            "liveDriveFeedEnabled": False,
+            "betPlacementEnabled": False,
+            "minParseConfidence": MIN_PREGAME_PARSE_CONFIDENCE,
+            "adapters": adapters,
+            "markets": [],
+        }
+    return {
+        "mode": "OBSERVED_RESEARCH",
+        "alertingEnabled": False,
+        "liveDriveFeedEnabled": False,
+        "betPlacementEnabled": False,
+        "minParseConfidence": MIN_PREGAME_PARSE_CONFIDENCE,
+        "adapters": {
+            "demobook": True,
+            "draftkings": "draftkings" in enabled,
+            "fanduel": "fanduel" in enabled,
+            "prizepicks": "prizepicks" in enabled,
+            "polymarket": "polymarket" in enabled,
+        },
+        "markets": list(OBSERVED_PREGAME_MARKETS),
+    }
+
+
 @router.get("/api/v1/extension/health")
 def extension_health() -> dict:
-    """Public health + kill-switch document. The extension polls this before
-    operating; a switched-on kill switch is reported, never hidden."""
+    """Public health + kill-switch + capability-gate document. The extension
+    polls this before operating; a switched-on kill switch or missing
+    capability halts real-book adapters immediately."""
     killed = _kill_switch_on()
     return {
         "ok": not killed,
@@ -374,6 +431,7 @@ def extension_health() -> dict:
         "killSwitch": killed,
         "minExtensionVersion": MIN_EXTENSION_VERSION,
         "sessionTtlSeconds": DEFAULT_SESSION_TTL_SECONDS,
+        "capabilities": _observed_capabilities(killed),
         "ts": datetime.now(timezone.utc).isoformat(),
     }
 

@@ -37,6 +37,7 @@ ENV_VARS = (
     "WHOP_API_KEY",
     "EXTENSION_SESSION_SECRET",
     "EXTENSION_KILL_SWITCH",
+    "EXTENSION_OBSERVED_PREGAME_ADAPTERS",
     "EXTENSION_SESSION_TTL_SECONDS",
     "ALLOW_INSECURE_DEV_TOKENS",
     "EXTENSION_SESSION_STORE",
@@ -114,6 +115,54 @@ def test_health_reports_ok_by_default(client):
     assert body["killSwitch"] is False
     assert body["minExtensionVersion"] == "0.1.0"
     assert body["sessionTtlSeconds"] == DEFAULT_SESSION_TTL_SECONDS
+    caps = body["capabilities"]
+    assert caps["mode"] == "OBSERVED_RESEARCH"
+    assert caps["alertingEnabled"] is False
+    assert caps["liveDriveFeedEnabled"] is False
+    assert caps["betPlacementEnabled"] is False
+    assert caps["minParseConfidence"] == 0.90
+    assert caps["adapters"] == {
+        "demobook": True,
+        "draftkings": False,
+        "fanduel": False,
+        "prizepicks": False,
+        "polymarket": False,
+    }
+    assert set(caps["markets"]) == {
+        "anytime_td",
+        "first_td",
+        "two_plus_td",
+        "nba_points",
+        "nba_rebounds",
+        "nba_assists",
+        "nba_threes",
+        "nba_pra",
+    }
+
+
+def test_health_capabilities_enable_observed_pregame_adapters_and_halt_on_kill_switch(client, monkeypatch):
+    monkeypatch.setenv("EXTENSION_OBSERVED_PREGAME_ADAPTERS", "draftkings,fanduel,prizepicks")
+    r = client.get("/api/v1/extension/health")
+    assert r.status_code == 200
+    caps = r.json()["capabilities"]
+    assert caps["mode"] == "OBSERVED_RESEARCH"
+    assert caps["alertingEnabled"] is False
+    assert caps["betPlacementEnabled"] is False
+    assert caps["adapters"]["draftkings"] is True
+    assert caps["adapters"]["fanduel"] is True
+    assert caps["adapters"]["prizepicks"] is True
+    assert caps["adapters"]["polymarket"] is False
+
+    # Kill switch overrides everything and forces HALTED with all adapters False.
+    monkeypatch.setenv("EXTENSION_KILL_SWITCH", "1")
+    r_killed = client.get("/api/v1/extension/health")
+    assert r_killed.status_code == 200
+    body_killed = r_killed.json()
+    assert body_killed["ok"] is False
+    assert body_killed["killSwitch"] is True
+    assert body_killed["capabilities"]["mode"] == "HALTED"
+    assert all(v is False for v in body_killed["capabilities"]["adapters"].values())
+    assert body_killed["capabilities"]["markets"] == []
 
 
 def test_kill_switch_fails_everything_closed(client, monkeypatch, dev_auth):

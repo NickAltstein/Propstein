@@ -146,17 +146,24 @@ export class MarketMatcher {
     }
 
     // ---- 4. Coverage lookup --------------------------------------------
-    if (!this.coverageKeys.has(coverageKeyString(key))) {
+    const canonicalType: MarketTypeCode = key.marketType === "game_anytime_td" ? "anytime_td" : key.marketType;
+    const canonicalKey: ModelCoverageKey = { ...key, marketType: canonicalType };
+    const legacyKey: ModelCoverageKey | undefined = canonicalType === "anytime_td"
+      ? { ...key, marketType: "game_anytime_td" }
+      : undefined;
+    const hasCoverage = this.coverageKeys.has(coverageKeyString(canonicalKey))
+      || (legacyKey !== undefined && this.coverageKeys.has(coverageKeyString(legacyKey)));
+    if (!hasCoverage) {
       return {
         status: "NO_COVERAGE",
-        key,
+        key: canonicalKey,
         reasons: [
-          `no model coverage for ${league} ${market.marketTypeCode} (player ${playerId}, event ${eventId}) — displays as NO MODEL COVERAGE`,
+          `no model coverage for ${league} ${canonicalType} (player ${playerId}, event ${eventId}) — displays as NO MODEL COVERAGE`,
         ],
       };
     }
 
-    return { status: "MATCHED", key, reasons };
+    return { status: "MATCHED", key: canonicalKey, reasons };
   }
 }
 
