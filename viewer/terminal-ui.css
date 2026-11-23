@@ -1359,3 +1359,320 @@ html body.terminal-ui #sportSwitcher .sport-switch-label small {
   }
   html body.terminal-ui .terminal-scrolled .pw-filterbar .mobile-league-nav { display: none !important; }
 }
+
+/* ── 2027 Scan-First Player Prop Cards ─────────────────────────────────── */
+/* Demote permanent status ribbons, feed health, and audit chrome on the main
+   board so the player cards lead immediately (DOM IDs preserved for tests). */
+html body.terminal-ui .pw-hero-telemetry-suite,
+html body.terminal-ui .pw-receipt-badge,
+html body.terminal-ui #mobileUsageTicker {
+  display: none !important;
+}
+html body.terminal-ui #signalQuickChips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+html body.terminal-ui .card-grid,
+html body.terminal-ui #cardView {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  html body.terminal-ui .card-grid,
+  html body.terminal-ui #cardView {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+@media (min-width: 1120px) {
+  html body.terminal-ui .card-grid,
+  html body.terminal-ui #cardView {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+html body.terminal-ui .ps-scan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  margin: 0;
+  border-radius: 14px;
+  border: 1px solid var(--ps-line, rgba(169, 173, 178, 0.12));
+  background: var(--surface-card, var(--ps-elev, #17181b));
+  box-shadow: var(--specular-card, inset 0 1px 0 0 rgba(196, 200, 205, 0.1));
+  color: var(--ink, #e9ebee);
+  transition: border-color 140ms ease, transform 140ms ease;
+  box-sizing: border-box;
+  min-width: 0;
+}
+html body.terminal-ui .ps-scan-card:hover {
+  border-color: rgba(191, 219, 255, 0.28);
+}
+
+.ps-scan-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.ps-scan-identity {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ps-scan-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ps-scan-player {
+  font-family: "Space Grotesk", var(--terminal-sans, system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ps-scan-meta,
+.ps-scan-card .card-team-matchup {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-dim, #9da3ab);
+  letter-spacing: 0.01em;
+}
+
+.ps-signal-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  border: 1px solid rgba(169, 173, 178, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink-dim, #9da3ab);
+  white-space: nowrap;
+}
+.ps-signal-surge {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.12);
+}
+.ps-signal-var {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+}
+.ps-signal-td {
+  color: var(--signal, #bfdbff);
+  border-color: rgba(191, 219, 255, 0.35);
+  background: rgba(191, 219, 255, 0.12);
+}
+.ps-signal-verified {
+  color: #b6f36b;
+  border-color: rgba(182, 243, 107, 0.4);
+  background: rgba(182, 243, 107, 0.12);
+}
+
+.ps-scan-primary {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(12, 13, 15, 0.55);
+  border: 1px solid rgba(169, 173, 178, 0.09);
+}
+.ps-scan-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(169, 173, 178, 0.14);
+}
+.ps-scan-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ps-scan-metric-book {
+  align-items: flex-end;
+  text-align: right;
+}
+.ps-scan-label {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim, #9da3ab);
+}
+.ps-scan-value {
+  font-family: "Space Grotesk", "IBM Plex Mono", var(--terminal-sans, sans-serif);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+.ps-scan-value-book {
+  color: var(--quote, #8fb5ea);
+}
+.ps-scan-value-empty {
+  color: var(--ink-faint, #6b7077);
+}
+.ps-scan-sub {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--ink-dim, #9da3ab);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ps-scan-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--ink-dim, #9da3ab);
+  min-width: 0;
+}
+.ps-scan-prob {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ps-scan-tier {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink, #e9ebee);
+}
+
+.ps-card-details {
+  border-top: 1px solid rgba(169, 173, 178, 0.1);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.ps-card-details-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim, #9da3ab);
+  padding: 2px 0;
+}
+.ps-card-details-summary::-webkit-details-marker {
+  display: none;
+}
+.ps-card-details-summary:hover {
+  color: var(--ink, #e9ebee);
+}
+.ps-card-details[open] .ps-card-details-chevron {
+  transform: rotate(180deg);
+}
+.ps-card-details-chevron {
+  display: inline-block;
+  transition: transform 140ms ease;
+}
+.ps-card-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  font-size: 12px;
+  color: var(--ink-dim, #9da3ab);
+}
+.ps-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(169, 173, 178, 0.08);
+}
+.ps-details-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ps-details-kv span {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint, #6b7077);
+}
+.ps-details-kv strong {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ink, #e9ebee);
+}
+.ps-details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ps-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ps-details-trust {
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint, #6b7077);
+  padding-top: 4px;
+  border-top: 1px dashed rgba(169, 173, 178, 0.12);
+}
+
+/* Light theme contrast overrides for scan-first cards */
+html[data-theme="light"] body.terminal-ui .ps-scan-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-player,
+html[data-theme="light"] body.terminal-ui .ps-scan-value,
+html[data-theme="light"] body.terminal-ui .ps-scan-tier,
+html[data-theme="light"] body.terminal-ui .ps-details-kv strong {
+  color: #0f172a;
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-primary {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+html[data-theme="light"] body.terminal-ui .ps-scan-value-book {
+  color: #1d4ed8;
+}

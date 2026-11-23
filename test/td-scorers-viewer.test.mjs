@@ -103,6 +103,22 @@ test('TD Scorers tab renders fail-closed TD cards cleanly at 390px dark mode', a
     await tdBtn.click();
     await page.waitForSelector('[data-td-card="1"]', { timeout: 5000 });
 
+    const collapsed = await page.evaluate(() => {
+      const card = document.querySelector('[data-td-card="1"]');
+      const details = card ? card.querySelector('details.ps-card-details') : null;
+      return {
+        txt: card ? card.innerText : '',
+        detailsOpen: details ? details.open : null,
+      };
+    });
+    assert.equal(collapsed.detailsOpen, false);
+    assert.match(collapsed.txt, /CeeDee Lamb/);
+    assert.match(collapsed.txt, /-109/);
+    assert.match(collapsed.txt, /ROLE SURGE/);
+    assert.doesNotMatch(collapsed.txt, /RESEARCH ONLY/);
+
+    await page.locator('[data-td-card="1"] .ps-card-details-summary').first().click();
+
     const result = await page.evaluate(() => {
       const card = document.querySelector('[data-td-card="1"]');
       const txt = card ? card.innerText : '';

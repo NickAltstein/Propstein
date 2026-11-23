@@ -1571,6 +1571,19 @@
           renderBoard();
           return;
         }
+        const sigBtn = e.target.closest('[data-signal-chip]');
+        if (sigBtn) {
+          triggerHaptic('light');
+          const sig = sigBtn.dataset.signalChip;
+          state.filters.intent = state.filters.intent === sig ? 'all' : sig;
+          mobileFilterStrip.querySelectorAll('[data-signal-chip]').forEach((btn) => {
+            const on = btn.dataset.signalChip === state.filters.intent;
+            btn.classList.toggle('active', on);
+            btn.setAttribute('aria-pressed', String(on));
+          });
+          renderBoard();
+          return;
+        }
       });
     }
 
@@ -3607,7 +3620,16 @@
         if (!search.split(/\s+/).every((term) => haystack.includes(term))) return false;
       }
       if (intent === 'surge') {
-        return adapter.intentFilters.surge(row, beneficiaryFor(row));
+        return Boolean(row.role_surge) || Number(row.td_role_surge_z) >= 1.5 || adapter.intentFilters.surge(row, beneficiaryFor(row));
+      }
+      if (intent === 'high_var') {
+        if (Number.isFinite(Number(row.sd_points)) && Number(row.sd_points) >= 6.5) return true;
+        if (Number(row.td_vacated_rz_opps) > 0) return true;
+        const dist = distributionRange(row);
+        if (dist && Number.isFinite(dist.high) && Number.isFinite(dist.low) && Number(dist.proj) > 0) {
+          return ((dist.high - dist.low) / Math.max(Number(dist.proj), 1)) >= 0.85;
+        }
+        return false;
       }
       if (intent === 'volume') {
         return adapter.intentFilters.volume(row);
@@ -7281,27 +7303,60 @@
     const tdMean = Number.isFinite(Number(row.td_mean)) ? Number(row.td_mean).toFixed(2) : '—';
     const roleSurge = Number(row.td_role_surge_z) >= 1.5;
     const vacatedRz = Number(row.td_vacated_rz_opps) > 0;
-    const tags = [
-      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">CONF: ${esc(tier)}</span>`,
-      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">TD λ ${esc(tdMean)}</span>`,
-    ];
-    if (roleSurge) tags.push('<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#34d399;">ROLE SURGE</span>');
-    if (vacatedRz) tags.push(`<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#fbbf24;">VACATED RZ +${Number(row.td_vacated_rz_opps).toFixed(1)}</span>`);
 
-    return `<article class="prop-card td-scorer-card" data-td-card="1" data-player-id="${esc(row.player_id || '')}" style="padding:12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.75);margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
-        <div>
-          <strong style="font-size:15px;">${esc(name)}</strong>
-          <span style="font-size:12px;opacity:0.75;margin-left:6px;">${esc(pos)} · ${esc(matchup)}</span>
+    let signalLabel = 'TD';
+    let signalClass = 'ps-signal-td';
+    if (roleSurge) {
+      signalLabel = 'ROLE SURGE';
+      signalClass = 'ps-signal-surge';
+    } else if (vacatedRz) {
+      signalLabel = 'VACATED RZ';
+      signalClass = 'ps-signal-var';
+    }
+
+    const detailTags = [`<span class="chip-pill">CONF: ${esc(tier)}</span>`, `<span class="chip-pill">TD λ ${esc(tdMean)}</span>`];
+    if (roleSurge) detailTags.push('<span class="chip-pill" style="color:#34d399;">ROLE SURGE</span>');
+    if (vacatedRz) detailTags.push(`<span class="chip-pill" style="color:#fbbf24;">VACATED RZ +${Number(row.td_vacated_rz_opps).toFixed(1)}</span>`);
+
+    return `<article class="prop-card ps-scan-card td-scorer-card" data-td-card="1" data-scan-card="1" data-player-id="${esc(row.player_id || '')}">
+      <header class="ps-scan-header">
+        <div class="ps-scan-identity">
+          <div class="ps-scan-name-row">
+            <strong class="ps-scan-player">${esc(name)}</strong>
+          </div>
+          <span class="ps-scan-meta">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
+        <span class="ps-signal-badge ${signalClass}">${esc(signalLabel)}</span>
+      </header>
+      <div class="ps-scan-primary">
+        <div class="ps-scan-metric ps-scan-metric-fair">
+          <span class="ps-scan-label">MODEL FAIR</span>
+          <strong class="ps-scan-value">${esc(fairAny)}</strong>
+          <span class="ps-scan-sub">Anytime ${esc(pAny)}%</span>
+        </div>
+        <div class="ps-scan-divider" aria-hidden="true"></div>
+        <div class="ps-scan-metric ps-scan-metric-book">
+          <span class="ps-scan-label">BOOK</span>
+          <strong class="ps-scan-value ps-scan-value-empty">—</strong>
+          <span class="ps-scan-sub">No quote</span>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${tags.join('')}</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0;border-top:1px solid rgba(148,163,184,0.15);border-bottom:1px solid rgba(148,163,184,0.15);font-size:12px;">
-        <div><div style="opacity:0.7;font-size:10px;">ANYTIME TD</div><strong>${esc(pAny)}% (${esc(fairAny)})</strong></div>
-        <div><div style="opacity:0.7;font-size:10px;">2+ TD</div><strong>${esc(p2p)}% (${esc(fair2p)})</strong></div>
-        <div><div style="opacity:0.7;font-size:10px;">FIRST TD</div><strong>${esc(pFirst)}% (${esc(fairFirst)})</strong></div>
+      <div class="ps-scan-secondary">
+        <span class="ps-scan-prob">2+ TD ${esc(p2p)}% · 1st TD ${esc(pFirst)}%</span>
+        <span class="ps-scan-tier">${esc(tier)}</span>
       </div>
-      <div style="margin-top:8px;font-size:11px;opacity:0.8;" data-td-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+      <details class="ps-card-details" data-card-details="1">
+        <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+        <div class="ps-card-details-body">
+          <div class="ps-details-grid">
+            <div class="ps-details-kv"><span>Anytime TD</span><strong>${esc(pAny)}% (${esc(fairAny)})</strong></div>
+            <div class="ps-details-kv"><span>2+ TD</span><strong>${esc(p2p)}% (${esc(fair2p)})</strong></div>
+            <div class="ps-details-kv"><span>First TD</span><strong>${esc(pFirst)}% (${esc(fairFirst)})</strong></div>
+          </div>
+          <div class="ps-details-tags">${detailTags.join('')}</div>
+          <div class="ps-details-trust" data-td-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+        </div>
+      </details>
     </article>`;
   }
 
@@ -7326,27 +7381,60 @@
     const projRaw = row[meta.projKey] ?? row.proj_points;
     const fair = Number.isFinite(Number(fairRaw)) ? Number(fairRaw).toFixed(1) : '—';
     const proj = Number.isFinite(Number(projRaw)) ? Number(projRaw).toFixed(1) : '—';
+    const sdPts = Number.isFinite(Number(row.sd_points)) ? Number(row.sd_points).toFixed(1) : null;
     const surge = Boolean(row.role_surge);
     const surgeReason = row.role_surge_reason ? String(row.role_surge_reason) : '';
-    const badges = [
-      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">MIN ${esc(minBand)}</span>`,
-    ];
+    const highVar = Number.isFinite(Number(row.sd_points)) && Number(row.sd_points) >= 6.5;
+
+    let signalLabel = meta.label;
+    let signalClass = 'ps-signal-td';
     if (surge) {
-      badges.push(`<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#34d399;">ROLE SURGE${surgeReason ? ` · ${esc(surgeReason)}` : ''}</span>`);
+      signalLabel = 'ROLE SURGE';
+      signalClass = 'ps-signal-surge';
+    } else if (highVar) {
+      signalLabel = 'HIGH VAR';
+      signalClass = 'ps-signal-var';
     }
-    return `<article class="prop-card nba-points-card" data-nba-points-card="1" data-nba-market="${esc(market)}" data-player-id="${esc(row.player_id || '')}" style="padding:12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.75);margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
-        <div>
-          <strong style="font-size:15px;">${esc(name)}</strong>
-          <span style="font-size:12px;opacity:0.75;margin-left:6px;">${esc(pos)} · ${esc(matchup)}</span>
+
+    return `<article class="prop-card ps-scan-card nba-points-card" data-nba-points-card="1" data-nba-market="${esc(market)}" data-scan-card="1" data-player-id="${esc(row.player_id || '')}">
+      <header class="ps-scan-header">
+        <div class="ps-scan-identity">
+          <div class="ps-scan-name-row">
+            <strong class="ps-scan-player">${esc(name)}</strong>
+          </div>
+          <span class="ps-scan-meta">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
+        <span class="ps-signal-badge ${signalClass}">${esc(signalLabel)}</span>
+      </header>
+      <div class="ps-scan-primary">
+        <div class="ps-scan-metric ps-scan-metric-fair">
+          <span class="ps-scan-label">MODEL FAIR (${esc(meta.label)})</span>
+          <strong class="ps-scan-value">${esc(fair)}</strong>
+          <span class="ps-scan-sub">Proj ${esc(proj)} ${esc(meta.label.toLowerCase())}</span>
+        </div>
+        <div class="ps-scan-divider" aria-hidden="true"></div>
+        <div class="ps-scan-metric ps-scan-metric-book">
+          <span class="ps-scan-label">BOOK</span>
+          <strong class="ps-scan-value ps-scan-value-empty">—</strong>
+          <span class="ps-scan-sub">No quote</span>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${badges.join('')}</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px 0;border-top:1px solid rgba(148,163,184,0.15);border-bottom:1px solid rgba(148,163,184,0.15);font-size:12px;">
-        <div><div style="opacity:0.7;font-size:10px;">MODEL FAIR (${esc(meta.label)})</div><strong>${esc(fair)}</strong></div>
-        <div><div style="opacity:0.7;font-size:10px;">PROJECTED ${esc(meta.label)}</div><strong>${esc(proj)}</strong></div>
+      <div class="ps-scan-secondary">
+        <span class="ps-scan-prob">MIN ${esc(minBand)}</span>
+        <span class="ps-scan-tier">${sdPts ? `σ ${esc(sdPts)}` : `NBA ${esc(meta.label)}`}</span>
       </div>
-      <div style="margin-top:8px;font-size:11px;opacity:0.8;" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+      <details class="ps-card-details" data-card-details="1">
+        <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+        <div class="ps-card-details-body">
+          <div class="ps-details-grid">
+            <div class="ps-details-kv"><span>Model Fair (${esc(meta.label)})</span><strong>${esc(fair)}</strong></div>
+            <div class="ps-details-kv"><span>Projected ${esc(meta.label)}</span><strong>${esc(proj)}</strong></div>
+            <div class="ps-details-kv"><span>Minutes</span><strong>${esc(minBand)}</strong></div>
+          </div>
+          ${surgeReason ? `<div class="ps-details-tags"><span class="chip-pill" style="color:#34d399;">ROLE SURGE · ${esc(surgeReason)}</span></div>` : ''}
+          <div class="ps-details-trust" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+        </div>
+      </details>
     </article>`;
   }
 
@@ -7361,208 +7449,140 @@
     const injury = injuryFor(row);
     const dist = distributionRange(row);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
     const beneficiary = beneficiaryFor(row);
-    const corrRisk = checkCorrelatedRisk(row, evaluation);
     const quote = findQuote(row, state.filters.market);
     const quoteKey = `${row.player_id}::${state.filters.market}`;
     const flash = state.tickFlashes ? state.tickFlashes[quoteKey] : null;
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
 
-    const crest = teamCrest(row.team, 'md');
     const fairVal = dist.fair;
-    const sparklineHtml = renderPriceSparkline(row, quote, evaluation);
-    const execution = executionDecision(row, evaluation);
-
     const qualifiedGreen = isOfferQualifiedGreen(evaluation);
-    const statusSummary = offerStatusSummary(evaluation, quote);
     const offerPriceText = evaluation.state !== 'none' ? formatOfferPrice(quote, evaluation.side, evaluation.odds) : '';
     const offerAgeText = evaluation.state !== 'none' ? offerAgeLabel(quote) : '';
     const marketLabel = marketDef().chipLabel || state.filters.market;
-
-    // Row 1 Hero Edge & Context Subtag
-    let heroEdgeHtml = '';
-    let heroSubHtml = '';
-
-    if (state.feedFailClosed && !SLATES[state.slateKey]?.historical) {
-      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = `<span class="card-edge-sub status-no-line">stale since ${esc(state.feedStaleSince || '')}</span>`;
-    } else if (SLATES[state.slateKey]?.historical) {
-      const settled = evaluateSettledRow(row);
-      const isPos = settled.delta > 0;
-      heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'settled-pos' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
-      heroSubHtml = `<span class="card-edge-sub">${settled.outcome}</span>`;
-    } else if (evaluation.closed) {
-      heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
-      heroSubHtml = '<span class="card-edge-sub status-no-line">EVENT STARTED</span>';
-    } else if (evaluation.state === 'none') {
-      const pid = row.player_id;
-      if (state.simulatedLines && state.simulatedLines[pid] !== undefined) {
-        const simVal = state.simulatedLines[pid];
-        const rawEdge = simVal > 0 ? (((dist.proj - simVal) / simVal) * 100) : 0;
-        const isPos = rawEdge > 0;
-        heroEdgeHtml = `<span class="card-hero-edge">${isPos ? '+' : ''}${rawEdge.toFixed(1)}%</span>`;
-        heroSubHtml = '<span class="card-edge-sub status-sub-gate">SIM EDGE</span>';
-      } else {
-        heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-        heroSubHtml = '<span class="card-edge-sub status-sub-gate">NO LIVE QUOTE</span>';
-      }
-    } else if (evaluation.volatilityHalt) {
-      heroEdgeHtml = `<span class="card-hero-edge text-shift" title="${esc(evaluation.haltReason)}">SHIFT</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
-    } else if (evaluation.highEdgeCaution) {
-      heroEdgeHtml = `<span class="card-hero-edge text-caution" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
-    } else if (evaluation.dataCheck) {
-      heroEdgeHtml = `<span class="card-hero-edge text-caution">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
-    } else if (qualifiedGreen) {
-      heroEdgeHtml = `<span class="card-hero-edge positive offer-qualified-green">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub status-active offer-qualified-green">• QUALIFIED</span>';
-    } else if (evaluation.edge > 0) {
-      heroEdgeHtml = `<span class="card-hero-edge">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
-    } else if (evaluation.edge < 0) {
-      heroEdgeHtml = `<span class="card-hero-edge negative">${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
-    } else {
-      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = `<span class="card-edge-sub status-sub-gate">${esc(statusSummary.label.toUpperCase())}</span>`;
-    }
-
-    const edgePctDisplay = evaluation.edge ? Math.abs(evaluation.edge * 100).toFixed(1) : '0.0';
-    const hasPositiveEdge = Number(evaluation.edge) > 0;
-    // v176: research-mode cards use the decision layout (money row + signal
-    // row + action bar) instead of the quoted-state tabular grid.
     const isResearchCard = evaluation.state === 'none';
+    const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
 
-    // Row 2 Data Grid Columns
-    let gridColsHtml = '';
-    if (SLATES[state.slateKey]?.historical) {
-      const settled = evaluateSettledRow(row);
-      gridColsHtml = `
-        <div class="card-grid-col col-book">
-          <span class="grid-col-lbl">BOOK</span>
-          <span class="grid-col-val">${settled.line.toFixed(1)}</span>
-          <span class="grid-col-sub">Line</span>
-        </div>
-        <div class="card-grid-col col-model">
-          <span class="grid-col-lbl">ACTUAL</span>
-          <span class="grid-col-val"><span class="settled-stat-box">${settled.actual} ${settled.isYards ? 'yds' : 'rec'}</span></span>
-          <span class="grid-col-sub"><span class="settled-badge ${settled.outcomeClass}">${settled.outcome}</span></span>
-        </div>
-        <div class="card-grid-col col-steam">
-          <span class="grid-col-lbl">DIFF</span>
-          <span class="grid-col-val ${settled.delta > 0 ? 'color-accent' : 'color-muted'}">${settled.delta > 0 ? '+' : ''}${settled.delta}</span>
-          <span class="grid-col-sub">Result</span>
-        </div>
-        <div class="card-grid-col col-action">
-          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details">›</button>
-        </div>
-      `;
-    } else if (evaluation.state === 'none') {
-      // v176 decision-card: research mode leads with the money row (big
-      // PROJ | FAIR, 80% CI, distribution strip), a signal context line,
-      // and a thumb-zone action bar with SIM as the primary CTA. The old
-      // "AWAITING QUOTE" sportsbook block is demoted to a small honest tag:
-      // quotes stay fail-closed, the simulator lives INSIDE the card.
-      const simVal = (state.simulatedLines && state.simulatedLines[row.player_id] !== undefined)
-        ? state.simulatedLines[row.player_id]
-        : null;
-      const simOpen = state.inlineSim && state.inlineSim.pid === row.player_id;
-      let simCapHtml = '';
-      const distTitle = dist.isTd
-        ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
-        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick)${simVal !== null ? ` · simulated line ${simVal.toFixed(1)} (blue tick)` : ''}`;
-      gridColsHtml = `
-        <div class="card-money-row">
-          <div class="card-money-cell">
-            <span class="card-money-lbl">Projection</span>
-            <span class="card-money-val font-mono">${dist.proj.toFixed(1)}</span>
-          </div>
-          <div class="card-money-div" aria-hidden="true"></div>
-          <div class="card-money-cell">
-            <span class="card-money-lbl">Fair</span>
-            <span class="card-money-val fair font-mono">${fairVal.toFixed(1)}</span>
-          </div>
-          ${simCapHtml}
-          <div class="card-dist-block" title="${esc(distTitle)}">
-            <span class="card-ci-chip">${dist.isTd ? `P(TD) ${(dist.prob * 100).toFixed(0)}%` : `80% CI ${dist.low}–${dist.high}`}</span>
-            ${dist.isTd || simVal !== null ? cardDistStripSvg(dist, { simLine: simVal }) : densityCurveSvg(dist, marketDef().unit || '')}
-          </div>
-        </div>
-        ${cardSignalRowHtml(row, beneficiary)}
-        <div class="card-action-bar">
-          <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)} · edit` : 'Sim line'}</button>
-          <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">Copy fair</button>
-          <span class="card-research-tag${simVal !== null ? ' sim-active' : ''}">${simVal !== null ? 'SIMULATED · NOT A BOOK QUOTE' : 'NO LIVE QUOTE'}</span>
-          ${simVal !== null ? '' : `<span class="card-book-absent">${awaitingLivePriceCopy()}</span>`}
-        </div>
-        ${inlineSimPanelHtml(row, dist)}`;
-    } else {
-      const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
-      const distTitle = dist.isTd
-        ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
-        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (periwinkle dashed tick) · projection ${dist.proj.toFixed(1)} (bright blue tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
-      gridColsHtml = `
-        <div class="card-grid-col col-book offer-terms-stack">
-          <span class="grid-col-lbl offer-market-pill">${esc(marketLabel)}</span>
-          <span class="grid-col-val font-mono text-white dens-val-700 offer-terms-line">${sketchSideArrow(evaluation.side)} ${sideLabel} ${evaluation.line.toFixed(1)} · ${esc(offerPriceText)}</span>
-          <span class="offer-venue-age">${esc(quote?.book || evaluation.book)} · ${esc(offerAgeText)}</span>
-          ${listedSideBoxes(quote)}
-          ${evaluation.state === 'verified' ? terminalReceiptBadge(quote) : ''}
-        </div>
-        <div class="card-grid-col col-model">
-          <span class="grid-col-lbl">MODEL</span>
-          <div class="card-proj-fair-row font-mono dens-row-6">
-            <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
-            ${qualifiedGreen && hasPositiveEdge ? `<span class="card-edge-badge-lime offer-qualified-green">+${edgePctDisplay}%</span>` : hasPositiveEdge ? `<span class="card-edge-badge-muted">+${edgePctDisplay}%</span>` : ''}
-            <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
-          </div>
-          <div class="card-dist-block" title="${esc(distTitle)}">
-            <span class="card-ci-chip">${dist.isTd ? `P(TD) ${(dist.prob * 100).toFixed(0)}%` : `80% CI ${dist.low}–${dist.high}`}</span>
-            ${cardDistStripSvg(dist, { bookLine: dist.isTd ? null : evaluation.line })}
-          </div>
-        </div>
-        <div class="card-grid-col col-steam">
-          <span class="grid-col-lbl">STEAM</span>
-          <div class="grid-col-spark">${sparklineHtml}</div>
-        </div>
-        <div class="card-grid-col col-action">
-          <button type="button" class="view-quote-details-btn" data-inspect="${esc(row.player_id)}">View quote details</button>
-          <button type="button" class="card-btn-sim-quick${state.inlineSim && state.inlineSim.pid === row.player_id ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
-          ${qualifiedGreen ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}" title="${isLogged ? 'Remove from Ledger' : 'Stage ticket'}">${isLogged ? 'Logged' : 'Stage ticket'}</button>` : ''}
-        </div>
-        ${inlineSimPanelHtml(row, dist)}
-      `;
+    // Single high-signal badge
+    const spreadRatio = (Number.isFinite(dist.high) && Number.isFinite(dist.low) && Number(dist.proj) > 0)
+      ? (dist.high - dist.low) / Math.max(Number(dist.proj), 1)
+      : 0;
+    let signalLabel = String(marketLabel || 'PROP').toUpperCase();
+    let signalClass = 'ps-signal-td';
+    if (evaluation.closed) {
+      signalLabel = 'CLOSED';
+      signalClass = 'ps-signal-var';
+    } else if (qualifiedGreen) {
+      signalLabel = 'VERIFIED';
+      signalClass = 'ps-signal-verified';
+    } else if (beneficiary || Boolean(row.role_surge)) {
+      signalLabel = 'ROLE SURGE';
+      signalClass = 'ps-signal-surge';
+    } else if (spreadRatio >= 0.85) {
+      signalLabel = 'HIGH VAR';
+      signalClass = 'ps-signal-var';
+    } else if (injury && injury.report_status) {
+      signalLabel = String(injury.report_status).toUpperCase();
+      signalClass = 'ps-signal-var';
     }
+
+    const fairDisplay = dist.isTd ? `${(dist.prob * 100).toFixed(0)}%` : fairVal.toFixed(1);
+
+    // Book column: verified quote or clean dash (no noisy status wall)
+    let bookValueHtml = '<strong class="ps-scan-value ps-scan-value-empty">—</strong>';
+    let bookSubHtml = '<span class="ps-scan-sub">No quote</span>';
+    if (isHistorical) {
+      const settled = evaluateSettledRow(row);
+      bookValueHtml = `<strong class="ps-scan-value ps-scan-value-book">${settled.line.toFixed(1)}</strong>`;
+      bookSubHtml = `<span class="ps-scan-sub">Actual ${settled.actual} · ${esc(settled.outcome)}</span>`;
+    } else if (evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line))) {
+      const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
+      bookValueHtml = `<strong class="ps-scan-value ps-scan-value-book">${sideLabel} ${Number(evaluation.line).toFixed(1)} · ${esc(offerPriceText)}</strong>`;
+      bookSubHtml = `<span class="ps-scan-sub">${esc(quote?.book || evaluation.book)}${offerAgeText ? ` · ${esc(offerAgeText)}` : ''}</span>`;
+    }
+
+    // Secondary row: probability / band · confidence tier (never edge/Kelly when !qualifiedGreen)
+    let secondaryLeft = dist.isTd
+      ? `Anytime TD ${(dist.prob * 100).toFixed(1)}%`
+      : `Proj ${dist.proj.toFixed(1)} · 80% CI ${dist.low}–${dist.high}`;
+    if (evaluation.state !== 'none' && Number.isFinite(Number(evaluation.modelProb))) {
+      const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
+      secondaryLeft = `P(${sideLabel}) ${(Number(evaluation.modelProb) * 100).toFixed(1)}% · Proj ${dist.proj.toFixed(1)}`;
+    }
+    const tierText = isHistorical
+      ? 'SETTLED'
+      : evaluation.closed
+        ? 'EVENT STARTED'
+        : qualifiedGreen
+          ? 'QUALIFIED'
+          : String(row.confidence_tier || marketLabel || 'MODEL').toUpperCase();
+
+    // Collapsible details body: math breakdown, CI, simulator, receipt & disclaimer
+    const simVal = (state.simulatedLines && state.simulatedLines[row.player_id] !== undefined)
+      ? state.simulatedLines[row.player_id]
+      : null;
+    const simOpen = state.inlineSim && state.inlineSim.pid === row.player_id;
+    const distVizHtml = dist.isTd
+      ? cardDistStripSvg(dist, { simLine: simVal })
+      : (evaluation.state !== 'none'
+        ? cardDistStripSvg(dist, { bookLine: evaluation.line })
+        : (simVal !== null ? cardDistStripSvg(dist, { simLine: simVal }) : densityCurveSvg(dist, marketDef().unit || '')));
+    const receiptHtml = evaluation.state === 'verified' ? terminalReceiptBadge(quote) : '';
+    const trustLineHtml = qualifiedGreen
+      ? `<div class="ps-details-trust">VERIFIED QUOTE · <span class="offer-market-pill">${esc(marketLabel)}</span> · ${esc(quote?.book || evaluation.book)} · ${esc(offerAgeText)}</div>`
+      : '<div class="ps-details-trust" data-research-trust="1">MODEL FAIR · RESEARCH ONLY</div>';
 
     return `
-      <article class="mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${qualifiedGreen ? 'row-state-actionable offer-qualified-green' : ''} ${isTopEdge && qualifiedGreen ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="View quote details for ${esc(row.player_display_name)}">
-        <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
-        <div class="card-header-row">
-          <div class="card-id-block">
-            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
-            ${avatarFor(row.player_id, row.player_display_name, row.team)}
-            <div class="card-name-group">
-              <span class="card-player-name" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
-              <span class="card-team-matchup">${cardSubtitleMatchup(row, state.filters.market)}</span>${sportCalibrationBadge()}
+      <article class="prop-card ps-scan-card mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${qualifiedGreen ? 'row-state-actionable offer-qualified-green' : ''} ${isTopEdge && qualifiedGreen ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-scan-card="1" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="View quote details for ${esc(row.player_display_name)}">
+        <header class="ps-scan-header">
+          <div class="ps-scan-identity">
+            <div class="ps-scan-name-row">
+              <strong class="ps-scan-player" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}</strong>
             </div>
+            <span class="card-team-matchup">${cardSubtitleMatchup(row, state.filters.market)}</span>${sportCalibrationBadge()}
           </div>
-          <div class="card-hero-edge-block">
-            ${heroEdgeHtml}
-            ${heroSubHtml}
+          <span class="ps-signal-badge ${signalClass}">${esc(signalLabel)}</span>
+        </header>
+
+        <div class="ps-scan-primary">
+          <div class="ps-scan-metric ps-scan-metric-fair">
+            <span class="ps-scan-label">MODEL FAIR</span>
+            <strong class="ps-scan-value">${esc(fairDisplay)}</strong>
+            <span class="ps-scan-sub">Proj ${dist.proj.toFixed(1)}</span>
+          </div>
+          <div class="ps-scan-divider" aria-hidden="true"></div>
+          <div class="ps-scan-metric ps-scan-metric-book">
+            <span class="ps-scan-label">BOOK</span>
+            ${bookValueHtml}
+            ${bookSubHtml}
           </div>
         </div>
 
-        <!-- Hairline Divider -->
-        <div class="card-hairline-sep"></div>
+        <div class="ps-scan-secondary">
+          <span class="ps-scan-prob">${esc(secondaryLeft)}</span>
+          <span class="ps-scan-tier">${esc(tierText)}</span>
+        </div>
 
-        <!-- Row 2: decision layout (research) or 4-column tabular grid (quoted) -->
-        <div class="card-grid-row${isResearchCard ? ' v176-research' : ''}">
-          ${gridColsHtml}
-        </div>${receivingInputs(row)}${recentHitRateMarkup(row, evaluation, state.filters.market)}${priceRailMarkup(row, evaluation)}
+        <details class="ps-card-details" data-card-details="1">
+          <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+          <div class="ps-card-details-body">
+            ${distVizHtml}
+            ${cardSignalRowHtml(row, beneficiary)}
+            ${receivingInputs(row)}
+            ${recentHitRateMarkup(row, evaluation, state.filters.market)}
+            ${receiptHtml}
+            ${priceRailMarkup(row, evaluation)}
+            <div class="ps-details-actions">
+              <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)}` : 'Sim line'}</button>
+              <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}">Copy fair</button>
+              <button type="button" class="view-quote-details-btn card-ghost-act" data-inspect="${esc(row.player_id)}">View quote details</button>
+              ${qualifiedGreen ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}">${isLogged ? 'Logged' : 'Stage ticket'}</button>` : ''}
+            </div>
+            ${inlineSimPanelHtml(row, dist)}
+            ${trustLineHtml}
+          </div>
+        </details>
       </article>`;
   }
 
@@ -8380,6 +8400,9 @@
     }
     if (event.target.closest('.sim-line-input')) {
       event.stopPropagation();
+      return;
+    }
+    if (event.target.closest('details.ps-card-details') && !event.target.closest('[data-inspect]')) {
       return;
     }
     const quoteBtn = event.target.closest('[data-inspect-quote]');
