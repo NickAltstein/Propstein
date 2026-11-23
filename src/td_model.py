@@ -23,6 +23,8 @@ from scipy.optimize import minimize
 from src.td_features import TD_POSITIONS, enforce_td_fail_closed
 
 POINTS_PER_TD = 7.5
+PRIOR_TDS_PER_IMPLIED_PT = 1.0 / 9.5
+TEAM_TD_PRIOR_GAMES = 20.0
 DEFAULT_IMPLIED_TEAM_TOTAL = 21.0
 DEFAULT_DISPERSION = 0.15
 MIN_LAMBDA = 1e-4
@@ -98,6 +100,8 @@ class TouchdownModel:
         self.feature_means_: np.ndarray | None = None
         self.feature_stds_: np.ndarray | None = None
         self.position_alpha_: dict[str, float] = {p: DEFAULT_DISPERSION for p in TD_POSITIONS}
+        self.tds_per_implied_point_: float = PRIOR_TDS_PER_IMPLIED_PT
+        self.points_per_td_: float = 1.0 / PRIOR_TDS_PER_IMPLIED_PT
         self.is_fitted_: bool = False
 
     def _design_matrix(self, df: pd.DataFrame) -> np.ndarray:
@@ -175,6 +179,28 @@ class TouchdownModel:
             else:
                 self.position_alpha_[pos] = DEFAULT_DISPERSION
 
+        # Empirical team-total-to-offensive-TD ratio (strictly on training window)
+        group_cols = [c for c in ("season", "week", "team") if c in train_df.columns]
+        if group_cols:
+            work_t = train_df[group_cols].copy()
+            work_t["_y"] = y
+            if "implied_team_total" in train_df.columns:
+                work_t["_imp"] = pd.to_numeric(train_df["implied_team_total"], errors="coerce").fillna(
+                    DEFAULT_IMPLIED_TEAM_TOTAL
+                )
+            else:
+                work_t["_imp"] = DEFAULT_IMPLIED_TEAM_TOTAL
+            tg = work_t.groupby(group_cols, as_index=False).agg(_y=("_y", "sum"), _imp=("_imp", "mean"))
+            obs_tds_sum = float(tg["_y"].sum())
+            imp_pts_sum = float(tg["_imp"].sum())
+            prior_pts = TEAM_TD_PRIOR_GAMES * DEFAULT_IMPLIED_TEAM_TOTAL
+            prior_tds = prior_pts * PRIOR_TDS_PER_IMPLIED_PT
+            ratio = (obs_tds_sum + prior_tds) / max(imp_pts_sum + prior_pts, 1e-6)
+            self.tds_per_implied_point_ = float(np.clip(ratio, 0.04, 0.25))
+        else:
+            self.tds_per_implied_point_ = PRIOR_TDS_PER_IMPLIED_PT
+        self.points_per_td_ = 1.0 / self.tds_per_implied_point_
+
         self.is_fitted_ = True
         return self
 
@@ -203,13 +229,17 @@ class TouchdownModel:
         raw_lam = np.clip(np.exp(eta), MIN_LAMBDA, MAX_LAMBDA)
         out["_raw_lam"] = raw_lam
 
-        # Team-level coherence constraint: rescale team sum of λ to expected_team_tds
+        # Team-level coherence constraint: rescale team sum of λ to empirically fitted team TDs
         if constrain_team_totals and "team" in out.columns:
             group_cols = [c for c in ("season", "week", "team") if c in out.columns]
             team_sums = out.groupby(group_cols)["_raw_lam"].transform("sum")
-            target_tds = pd.to_numeric(out["expected_team_tds"], errors="coerce").fillna(
-                DEFAULT_IMPLIED_TEAM_TOTAL / POINTS_PER_TD
-            )
+            if "implied_team_total" in out.columns:
+                imp_tot = pd.to_numeric(out["implied_team_total"], errors="coerce").fillna(
+                    DEFAULT_IMPLIED_TEAM_TOTAL
+                )
+                target_tds = np.maximum(0.25, imp_tot * self.tds_per_implied_point_)
+            else:
+                target_tds = np.maximum(0.25, DEFAULT_IMPLIED_TEAM_TOTAL * self.tds_per_implied_point_)
             scale = np.where(team_sums > 1e-6, target_tds / team_sums, 1.0)
             out["td_mean"] = np.clip(out["_raw_lam"] * scale, MIN_LAMBDA, MAX_LAMBDA)
         else:
