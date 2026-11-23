@@ -16,6 +16,7 @@
 export type BookSource =
   | "draftkings"
   | "fanduel"
+  | "prizepicks"
   | "polymarket"
   | "demobook";
 
@@ -33,11 +34,31 @@ export type MarketTypeCode =
   | "game_reception_under"
   | "game_receiving_yards_over"    // full-game receiving yards over/under
   | "game_receiving_yards_under"
-  | "game_anytime_td"              // anytime touchdown scorer
+  | "game_anytime_td"              // legacy alias for anytime_td
+  | "anytime_td"                   // NFL anytime touchdown scorer
+  | "first_td"                     // NFL first touchdown scorer
+  | "two_plus_td"                  // NFL 2+ touchdowns scorer
+  | "nba_points"                   // NBA player points over/under
+  | "nba_rebounds"                 // NBA player rebounds over/under
+  | "nba_assists"                  // NBA player assists over/under
+  | "nba_threes"                   // NBA player 3-pointers made over/under
+  | "nba_pra"                      // NBA player points+rebounds+assists over/under
   | "unknown";                     // unclassifiable → UNVERIFIED, no alerts
+
+export const PREGAME_OBSERVED_MARKETS: ReadonlySet<MarketTypeCode> = new Set<MarketTypeCode>([
+  "anytime_td",
+  "first_td",
+  "two_plus_td",
+  "nba_points",
+  "nba_rebounds",
+  "nba_assists",
+  "nba_threes",
+  "nba_pra",
+]);
 
 export type MatchStatus =
   | "MATCHED"
+  | "UNMATCHED"
   | "UNVERIFIED"
   | "NO_COVERAGE";
 
@@ -143,6 +164,7 @@ export type SignalState =
   | "NORMALIZED"
   | "MODEL_MATCHED"
   | "VALIDATED"
+  | "OBSERVED"
   | "ALERTABLE"
   | "BELOW_THRESHOLD"
   | "UNVERIFIED"
@@ -200,6 +222,8 @@ export interface SignalEngineConfig {
   probabilityHaircut: number;
   /** Minimum adapter detection confidence to consider a market verified. */
   minDetectionConfidence: number;
+  /** When true, signals never transition to ALERTABLE and stay OBSERVED · RESEARCH. */
+  observedOnly?: boolean;
   /** Per-market-type freshness rules. */
   freshness: Partial<Record<MarketTypeCode, FreshnessRules>>;
   /** Default freshness when a market type has no specific rule. */

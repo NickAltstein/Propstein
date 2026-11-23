@@ -31,10 +31,13 @@ export interface VisibleMarketAdapter {
   observeChanges(callback: (event: import("@propstein/core").MarketChangeEvent) => void): () => void;
 }
 
+export const MIN_PREGAME_PARSE_CONFIDENCE = 0.90;
+
 export interface AdapterFeatureFlags {
   /** Real sportsbook adapters ship DISABLED pending authorization. */
   draftkings: boolean;
   fanduel: boolean;
+  prizepicks: boolean;
   polymarket: boolean;
   /** The synthetic demo adapter is the default-enabled test surface. */
   demobook: boolean;
@@ -43,9 +46,56 @@ export interface AdapterFeatureFlags {
 export const DEFAULT_FEATURE_FLAGS: AdapterFeatureFlags = {
   draftkings: false,
   fanduel: false,
+  prizepicks: false,
   polymarket: false,
   demobook: true,
 };
+
+/** Exact capability-flag shape returned by api/extension_router.py `/api/v1/extension/health`. */
+export interface RouterCapabilities {
+  mode: "OBSERVED_RESEARCH" | "HALTED";
+  alertingEnabled: false;
+  liveDriveFeedEnabled: false;
+  betPlacementEnabled: false;
+  minParseConfidence: number;
+  adapters: Partial<Record<BookSource, boolean>>;
+  markets: string[];
+}
+
+export interface RouterHealthGate {
+  ok: boolean;
+  killSwitch: boolean;
+  capabilities?: RouterCapabilities;
+}
+
+export interface ConfidenceGatedResult {
+  matched: ObservedMarket[];
+  unmatched: Array<{ market: ObservedMarket; status: "UNMATCHED"; reason: string }>;
+}
+
+/**
+ * Enforce the >= 0.90 parse confidence gate. Any observation below threshold
+ * is routed to `unmatched` with status UNMATCHED — never silently promoted.
+ */
+export function enforceParseConfidence(
+  markets: ObservedMarket[],
+  minConfidence: number = MIN_PREGAME_PARSE_CONFIDENCE,
+): ConfidenceGatedResult {
+  const matched: ObservedMarket[] = [];
+  const unmatched: Array<{ market: ObservedMarket; status: "UNMATCHED"; reason: string }> = [];
+  for (const market of markets) {
+    if (!Number.isFinite(market.detectionConfidence) || market.detectionConfidence < minConfidence) {
+      unmatched.push({
+        market,
+        status: "UNMATCHED",
+        reason: `parse confidence ${Number(market.detectionConfidence).toFixed(2)} < ${minConfidence.toFixed(2)} threshold`,
+      });
+    } else {
+      matched.push(market);
+    }
+  }
+  return { matched, unmatched };
+}
 
 export class AdapterRegistry {
   private readonly adapters = new Map<string, VisibleMarketAdapter>();
@@ -63,7 +113,7 @@ export class AdapterRegistry {
     return (this.flags as unknown as Record<string, boolean | undefined>)[platform] === true;
   }
 
-  /** Resolve the adapter for a URL, honoring feature flags. */
+  /** Resolve the adapter for a URL, honoring local feature flags. */
   resolve(url: URL): { adapter?: VisibleMarketAdapter; reason: string } {
     for (const adapter of this.adapters.values()) {
       if (adapter.isSupportedPage(url)) {
@@ -76,6 +126,42 @@ export class AdapterRegistry {
       }
     }
     return { reason: "no adapter supports this page" };
+  }
+
+  /**
+   * Resolve an adapter gated on api/extension_router.py health + capability flags.
+   * Fails CLOSED on killSwitch=true, missing capabilities, HALTED mode, or
+   * missing/false per-adapter capability.
+   */
+  resolveWithGate(
+    url: URL,
+    gate: RouterHealthGate | null | undefined,
+  ): { adapter?: VisibleMarketAdapter; reason: string; mode: "OBSERVED_RESEARCH" | "HALTED" } {
+    if (!gate || gate.killSwitch || !gate.ok) {
+      return {
+        reason: "extension kill switch active or health check failed — all adapters halted",
+        mode: "HALTED",
+      };
+    }
+    if (!gate.capabilities || gate.capabilities.mode === "HALTED") {
+      return {
+        reason: "router capability document missing or halted — fail closed",
+        mode: "HALTED",
+      };
+    }
+    for (const adapter of this.adapters.values()) {
+      if (adapter.isSupportedPage(url)) {
+        const capEnabled = gate.capabilities.adapters?.[adapter.platform] === true;
+        if (!capEnabled) {
+          return {
+            reason: `${adapter.platform} capability disabled by router gate — halted`,
+            mode: gate.capabilities.mode,
+          };
+        }
+        return { adapter, reason: "ok", mode: gate.capabilities.mode };
+      }
+    }
+    return { reason: "no adapter supports this page", mode: gate.capabilities.mode };
   }
 
   list(): VisibleMarketAdapter[] {

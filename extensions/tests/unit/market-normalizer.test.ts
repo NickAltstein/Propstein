@@ -74,9 +74,31 @@ test("reception with NO scope marker → unknown (fail closed)", () => {
   assert.equal(classifyMarketLabel("Player to record a reception").code, "unknown");
 });
 
-test("receiving yards and anytime TD classify to their own codes", () => {
+test("receiving yards and NFL TD markets classify to canonical codes", () => {
   assert.equal(classifyMarketLabel("Receiving yards").code, "game_receiving_yards_over");
-  assert.equal(classifyMarketLabel("Anytime touchdown scorer").code, "game_anytime_td");
+  assert.equal(classifyMarketLabel("Anytime touchdown scorer").code, "anytime_td");
+  assert.equal(classifyMarketLabel("First Touchdown Scorer").code, "first_td");
+  assert.equal(classifyMarketLabel("2+ Touchdowns").code, "two_plus_td");
+});
+
+test("NBA multi-stat markets classify to canonical codes", () => {
+  assert.equal(classifyMarketLabel("Player Points").code, "nba_points");
+  assert.equal(classifyMarketLabel("Player Rebounds").code, "nba_rebounds");
+  assert.equal(classifyMarketLabel("Player Assists").code, "nba_assists");
+  assert.equal(classifyMarketLabel("3-Pointers Made").code, "nba_threes");
+  assert.equal(classifyMarketLabel("Points + Rebounds + Assists").code, "nba_pra");
+  assert.equal(classifyMarketLabel("Pts+Rebs+Asts").code, "nba_pra");
+});
+
+test("playerNameKey folds NBA Unicode names to ASCII canonical keys", () => {
+  assert.equal(playerNameKey("Nikola Jokić"), "nikola jokic");
+  assert.equal(playerNameKey("Luka Dončić"), "luka doncic");
+  assert.equal(playerNameKey("Kristaps Porziņģis"), "kristaps porzingis");
+  assert.equal(playerNameKey("Alperen Şengün"), "alperen sengun");
+  assert.equal(playerNameKey("Jonas Valančiūnas"), "jonas valanciunas");
+  assert.equal(playerNameKey("Dennis Schröder"), "dennis schroder");
+  assert.equal(playerNameKey("Đorđe Łukasz"), "dorde lukasz");
+  assert.equal(playerNameKey("Shai Gilgeous-Alexander"), "shai gilgeous alexander");
 });
 
 test("garbage labels classify as unknown with reasons", () => {

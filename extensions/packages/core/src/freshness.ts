@@ -35,6 +35,14 @@ export const MARKET_FRESHNESS_DEFAULTS: Readonly<Record<string, FreshnessRules>>
   game_receiving_yards_over: { maxQuoteAgeMs: 20_000, maxSourceAgeMs: 60_000 },
   game_receiving_yards_under: { maxQuoteAgeMs: 20_000, maxSourceAgeMs: 60_000 },
   game_anytime_td: { maxQuoteAgeMs: 20_000, maxSourceAgeMs: 60_000 },
+  anytime_td: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  first_td: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  two_plus_td: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  nba_points: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  nba_rebounds: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  nba_assists: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  nba_threes: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
+  nba_pra: { maxQuoteAgeMs: 60_000, maxSourceAgeMs: 60_000 },
 };
 
 export interface FreshnessAssessment {

@@ -1,28 +1,38 @@
 /**
- * PropStein Live Sniper — FanDuel Adapter Scaffold
- * ===============================================
- * STATUS: DISABLED BY DEFAULT — feature-flag gated (same authorization and
- * fixture-validation requirements as the DraftKings scaffold; see that
- * file's header for the full rationale).
+ * PropStein Live Sniper — FanDuel Read-Only Pregame Adapter (OBSERVED mode)
+ * =========================================================================
+ * Intelligence only: reads visible pregame player prop DOM elements for NFL
+ * TD markets and NBA multi-stat markets. Never clicks, submits, or interacts
+ * with wager controls. Never treats any DOM drive ID as a possession feed.
  */
 
 import type { MarketChangeEvent, ObservedMarket } from "@propstein/core";
-import { parseAmericanOddsText } from "@propstein/core";
+import { classifyMarketLabel, parseAmericanOddsText } from "@propstein/core";
 import type { AdapterDetectionResult, VisibleMarketAdapter } from "./adapter.ts";
 import { diffMarkets, type DifferHooks } from "../dom-extractor.ts";
 
-export const FANDUEL_ADAPTER_VERSION = "fd-selectors-v0.1-unverified";
+export const FANDUEL_ADAPTER_VERSION = "fd-pregame-observed-v1.0";
 
 export const FANDUEL_SELECTORS = {
-  marketGroup: "div[class*='live'] af-dropdown-list, div[data-testid='market-group']",
-  marketRow: "li[class*='market'], div[data-testid='market-item']",
-  playerName: "span[class*='participant'], div[data-testid='player-name']",
-  marketTitle: "h2[class*='title'], div[data-testid='market-title']",
-  oddsButton: "button[class*='selection'], div[data-testid='odds-button']",
+  marketGroup: "div[data-testid='market-group'], section[data-testid='fd-pregame-props'], div[class*='live'] af-dropdown-list",
+  marketRow: "div[data-testid='market-item'], li[class*='market'], div[data-testid='fd-prop-row']",
+  playerName: "div[data-testid='player-name'], span[class*='participant']",
+  marketTitle: "div[data-testid='market-title'], h2[class*='title']",
+  line: "span[data-testid='prop-line'], span[class*='handicap']",
+  selection: "span[data-testid='prop-selection']",
+  oddsButton: "div[data-testid='odds-button'], button[class*='selection']",
 } as const;
 
 const HOST_ALLOWLIST = /^https:\/\/sportsbook\.fanduel\.com$/;
-const LIVE_PATHS = /^\/(in-play|live|leagues\/nfl)/;
+const SUPPORTED_PATHS = /^\/(navigation\/(nfl|nba)|football\/nfl|basketball\/nba|leagues\/(nfl|nba)|in-play|live)/;
+
+function parseNumericLine(raw: string | null | undefined): number | undefined {
+  if (!raw) return undefined;
+  const m = raw.match(/-?\d+(?:\.\d+)?/);
+  if (!m) return undefined;
+  const v = Number(m[0]);
+  return Number.isFinite(v) ? v : undefined;
+}
 
 export class FanDuelAdapter implements VisibleMarketAdapter {
   readonly platform = "fanduel" as const;
@@ -35,7 +45,7 @@ export class FanDuelAdapter implements VisibleMarketAdapter {
   }
 
   isSupportedPage(url: URL): boolean {
-    return HOST_ALLOWLIST.test(url.origin) && LIVE_PATHS.test(url.pathname);
+    return HOST_ALLOWLIST.test(url.origin) && SUPPORTED_PATHS.test(url.pathname);
   }
 
   async detectVisibleMarkets(root: Document): Promise<AdapterDetectionResult> {
@@ -45,13 +55,13 @@ export class FanDuelAdapter implements VisibleMarketAdapter {
         markets: [],
         status: "ADAPTER_DEGRADED",
         confidence: 0,
-        notes: ["live market container not found — FD layout may have changed or this page has no live props"],
+        notes: ["pregame market container not found — FD layout may have changed or this page has no props"],
       };
     }
     const rows = group.querySelectorAll(FANDUEL_SELECTORS.marketRow);
     const markets: ObservedMarket[] = [];
     for (const row of Array.from(rows)) {
-      const m = this.parseRow(row);
+      const m = this.parseRow(group, row);
       if (m) markets.push(m);
     }
     if (markets.length === 0) {
@@ -59,33 +69,70 @@ export class FanDuelAdapter implements VisibleMarketAdapter {
         markets: [],
         status: "ADAPTER_DEGRADED",
         confidence: 0,
-        notes: ["no rows parsed end-to-end — selectors require fixture validation before enabling"],
+        notes: ["no rows parsed end-to-end — failing closed"],
       };
     }
-    return { markets, status: "OK", confidence: 0.7, notes: ["parsed with UNVERIFIED selectors"] };
+    const minConfidence = Math.min(...markets.map((m) => m.detectionConfidence));
+    return {
+      markets,
+      status: "OK",
+      confidence: minConfidence,
+      notes: ["OBSERVED · RESEARCH pregame read-only parse (alerting disabled)"],
+    };
   }
 
-  private parseRow(row: Element): ObservedMarket | undefined {
-    const nameEl = row.querySelector(FANDUEL_SELECTORS.playerName);
+  private parseRow(group: Element | null, row: Element): ObservedMarket | undefined {
+    const playerName = row.querySelector(FANDUEL_SELECTORS.playerName)?.textContent?.trim() ?? "";
+    if (!playerName) return undefined;
+
     const oddsEl = row.querySelector(FANDUEL_SELECTORS.oddsButton);
-    if (!nameEl?.textContent?.trim()) return undefined;
     const americanOdds = parseAmericanOddsText(oddsEl?.textContent ?? "");
     if (americanOdds === undefined) return undefined;
-    const title = row.closest("[data-testid='market-item']")?.querySelector(FANDUEL_SELECTORS.marketTitle)?.textContent?.trim()
+
+    const title =
+      row.querySelector(FANDUEL_SELECTORS.marketTitle)?.textContent?.trim()
+      ?? group?.querySelector(FANDUEL_SELECTORS.marketTitle)?.textContent?.trim()
       ?? "";
+
+    const line = parseNumericLine(row.querySelector(FANDUEL_SELECTORS.line)?.textContent);
+    const classification = classifyMarketLabel(title);
+    const isTdMarket = classification.code === "anytime_td" || classification.code === "first_td" || classification.code === "two_plus_td";
+    const selection = row.querySelector(FANDUEL_SELECTORS.selection)?.textContent?.trim()
+      ?? row.getAttribute("data-selection")
+      ?? (isTdMarket ? "YES" : "OVER");
+
+    const leagueAttr = (row.getAttribute("data-league") ?? group?.getAttribute("data-league") ?? "").toUpperCase();
+    const isNba = leagueAttr === "NBA" || classification.code.startsWith("nba_");
+    const league = isNba ? "NBA" : "NFL";
+    const sport = isNba ? "basketball" : "football";
+    const eventId = row.getAttribute("data-event-id") ?? group?.getAttribute("data-event-id") ?? undefined;
+    const homeTeam = row.getAttribute("data-home-team") ?? group?.getAttribute("data-home-team") ?? undefined;
+    const awayTeam = row.getAttribute("data-away-team") ?? group?.getAttribute("data-away-team") ?? undefined;
+    const rawStatus = (row.getAttribute("data-market-status") ?? "OPEN").toUpperCase();
+    const marketStatus = rawStatus === "SUSPENDED" ? "SUSPENDED" : rawStatus === "CLOSED" ? "CLOSED" : "OPEN";
+
+    let confidence = 0.95;
+    if (classification.code === "unknown") confidence = 0.55;
+    else if (!isTdMarket && line === undefined) confidence = 0.72;
+    else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
+
     return {
       source: "fanduel",
-      sport: "football",
-      league: "NFL",
-      playerName: nameEl.textContent!.trim(),
+      ...(eventId ? { eventId } : {}),
+      ...(homeTeam ? { homeTeam } : {}),
+      ...(awayTeam ? { awayTeam } : {}),
+      sport,
+      league,
+      playerName,
       marketType: title,
       marketLabel: title,
-      selection: "YES",
+      selection,
+      ...(line !== undefined ? { line } : {}),
       americanOdds,
-      marketStatus: "UNKNOWN",
+      marketStatus,
       observedAt: this.now().toISOString(),
       adapterVersion: this.adapterVersion,
-      detectionConfidence: 0.7,
+      detectionConfidence: confidence,
       provenance: "visible-page",
     };
   }
@@ -93,7 +140,10 @@ export class FanDuelAdapter implements VisibleMarketAdapter {
   observeChanges(callback: (event: MarketChangeEvent) => void): () => void {
     const hooks: DifferHooks = {
       selectCards: (root) => Array.from(root.querySelectorAll(FANDUEL_SELECTORS.marketRow)),
-      parseCard: (el) => this.parseRow(el),
+      parseCard: (el) => {
+        const doc = el.ownerDocument ?? document;
+        return this.parseRow(doc.querySelector(FANDUEL_SELECTORS.marketGroup), el);
+      },
     };
     this.unsubscribe = diffMarkets(hooks, callback, { targetSelector: FANDUEL_SELECTORS.marketGroup });
     return () => this.unsubscribe?.();
