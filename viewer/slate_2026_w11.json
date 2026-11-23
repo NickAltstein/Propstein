@@ -3642,35 +3642,5 @@
       }
     ],
     "context_status": "READY"
-  },
-  {
-    "game_id": "2026_11_MIN_SF",
-    "player_name": "MIN @ SF (Unpriced)",
-    "team": "MIN",
-    "opponent": "SF",
-    "matchup": "MIN @ SF",
-    "position": "CONTEXT_MISSING",
-    "context_status": "CONTEXT_MISSING",
-    "context_missing_fields": [
-      "weather_observed_at",
-      "weather_values"
-    ],
-    "reason": "CONTEXT_MISSING: weather_observed_at, weather_values",
-    "excl_reason": "CONTEXT_MISSING: weather_observed_at, weather_values",
-    "model_prob": null,
-    "fair_line": null,
-    "fair_line_yards": null,
-    "fair_line_rec": null,
-    "proj_yards": null,
-    "proj_rec": null,
-    "mu_rec": null,
-    "proj_pts": null,
-    "edge": null,
-    "edge_pp": null,
-    "actionable": false,
-    "actionable_stake": 0.0,
-    "stake": 0.0,
-    "qualified": false,
-    "can_execute": false
   }
 ]
