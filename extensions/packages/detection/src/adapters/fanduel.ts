@@ -34,7 +34,8 @@ const SUPPORTED_PATHS = /^\/(navigation\/(nfl|nba)|football\/nfl|basketball\/nba
 
 function parseNumericLine(raw: string | null | undefined): number | undefined {
   if (!raw) return undefined;
-  const m = raw.match(/-?\d+(?:\.\d+)?/);
+  const cleaned = raw.replace(/\u00BD/g, ".5").replace(/[−–—]/g, "-");
+  const m = cleaned.match(/-?\d+(?:\.\d+)?/);
   if (!m) return undefined;
   const v = Number(m[0]);
   return Number.isFinite(v) ? v : undefined;
@@ -42,14 +43,22 @@ function parseNumericLine(raw: string | null | undefined): number | undefined {
 
 function parseAriaLabelFallback(aria: string): { selection?: string; line?: number; americanOdds?: number } {
   if (!aria) return {};
+  const cleaned = aria
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\u00BD/g, ".5")
+    .replace(/[−–—]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
   const out: { selection?: string; line?: number; americanOdds?: number } = {};
-  const sideMatch = aria.match(/\b(Over|Under)\s+(\d+(?:\.\d+)?)/i);
+  const sideMatch = cleaned.match(/\b(Over|Under|O|U)\s+(\d+(?:\.\d+)?)/i);
   if (sideMatch) {
-    out.selection = sideMatch[1]!.toUpperCase();
+    const token = sideMatch[1]!.toUpperCase();
+    out.selection = token === "U" || token === "UNDER" ? "UNDER" : "OVER";
     const n = Number(sideMatch[2]);
     if (Number.isFinite(n)) out.line = n;
   }
-  const oddsMatch = aria.match(/([+-]\d{3,4})\s*(?:Odds)?/i);
+  const oddsMatch = cleaned.match(/\(?([+-]\d{3,4})\)?\s*(?:Odds)?/i);
   if (oddsMatch) {
     const parsed = parseAmericanOddsText(oddsMatch[1]!);
     if (parsed !== undefined) out.americanOdds = parsed;
@@ -104,6 +113,7 @@ export class FanDuelAdapter implements VisibleMarketAdapter {
   }
 
   private parseRowMarkets(root: Document, group: Element | null, row: Element): ObservedMarket[] {
+    if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
     const playerName = row.querySelector(FANDUEL_SELECTORS.playerName)?.textContent?.trim() ?? "";
     if (!playerName) return [];
 

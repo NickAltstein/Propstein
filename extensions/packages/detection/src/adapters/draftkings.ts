@@ -25,7 +25,7 @@ export const DRAFTKINGS_ADAPTER_VERSION = "dk-pregame-observed-v1.1";
 /** Versioned read-only pregame selector set. */
 export const DRAFTKINGS_SELECTORS = {
   marketGroup: "div[data-testid='player-prop-markets'], div[data-testid='sportsbook-event-accordion'], section[data-testid='pregame-props']",
-  marketRow: "tr[data-testid*='prop-row'], div[data-testid='prop-card'], div[data-testid='dk-prop-row'], tr.sportsbook-table__body-row",
+  marketRow: "tr[data-testid*='prop-row'], div[data-testid='prop-card'], div[data-testid='dk-prop-row'], tr[class*='sportsbook-table__body-row']",
   outcomeCell: ".sportsbook-outcome-cell",
   playerName: "[data-testid='prop-player-name'], .sportsbook-row-name",
   marketTitle: "[data-testid='prop-market-title'], [class*='market-title'], .sportsbook-table-header__title",
@@ -39,7 +39,8 @@ const SUPPORTED_PATHS = /^\/(leagues\/(football\/nfl|nfl|basketball\/nba|nba)|ev
 
 function parseNumericLine(raw: string | null | undefined): number | undefined {
   if (!raw) return undefined;
-  const m = raw.match(/-?\d+(?:\.\d+)?/);
+  const cleaned = raw.replace(/\u00BD/g, ".5").replace(/[−–—]/g, "-");
+  const m = cleaned.match(/-?\d+(?:\.\d+)?/);
   if (!m) return undefined;
   const v = Number(m[0]);
   return Number.isFinite(v) ? v : undefined;
@@ -103,6 +104,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
   }
 
   private parseRowMarkets(root: Document, group: Element | null, row: Element): ObservedMarket[] {
+    if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
     const playerName = row.querySelector(DRAFTKINGS_SELECTORS.playerName)?.textContent?.trim() ?? "";
     if (!playerName) return [];
 

@@ -169,3 +169,65 @@ test("FanDuel live-style aria-label fixture parses Over/Under buttons + header m
   assert.equal(under.selectionKey, "UNDER");
   assert.equal(under.americanOdds, -108);
 });
+
+test("Edge cases: hashed CSS class, Unicode minus (−110), ½ fraction, NBSP/zero-width chars, empty row, and betslip exclusion", async () => {
+  const dkHtml = `<!doctype html><html><body><main>
+    <header><h1>CHI @ DEN</h1></header>
+    <div data-testid="sportsbook-event-accordion">
+      <div class="sportsbook-table-header__title">Player Points</div>
+      <table><tbody>
+        <tr class="sportsbook-table__body-row--a3f9c2">
+          <th class="sportsbook-row-name">Nikola\u00A0Jokić\u200B</th>
+          <td><div class="sportsbook-outcome-cell"><span class="sportsbook-outcome-cell__label">O</span><span class="sportsbook-outcome-cell__line">24\u00BD</span><span class="sportsbook-odds">\u2212110</span></div></td>
+        </tr>
+        <tr class="sportsbook-table__body-row--placeholder">
+          <th class="sportsbook-row-name">Loading Row</th>
+          <td><div class="sportsbook-outcome-cell"><span class="sportsbook-odds"></span></div></td>
+        </tr>
+      </tbody></table>
+      <aside class="betslip-drawer">
+        <table><tbody>
+          <tr class="sportsbook-table__body-row">
+            <th class="sportsbook-row-name">Slip Ghost</th>
+            <td><div class="sportsbook-outcome-cell"><span class="sportsbook-outcome-cell__label">O</span><span class="sportsbook-outcome-cell__line">10.5</span><span class="sportsbook-odds">+110</span></div></td>
+          </tr>
+        </tbody></table>
+      </aside>
+    </div>
+  </main></body></html>`;
+
+  const dk = new DraftKingsAdapter({ now: CLOCK });
+  const dkRes = await dk.detectVisibleMarkets(parseHTML(dkHtml).document);
+  assert.equal(dkRes.status, "OK");
+  assert.equal(dkRes.markets.length, 1); // placeholder & betslip rows both excluded
+  const dkNorm = normalizeObservedMarket(dkRes.markets[0]!);
+  assert.equal(dkNorm.playerNameKey, "nikola jokic");
+  assert.equal(dkNorm.observed.line, 24.5);
+  assert.equal(dkNorm.americanOdds, -110);
+
+  const fdHtml = `<!doctype html><html><body><main>
+    <header><h1>DAL @ BOS</h1></header>
+    <div data-testid="market-group">
+      <h2>Player Points</h2>
+      <ul>
+        <li class="market-row">
+          <span class="participant-name">Luka\u00A0Dončić</span>
+          <div role="button" aria-label="O 24\u00BD (\u2212115)">O 24.5</div>
+        </li>
+        <li class="market-row">
+          <span class="participant-name">Missing Odds Player</span>
+          <div role="button" aria-label="Over 18.5">O 18.5</div>
+        </li>
+      </ul>
+    </div>
+  </main></body></html>`;
+
+  const fd = new FanDuelAdapter({ now: CLOCK });
+  const fdRes = await fd.detectVisibleMarkets(parseHTML(fdHtml).document);
+  assert.equal(fdRes.status, "OK");
+  assert.equal(fdRes.markets.length, 1); // missing-odds row fails closed
+  const fdNorm = normalizeObservedMarket(fdRes.markets[0]!);
+  assert.equal(fdNorm.playerNameKey, "luka doncic");
+  assert.equal(fdNorm.observed.line, 24.5);
+  assert.equal(fdNorm.americanOdds, -115);
+});
