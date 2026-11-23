@@ -27,29 +27,31 @@
     </dl>`;
   }
 
-  const SNAPSHOT_FILE_RE = /^(?:[a-z0-9_]+_)?snapshots_[A-Za-z0-9_-]+\.json$/;
-  const FALLBACK_SNAPSHOT_FILES = ['snapshots_2026_w7.json'];
+  const Tail = window.PropsteinTail;
+  const tailEl = document.getElementById('tailCheck');
 
-  async function committedSnapshotFiles() {
-    const files = new Set();
-    try {
-      const res = await fetch('/feeds/slate-index.json', { cache: 'no-store' });
-      if (res.ok) {
-        const manifest = await res.json();
-        const sports = manifest && manifest.sports && typeof manifest.sports === 'object' ? manifest.sports : {};
-        Object.values(sports).forEach((sport) => {
-          const slates = sport && sport.slates && typeof sport.slates === 'object' ? sport.slates : {};
-          Object.values(slates).forEach((cfg) => {
-            const f = cfg && typeof cfg.snapshots === 'string' ? cfg.snapshots : '';
-            if (SNAPSHOT_FILE_RE.test(f)) files.add(f);
-          });
-        });
-      }
-    } catch {
-      // Manifest unavailable: fall back to the known committed file list.
+  function slipFromQuery(snapshot) {
+    const raw = new URLSearchParams(window.location.search).get('slip');
+    if (!raw) return { slip: null, notice: '' };
+    const parsed = Tail.parseSlip(raw);
+    if (!parsed.ok) return { slip: null, notice: `Slip ignored: ${parsed.reason}` };
+    const sameMarket = parsed.market === snapshot.market;
+    const norm = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!sameMarket || norm(parsed.player) !== norm(snapshot.player_name)) {
+      return { slip: null, notice: 'Slip ignored: it does not match this receipt’s player and market.' };
     }
-    FALLBACK_SNAPSHOT_FILES.forEach((f) => files.add(f));
-    return [...files];
+    return { slip: parsed, notice: '' };
+  }
+
+  async function renderTail(found) {
+    if (!tailEl || !Tail) return;
+    if (!found) {
+      tailEl.innerHTML = '<p class="t-note" data-tail-status="unavailable">Tail check unavailable: the committed snapshot file could not be loaded.</p>';
+      return;
+    }
+    const { slip, notice } = slipFromQuery(found.row);
+    await Tail.renderTailCheck(tailEl, { snapshot: found.row, slate: found.slate, slip });
+    if (notice) tailEl.insertAdjacentHTML('afterbegin', `<p class="t-notice" data-slip-notice="1">${esc(notice)}</p>`);
   }
 
   async function verify() {
@@ -60,13 +62,25 @@
       return;
     }
 
-    // 1. Try FastAPI receipt endpoint first
+    // Static lookup against every committed snapshot file in the slate index.
+    // Exactly one distinct committed hash must match; zero or an ambiguous
+    // prefix fails closed to NOT_FOUND.
+    let found = null;
+    try {
+      found = Tail ? await Tail.findSnapshotByHash(hash) : null;
+    } catch {
+      found = null;
+    }
+
+    // 1. FastAPI receipt endpoint first (when deployed)
     try {
       const res = await fetch(`/api/v1/receipts/${encodeURIComponent(hash)}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data && data.verified) {
           renderVerified(data);
+          const same = found && String(found.row.content_hash || '').toLowerCase() === String(data.snapshotHash || '').toLowerCase();
+          await renderTail(same ? found : null);
           return;
         }
       }
@@ -74,50 +88,23 @@
       // Static-only hosting fallback below
     }
 
-    // 2. Static fallback against every committed snapshot file listed in the
-    //    slate index. Exactly one distinct committed hash must match; zero or
-    //    an ambiguous prefix fails closed to NOT_FOUND.
-    try {
-      const files = await committedSnapshotFiles();
-      const hits = new Map();
-      for (const file of files) {
-        let rows = null;
-        try {
-          const res = await fetch(`/${file}`, { cache: 'no-store' });
-          if (!res.ok) continue;
-          rows = await res.json();
-        } catch {
-          continue;
-        }
-        if (!Array.isArray(rows)) continue;
-        for (const r of rows) {
-          if (!r || typeof r !== 'object') continue;
-          const ch = String(r.content_hash || '').toLowerCase();
-          const sid = String(r.snapshot_id || '').replace(/-/g, '').toLowerCase();
-          if ((ch && ch.startsWith(hash)) || (sid && sid.startsWith(hash))) {
-            const id = ch || sid;
-            if (!hits.has(id)) hits.set(id, { row: r, file });
-          }
-        }
-      }
-      if (hits.size === 1) {
-        const { row: hit, file } = hits.values().next().value;
-        const fair = Number(hit?.projection?.fair_line);
-        renderVerified({
-          shortHash: hash.slice(0, 12),
-          snapshotHash: hit.content_hash || hit.snapshot_id,
-          timestampUtc: hit.created_at,
-          player: hit.player_name,
-          team: hit.team,
-          opponent: hit.opponent,
-          market: hit.market,
-          fairLine: Number.isFinite(fair) ? fair : null,
-          source: file,
-        });
-        return;
-      }
-    } catch {
-      // Fall through to fail-closed NOT_FOUND
+    // 2. Static fallback
+    if (found) {
+      const hit = found.row;
+      const fair = Number(hit?.projection?.fair_line);
+      renderVerified({
+        shortHash: hash.slice(0, 12),
+        snapshotHash: hit.content_hash || hit.snapshot_id,
+        timestampUtc: hit.created_at,
+        player: hit.player_name,
+        team: hit.team,
+        opponent: hit.opponent,
+        market: hit.market,
+        fairLine: Number.isFinite(fair) ? fair : null,
+        source: found.slate.snapshots,
+      });
+      await renderTail(found);
+      return;
     }
 
     renderNotFound(hash);

@@ -161,7 +161,7 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
       res.end(COMMITTED_W7_SNAPSHOTS);
       return;
     }
-    const resolvedPath = (urlPath.startsWith('/r/') && urlPath !== '/r/receipt.js') ? '/r/index.html' : (urlPath === '/' ? 'index.html' : urlPath);
+    const resolvedPath = (urlPath.startsWith('/r/') && !/\.(js|css)$/.test(urlPath)) ? '/r/index.html' : (urlPath === '/' ? 'index.html' : urlPath);
     const filePath = path.join(VIEWER_DIR, resolvedPath);
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       res.writeHead(404);

@@ -5,19 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PropStein Receipt Verification</title>
   <link rel="stylesheet" href="/design-system.css?v=2026_v230">
-  <style>
-    body { margin: 0; background: #0c0d0f; color: #e9ebee; font-family: Inter, system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; padding: 20px; box-sizing: border-box; }
-    .r-card { width: 100%; max-width: 520px; background: #17181b; border: 1px solid rgba(169,173,178,0.16); border-radius: 14px; padding: 22px; box-sizing: border-box; }
-    .r-eyebrow { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8fb5ea; margin: 0 0 8px; }
-    .r-title { font-size: 22px; font-weight: 700; margin: 0 0 6px; color: #f8fafc; }
-    .r-sub { font-size: 13px; color: #9da3ab; margin: 0 0 16px; }
-    .r-dl { display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border-radius: 10px; background: #0f1114; border: 1px solid rgba(169,173,178,0.1); }
-    .r-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
-    .r-row dt { color: #9da3ab; }
-    .r-row dd { margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace; color: #f8fafc; word-break: break-all; text-align: right; }
-    .r-fail { padding: 14px; border-radius: 10px; background: rgba(255,107,94,0.1); border: 1px solid rgba(255,107,94,0.35); color: #ff9c93; font-size: 13px; }
-    .r-link { display: inline-block; margin-top: 14px; color: #8fb5ea; font-size: 13px; text-decoration: none; }
-  </style>
+  <link rel="stylesheet" href="/r/receipt.css?v=2026_v281">
 </head>
 <body>
   <main class="r-card" id="receiptRoot">
@@ -25,8 +13,10 @@
     <h1 class="r-title" id="receiptTitle">Checking receipt…</h1>
     <p class="r-sub" id="receiptSub">Read-only cryptographic lookup against committed pre-kickoff snapshots.</p>
     <div id="receiptBody"></div>
-    <a class="r-link" href="/">← Back to PropStein Board</a>
+    <div id="tailCheck"></div>
+    <nav class="r-links"><a class="r-link" href="/">← Back to PropStein Board</a><a class="r-link" href="/check/" data-check-slip-link="1">Check a slip</a></nav>
   </main>
-  <script src="/r/receipt.js" defer></script>
+  <script src="/r/tailcheck.js?v=2026_v281" defer></script>
+  <script src="/r/receipt.js?v=2026_v281" defer></script>
 </body>
 </html>
