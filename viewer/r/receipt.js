@@ -1,0 +1,82 @@
+(() => {
+  const titleEl = document.getElementById('receiptTitle');
+  const subEl = document.getElementById('receiptSub');
+  const bodyEl = document.getElementById('receiptBody');
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function renderNotFound(hash) {
+    titleEl.textContent = 'Receipt not found';
+    subEl.textContent = 'Fail-closed verification: unknown or uncommitted receipt hash.';
+    bodyEl.innerHTML = `<div class="r-fail" data-receipt-status="NOT_FOUND">Hash <strong>#${esc(hash || 'missing')}</strong> does not match any committed PropStein snapshot.</div>`;
+  }
+
+  function renderVerified(rec) {
+    titleEl.textContent = `${rec.player || 'Snapshot'} · ${rec.market || 'Prop'}`;
+    subEl.textContent = 'Verified against committed read-only PropStein snapshot.';
+    bodyEl.innerHTML = `<dl class="r-dl" data-receipt-status="VERIFIED">
+      <div class="r-row"><dt>Short Hash</dt><dd>#${esc(rec.shortHash)}</dd></div>
+      <div class="r-row"><dt>Snapshot SHA-256</dt><dd>${esc(rec.snapshotHash)}</dd></div>
+      <div class="r-row"><dt>UTC Timestamp</dt><dd>${esc(rec.timestampUtc || '—')}</dd></div>
+      <div class="r-row"><dt>Matchup</dt><dd>${esc(rec.team || '')}${rec.opponent ? ` vs ${esc(rec.opponent)}` : ''}</dd></div>
+      <div class="r-row"><dt>Source Artifact</dt><dd>${esc(rec.source || 'committed snapshot')}</dd></div>
+    </dl>`;
+  }
+
+  async function verify() {
+    const segs = window.location.pathname.split('/').filter(Boolean);
+    const hash = (segs[segs.length - 1] || '').toLowerCase();
+    if (!/^[0-9a-f]{6,64}$/.test(hash)) {
+      renderNotFound(hash);
+      return;
+    }
+
+    // 1. Try FastAPI receipt endpoint first
+    try {
+      const res = await fetch(`/api/v1/receipts/${encodeURIComponent(hash)}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.verified) {
+          renderVerified(data);
+          return;
+        }
+      }
+    } catch {
+      // Static-only hosting fallback below
+    }
+
+    // 2. Static fallback against committed snapshot JSON
+    try {
+      const res = await fetch('/snapshots_2026_w7.json', { cache: 'no-store' });
+      if (res.ok) {
+        const rows = await res.json();
+        const hit = Array.isArray(rows) && rows.find((r) => {
+          const ch = String(r?.content_hash || '').toLowerCase();
+          const sid = String(r?.snapshot_id || '').replace(/-/g, '').toLowerCase();
+          return (ch && ch.startsWith(hash)) || (sid && sid.startsWith(hash));
+        });
+        if (hit) {
+          renderVerified({
+            shortHash: hash.slice(0, 8),
+            snapshotHash: hit.content_hash || hit.snapshot_id,
+            timestampUtc: hit.created_at,
+            player: hit.player_name,
+            team: hit.team,
+            opponent: hit.opponent,
+            market: hit.market,
+            source: 'snapshots_2026_w7.json',
+          });
+          return;
+        }
+      }
+    } catch {
+      // Fall through to fail-closed NOT_FOUND
+    }
+
+    renderNotFound(hash);
+  }
+
+  void verify();
+})();

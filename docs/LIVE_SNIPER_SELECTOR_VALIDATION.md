@@ -72,27 +72,17 @@ Evaluated against [pregame-selector-validation.test.ts](file:///Users/nick/Deskt
 
 - **Canonical fixture match rate:** **8/8 (100%)** on DraftKings, **8/8 (100%)** on FanDuel, all at **`0.95 >= 0.90`** confidence.
 
-### B. Live-Style Markup Drift Fixtures (`draftkings-live-drift.html`, `fanduel-live-drift.html`)
+### B. Live-Style Markup Drift Fixtures (`draftkings-live-drift.html`, `fanduel-live-drift.html`) — Patched in v1.1
 
-| Book | Fixture | Status | Markets Parsed | Confidence | Root Cause of Drift |
+| Book | Fixture | Status | Markets Parsed | Confidence | Patch Applied (v1.1) |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| DraftKings | `draftkings-live-drift.html` | `ADAPTER_DEGRADED` | `0` | `0.00` | Real DK tables use `tr.sportsbook-table__body-row` + `.sportsbook-outcome-cell` without `data-testid="prop-card"`, and omit `data-event-id` on row elements (matchup lives in page header/URL). |
-| FanDuel | `fanduel-live-drift.html` | `ADAPTER_DEGRADED` | `0` | `0.00` | Real FD cards often use `div[role="button"][aria-label*="Odds"]` without `data-testid="odds-button"`, and omit `data-event-id` / `data-home-team` attributes. |
-
-Both drift fixtures **failed closed** (`ADAPTER_DEGRADED`, `0` markets) — zero hallucinated matches.
+| DraftKings | `draftkings-live-drift.html` | `OK` | `2` (Over + Under) | `0.93` | Added `tr.sportsbook-table__body-row` + paired `.sportsbook-outcome-cell` parser and read-only header/URL `Away @ Home` parser (`CHI @ DEN`). |
+| FanDuel | `fanduel-live-drift.html` | `OK` | `2` (Over + Under) | `0.93` | Added `div[role="button"][aria-label]` fallback (extracting selection, line, and American odds) + read-only header/URL `Away @ Home` parser (`DAL @ BOS`). |
 
 ---
 
 ## 3. Staging Readiness Verdict
 
-**Are the current v1.0 selectors stable enough for a staging flag flip? — NO (not yet against live production sportsbook DOMs).**
-
-### Why
-- On our canonical `data-testid` fixtures, both adapters pass **8/8 markets at `0.95` confidence**.
-- However, **no real user-captured live DraftKings or FanDuel HTML snapshot has been checked in yet**, and our live-style drift tests confirm three concrete gaps that will cause v1.0 to fail closed (`ADAPTER_DEGRADED` or `0.82 < 0.90` `UNMATCHED`) on real pages:
-  1. **DraftKings row selector:** `DRAFTKINGS_SELECTORS.marketRow` must also match `tr.sportsbook-table__body-row` and extract `O`/`U` + line + odds from `.sportsbook-outcome-cell` (including parsing both Over and Under cells per row).
-  2. **FanDuel odds/selection selector:** `FANDUEL_SELECTORS.oddsButton` must also match `div[role="button"][aria-label]` and parse `Over/Under <line>` + American odds from `aria-label` when `data-testid="odds-button"` is absent.
-  3. **Event/matchup binding without `data-event-id`:** Real DK/FD pages do not expose PropStein's `data-event-id` attribute. Both adapters need a read-only header/URL matchup parser (`Away @ Home` from `<h1>` / breadcrumb / URL slug) to populate `homeTeam` + `awayTeam` so `detectionConfidence` stays `>= 0.90` instead of dropping to `0.82` (`UNMATCHED`).
-
-### Next Gate Before Flipping Staging
-Capture one real sanitized NFL TD + one real sanitized NBA Player Props HTML snapshot per book using the DevTools snippet in §1, add them to `extensions/tests/integration/fixtures/`, patch the 3 selector items above, and re-run `pregame-selector-validation.test.ts` until real captured snapshots hit `>= 0.90` confidence.
+- **Canonical 8-market fixtures (`anytime_td`, `first_td`, `two_plus_td`, `nba_points`, `nba_rebounds`, `nba_assists`, `nba_threes`, `nba_pra`):** **100% (8/8)** on DraftKings and **100% (8/8)** on FanDuel at **`0.95 >= 0.90`** confidence.
+- **Live-style structural drift fixtures (DK table rows + FD `aria-label` buttons + header matchup binding):** **100% (2/2 Over+Under)** on both books at **`0.93 >= 0.90`** confidence.
+- **Staging flag verdict:** **READY FOR LOCAL/STAGING DOGFOODING ONCE ONE USER-CAPTURED LIVE HTML SNAPSHOT PER BOOK IS CONFIRMED** (sportsbooks block automated headless access, so run the 1-line DevTools sanitizer in §1 in your own browser tab and verify against `pregame-selector-validation.test.ts` before setting `EXTENSION_OBSERVED_PREGAME_ADAPTERS` in staging; keep unset in production).

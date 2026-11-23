@@ -1572,10 +1572,44 @@ html body.terminal-ui .ps-scan-card:hover {
   color: var(--ink, #e9ebee);
 }
 
-.ps-card-details {
+.ps-card-footer-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
   border-top: 1px solid rgba(169, 173, 178, 0.1);
   padding-top: 8px;
   margin-top: 2px;
+}
+.ps-card-details {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ps-share-x-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 219, 255, 0.28);
+  background: rgba(191, 219, 255, 0.08);
+  color: var(--signal, #bfdbff);
+  font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ps-share-x-btn:hover {
+  background: rgba(191, 219, 255, 0.16);
+  color: #ffffff;
+}
+html[data-theme="light"] body.terminal-ui .ps-share-x-btn {
+  border-color: rgba(29, 78, 216, 0.25);
+  background: rgba(29, 78, 216, 0.06);
+  color: #1d4ed8;
 }
 .ps-card-details-summary {
   display: flex;

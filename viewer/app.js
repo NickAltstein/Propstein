@@ -7289,6 +7289,85 @@
     return n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`;
   }
 
+  function shortCardReceiptHash(parts, explicitHash = '') {
+    const clean = String(explicitHash || '').trim().toLowerCase().replace(/[^0-9a-f]/g, '');
+    if (clean.length >= 8) return clean.slice(0, 8);
+    const input = parts.map((p) => String(p ?? '')).join('|');
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < input.length; i += 1) {
+      hash ^= input.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return hash.toString(16).padStart(8, '0');
+  }
+
+  function buildCardXShareUrl({ player, market, fair, book, hash }) {
+    const text = [
+      `${player} · ${market}`,
+      `FAIR ${fair} vs BOOK ${book || '—'}`,
+      `#${hash}`,
+      `Verify: https://propstein.com/r/${hash}`,
+    ].join(' | ');
+    return `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
+  }
+
+  function renderShareReceiptButton(spec) {
+    const url = buildCardXShareUrl(spec);
+    return `<a class="ps-share-x-btn" data-share-receipt="1" data-share-player="${esc(spec.player)}" data-share-market="${esc(spec.market)}" data-share-fair="${esc(spec.fair)}" data-share-book="${esc(spec.book || '—')}" data-share-matchup="${esc(spec.matchup || '')}" data-share-hash="${esc(spec.hash)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Share ${esc(spec.player)} receipt to X">Share ↗</a>`;
+  }
+
+  function downloadCardReceiptPng({ player, market, fair, book, matchup, hash }) {
+    if (typeof document === 'undefined' || typeof document.createElement !== 'function') return;
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 675;
+      const ctx = canvas.getContext && canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.fillStyle = '#0c0d0f';
+      ctx.fillRect(0, 0, 1200, 675);
+      ctx.fillStyle = '#17181b';
+      ctx.fillRect(44, 44, 1112, 587);
+      ctx.strokeStyle = '#2c3036';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(44, 44, 1112, 587);
+      ctx.fillStyle = '#9da3ab';
+      ctx.font = '600 22px monospace';
+      ctx.fillText(String(matchup || 'PROPSTEIN').toUpperCase(), 92, 114);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '700 54px sans-serif';
+      ctx.fillText(String(player || 'Player'), 92, 206);
+      ctx.fillStyle = '#9da3ab';
+      ctx.font = '500 30px sans-serif';
+      ctx.fillText(String(market || 'Prop'), 92, 260);
+      ctx.fillStyle = '#0f1114';
+      ctx.fillRect(92, 316, 1016, 172);
+      ctx.fillStyle = '#9da3ab';
+      ctx.font = '600 20px monospace';
+      ctx.fillText('MODEL FAIR', 136, 366);
+      ctx.fillText('BOOK', 620, 366);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 64px monospace';
+      ctx.fillText(String(fair || '—'), 136, 444);
+      ctx.fillStyle = '#8fb5ea';
+      ctx.fillText(String(book || '—'), 620, 444);
+      ctx.fillStyle = '#6b7077';
+      ctx.font = '600 20px monospace';
+      ctx.fillText(`RECEIPT #${hash}`, 92, 576);
+      ctx.fillStyle = '#9da3ab';
+      ctx.fillText(`propstein.com/r/${hash}`, 760, 576);
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `propstein-receipt-${hash}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      // Non-blocking in headless / restricted canvas environments
+    }
+  }
+
   function tdScorerCard(row) {
     const name = row.player_display_name || row.player_name || 'Unknown';
     const pos = row.position || 'WR';
@@ -7345,18 +7424,28 @@
         <span class="ps-scan-prob">2+ TD ${esc(p2p)}% · 1st TD ${esc(pFirst)}%</span>
         <span class="ps-scan-tier">${esc(tier)}</span>
       </div>
-      <details class="ps-card-details" data-card-details="1">
-        <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
-        <div class="ps-card-details-body">
-          <div class="ps-details-grid">
-            <div class="ps-details-kv"><span>Anytime TD</span><strong>${esc(pAny)}% (${esc(fairAny)})</strong></div>
-            <div class="ps-details-kv"><span>2+ TD</span><strong>${esc(p2p)}% (${esc(fair2p)})</strong></div>
-            <div class="ps-details-kv"><span>First TD</span><strong>${esc(pFirst)}% (${esc(fairFirst)})</strong></div>
+      <div class="ps-card-footer-row">
+        <details class="ps-card-details" data-card-details="1">
+          <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+          <div class="ps-card-details-body">
+            <div class="ps-details-grid">
+              <div class="ps-details-kv"><span>Anytime TD</span><strong>${esc(pAny)}% (${esc(fairAny)})</strong></div>
+              <div class="ps-details-kv"><span>2+ TD</span><strong>${esc(p2p)}% (${esc(fair2p)})</strong></div>
+              <div class="ps-details-kv"><span>First TD</span><strong>${esc(pFirst)}% (${esc(fairFirst)})</strong></div>
+            </div>
+            <div class="ps-details-tags">${detailTags.join('')}</div>
+            <div class="ps-details-trust" data-td-trust="1">MODEL FAIR · RESEARCH ONLY</div>
           </div>
-          <div class="ps-details-tags">${detailTags.join('')}</div>
-          <div class="ps-details-trust" data-td-trust="1">MODEL FAIR · RESEARCH ONLY</div>
-        </div>
-      </details>
+        </details>
+        ${renderShareReceiptButton({
+          player: name,
+          market: 'Anytime TD',
+          fair: fairAny,
+          book: '—',
+          matchup: `${pos} · ${matchup}`,
+          hash: shortCardReceiptHash([row.player_id, name, 'anytime_td', fairAny, state.slateKey], row.content_hash),
+        })}
+      </div>
     </article>`;
   }
 
@@ -7423,18 +7512,28 @@
         <span class="ps-scan-prob">MIN ${esc(minBand)}</span>
         <span class="ps-scan-tier">${sdPts ? `σ ${esc(sdPts)}` : `NBA ${esc(meta.label)}`}</span>
       </div>
-      <details class="ps-card-details" data-card-details="1">
-        <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
-        <div class="ps-card-details-body">
-          <div class="ps-details-grid">
-            <div class="ps-details-kv"><span>Model Fair (${esc(meta.label)})</span><strong>${esc(fair)}</strong></div>
-            <div class="ps-details-kv"><span>Projected ${esc(meta.label)}</span><strong>${esc(proj)}</strong></div>
-            <div class="ps-details-kv"><span>Minutes</span><strong>${esc(minBand)}</strong></div>
+      <div class="ps-card-footer-row">
+        <details class="ps-card-details" data-card-details="1">
+          <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+          <div class="ps-card-details-body">
+            <div class="ps-details-grid">
+              <div class="ps-details-kv"><span>Model Fair (${esc(meta.label)})</span><strong>${esc(fair)}</strong></div>
+              <div class="ps-details-kv"><span>Projected ${esc(meta.label)}</span><strong>${esc(proj)}</strong></div>
+              <div class="ps-details-kv"><span>Minutes</span><strong>${esc(minBand)}</strong></div>
+            </div>
+            ${surgeReason ? `<div class="ps-details-tags"><span class="chip-pill" style="color:#34d399;">ROLE SURGE · ${esc(surgeReason)}</span></div>` : ''}
+            <div class="ps-details-trust" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
           </div>
-          ${surgeReason ? `<div class="ps-details-tags"><span class="chip-pill" style="color:#34d399;">ROLE SURGE · ${esc(surgeReason)}</span></div>` : ''}
-          <div class="ps-details-trust" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
-        </div>
-      </details>
+        </details>
+        ${renderShareReceiptButton({
+          player: name,
+          market: `NBA ${meta.label}`,
+          fair,
+          book: '—',
+          matchup: `${pos} · ${matchup}`,
+          hash: shortCardReceiptHash([row.player_id, name, market, fair, state.slateKey], row.content_hash),
+        })}
+      </div>
     </article>`;
   }
 
@@ -7564,25 +7663,35 @@
           <span class="ps-scan-tier">${esc(tierText)}</span>
         </div>
 
-        <details class="ps-card-details" data-card-details="1">
-          <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
-          <div class="ps-card-details-body">
-            ${distVizHtml}
-            ${cardSignalRowHtml(row, beneficiary)}
-            ${receivingInputs(row)}
-            ${recentHitRateMarkup(row, evaluation, state.filters.market)}
-            ${receiptHtml}
-            ${priceRailMarkup(row, evaluation)}
-            <div class="ps-details-actions">
-              <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)}` : 'Sim line'}</button>
-              <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}">Copy fair</button>
-              <button type="button" class="view-quote-details-btn card-ghost-act" data-inspect="${esc(row.player_id)}">View quote details</button>
-              ${qualifiedGreen ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}">${isLogged ? 'Logged' : 'Stage ticket'}</button>` : ''}
+        <div class="ps-card-footer-row">
+          <details class="ps-card-details" data-card-details="1">
+            <summary class="ps-card-details-summary"><span>Details</span><span class="ps-card-details-chevron" aria-hidden="true">▾</span></summary>
+            <div class="ps-card-details-body">
+              ${distVizHtml}
+              ${cardSignalRowHtml(row, beneficiary)}
+              ${receivingInputs(row)}
+              ${recentHitRateMarkup(row, evaluation, state.filters.market)}
+              ${receiptHtml}
+              ${priceRailMarkup(row, evaluation)}
+              <div class="ps-details-actions">
+                <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)}` : 'Sim line'}</button>
+                <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}">Copy fair</button>
+                <button type="button" class="view-quote-details-btn card-ghost-act" data-inspect="${esc(row.player_id)}">View quote details</button>
+                ${qualifiedGreen ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}">${isLogged ? 'Logged' : 'Stage ticket'}</button>` : ''}
+              </div>
+              ${inlineSimPanelHtml(row, dist)}
+              ${trustLineHtml}
             </div>
-            ${inlineSimPanelHtml(row, dist)}
-            ${trustLineHtml}
-          </div>
-        </details>
+          </details>
+          ${renderShareReceiptButton({
+            player: row.player_display_name,
+            market: marketLabel,
+            fair: fairDisplay,
+            book: evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line)) ? `${Number(evaluation.line).toFixed(1)} ${offerPriceText}` : '—',
+            matchup: `${row.team || ''} vs ${row.opponent_team || ''}`.trim(),
+            hash: shortCardReceiptHash([row.player_id, row.player_display_name, state.filters.market, fairDisplay, state.slateKey], row.content_hash),
+          })}
+        </div>
       </article>`;
   }
 
@@ -8400,6 +8509,19 @@
     }
     if (event.target.closest('.sim-line-input')) {
       event.stopPropagation();
+      return;
+    }
+    const shareBtn = event.target.closest('[data-share-receipt="1"]');
+    if (shareBtn) {
+      event.stopPropagation();
+      downloadCardReceiptPng({
+        player: shareBtn.dataset.sharePlayer,
+        market: shareBtn.dataset.shareMarket,
+        fair: shareBtn.dataset.shareFair,
+        book: shareBtn.dataset.shareBook,
+        matchup: shareBtn.dataset.shareMatchup,
+        hash: shareBtn.dataset.shareHash,
+      });
       return;
     }
     if (event.target.closest('details.ps-card-details') && !event.target.closest('[data-inspect]')) {

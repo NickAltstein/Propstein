@@ -111,7 +111,8 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
       res.end(JSON.stringify(FIXTURE_SLATE));
       return;
     }
-    const filePath = path.join(VIEWER_DIR, urlPath === '/' ? 'index.html' : urlPath);
+    const resolvedPath = (urlPath.startsWith('/r/') && urlPath !== '/r/receipt.js') ? '/r/index.html' : (urlPath === '/' ? 'index.html' : urlPath);
+    const filePath = path.join(VIEWER_DIR, resolvedPath);
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       res.writeHead(404);
       res.end('not found');
@@ -204,6 +205,26 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
     await page.locator('[data-signal-chip="surge"]').click();
     const surgeCount = await page.locator('[data-scan-card="1"]').count();
     assert.equal(surgeCount, 1);
+
+    // One-tap Share to X button carries /r/<hash> and never leaks Kelly/EV when actionable is false
+    const shareHref = await page.locator('[data-scan-card="1"] [data-share-receipt="1"]').first().getAttribute('href');
+    assert.ok(shareHref, 'Expected one-tap Share to X link on scan-first card');
+    assert.match(shareHref, /^https:\/\/x\.com\/intent\/post\?text=/);
+    const decodedShare = decodeURIComponent(shareHref.split('text=')[1] || '');
+    assert.match(decodedShare, /CeeDee Lamb/);
+    assert.match(decodedShare, /https:\/\/propstein\.com\/r\/[0-9a-f]{8}/);
+    assert.doesNotMatch(decodedShare, /\bkelly\b|[+-]\d+(\.\d+)?%\s*ev/i);
+
+    // Verifiable /r/<hash> route resolves committed hash and fails closed on unknown hash
+    await page.goto(`http://127.0.0.1:${port}/r/9f123b87`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('[data-receipt-status="VERIFIED"]', { timeout: 5000 });
+    const verifiedTxt = await page.locator('#receiptRoot').innerText();
+    assert.match(verifiedTxt, /9f123b87/);
+
+    await page.goto(`http://127.0.0.1:${port}/r/deadbeef`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('[data-receipt-status="NOT_FOUND"]', { timeout: 5000 });
+    const notFoundTxt = await page.locator('#receiptRoot').innerText();
+    assert.match(notFoundTxt, /Receipt not found/i);
   } finally {
     await browser.close();
     if (typeof server.closeAllConnections === 'function') server.closeAllConnections();

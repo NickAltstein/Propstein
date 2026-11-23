@@ -7,6 +7,49 @@
  */
 
 import type { ObservedMarket, BookSource } from "@propstein/core";
+import { canonicalTeam } from "@propstein/core";
+
+export interface ParsedMatchup {
+  awayTeam?: string;
+  homeTeam?: string;
+}
+
+/**
+ * Read-only header / title / URL parser for `Away @ Home` or `Away vs Home`
+ * matchups when sportsbook DOM rows omit data-event-id / data-home-team.
+ */
+export function parseMatchupFromHeaderOrUrl(root: Document, league?: string): ParsedMatchup {
+  const candidates: string[] = [];
+  const selectors = [
+    "h1",
+    "[data-testid*='event-header']",
+    "[class*='event-header']",
+    "title",
+  ];
+  for (const sel of selectors) {
+    const el = root.querySelector(sel);
+    if (el?.textContent?.trim()) candidates.push(el.textContent.trim());
+  }
+  const href = (root as unknown as { location?: { pathname?: string } }).location?.pathname;
+  if (href) candidates.push(href.replace(/[-_/]+/g, " "));
+
+  for (const text of candidates) {
+    const match = text.match(/([A-Za-z0-9 .]+?)\s+(?:@|at|vs\.?)\s+([A-Za-z0-9 .]+)/i);
+    if (!match) continue;
+    const awayRaw = match[1]?.trim().split(/\s+/).slice(-2).join(" ");
+    const homeRaw = match[2]?.trim().split(/\s+/).slice(0, 2).join(" ");
+    const away =
+      canonicalTeam(awayRaw, league)
+      ?? canonicalTeam(awayRaw?.split(/\s+/).pop(), league);
+    const home =
+      canonicalTeam(homeRaw, league)
+      ?? canonicalTeam(homeRaw?.split(/\s+/)[0], league);
+    if (away && home && away !== home) {
+      return { awayTeam: away, homeTeam: home };
+    }
+  }
+  return {};
+}
 
 export interface AdapterDetectionResult {
   markets: ObservedMarket[];

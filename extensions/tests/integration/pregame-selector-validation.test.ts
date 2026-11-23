@@ -123,22 +123,49 @@ test("FanDuel canonical pregame fixture: 8/8 NFL TD + NBA multi-stat markets par
   assert.deepEqual([...seenMarkets].sort(), [...EXPECTED_CANONICAL_MARKETS].sort());
 });
 
-test("DraftKings live-style drift fixture (sportsbook-table without data-testid='prop-card' or data-event-id) fails closed", async () => {
+test("DraftKings live-style table fixture parses paired Over/Under cells + header matchup at >= 0.90 confidence", async () => {
   const adapter = new DraftKingsAdapter({ now: CLOCK });
   const result = await adapter.detectVisibleMarkets(loadFixture("draftkings-live-drift.html"));
-  // Current v1.0 selectors require tr[data-testid*='prop-row'] or div[data-testid='prop-card'],
-  // so sportsbook-table__body-row fails closed as ADAPTER_DEGRADED with 0 markets.
-  assert.equal(result.status, "ADAPTER_DEGRADED");
-  assert.equal(result.markets.length, 0);
-  assert.equal(result.confidence, 0);
+  assert.equal(result.status, "OK");
+  assert.equal(result.markets.length, 2);
+  assert.ok(result.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+
+  const gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 2);
+  assert.equal(gated.unmatched.length, 0);
+
+  const over = normalizeObservedMarket(gated.matched[0]!);
+  const under = normalizeObservedMarket(gated.matched[1]!);
+  assert.equal(over.marketTypeCode, "nba_points");
+  assert.equal(over.playerNameKey, "nikola jokic");
+  assert.equal(over.selectionKey, "OVER");
+  assert.equal(over.observed.line, 27.5);
+  assert.equal(over.observed.awayTeam, "CHI");
+  assert.equal(over.observed.homeTeam, "DEN");
+  assert.equal(under.selectionKey, "UNDER");
+  assert.equal(under.observed.line, 27.5);
 });
 
-test("FanDuel live-style drift fixture (aria-label buttons without data-testid='odds-button') fails closed", async () => {
+test("FanDuel live-style aria-label fixture parses Over/Under buttons + header matchup at >= 0.90 confidence", async () => {
   const adapter = new FanDuelAdapter({ now: CLOCK });
   const result = await adapter.detectVisibleMarkets(loadFixture("fanduel-live-drift.html"));
-  // Current v1.0 selectors require data-testid='odds-button' or button[class*='selection'],
-  // so role="button" aria-label markup fails closed as ADAPTER_DEGRADED with 0 markets.
-  assert.equal(result.status, "ADAPTER_DEGRADED");
-  assert.equal(result.markets.length, 0);
-  assert.equal(result.confidence, 0);
+  assert.equal(result.status, "OK");
+  assert.equal(result.markets.length, 2);
+  assert.ok(result.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+
+  const gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 2);
+  assert.equal(gated.unmatched.length, 0);
+
+  const over = normalizeObservedMarket(gated.matched[0]!);
+  const under = normalizeObservedMarket(gated.matched[1]!);
+  assert.equal(over.marketTypeCode, "nba_points");
+  assert.equal(over.playerNameKey, "luka doncic");
+  assert.equal(over.selectionKey, "OVER");
+  assert.equal(over.observed.line, 31.5);
+  assert.equal(over.americanOdds, -112);
+  assert.equal(over.observed.awayTeam, "DAL");
+  assert.equal(over.observed.homeTeam, "BOS");
+  assert.equal(under.selectionKey, "UNDER");
+  assert.equal(under.americanOdds, -108);
 });
