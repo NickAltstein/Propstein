@@ -28,6 +28,14 @@
     {
       "source": "/verify",
       "destination": "/verify.html"
+    },
+    {
+      "source": "/r/:hash",
+      "destination": "/r/index.html"
+    },
+    {
+      "source": "/r/:hash/",
+      "destination": "/r/index.html"
     }
   ],
   "redirects": [

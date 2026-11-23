@@ -165,6 +165,34 @@ def test_health_capabilities_enable_observed_pregame_adapters_and_halt_on_kill_s
     assert body_killed["capabilities"]["markets"] == []
 
 
+def test_receipt_verify_route_resolves_committed_hash_and_fails_closed_on_unknown(client):
+    # Real committed content_hash prefix from viewer/snapshots_2026_w7.json
+    r_ok = client.get("/api/v1/receipts/9f123b87")
+    assert r_ok.status_code == 200
+    body = r_ok.json()
+    assert body["verified"] is True
+    assert body["status"] == "VERIFIED"
+    assert body["snapshotHash"].startswith("9f123b87")
+    assert body["timestampUtc"]
+    assert body["player"]
+    assert body["market"]
+
+    # Alias /r/<hash> behaves identically
+    r_alias = client.get("/r/9f123b87")
+    assert r_alias.status_code == 200
+    assert r_alias.json()["snapshotHash"] == body["snapshotHash"]
+
+    # Unknown hash fails closed with 404 NOT_FOUND
+    r_missing = client.get("/api/v1/receipts/deadbeef")
+    assert r_missing.status_code == 404
+    assert r_missing.json()["detail"]["verified"] is False
+    assert r_missing.json()["detail"]["status"] == "NOT_FOUND"
+
+    # Malformed hash fails closed with 404
+    r_bad = client.get("/api/v1/receipts/not-hex!!")
+    assert r_bad.status_code == 404
+
+
 def test_kill_switch_fails_everything_closed(client, monkeypatch, dev_auth):
     # Obtain a session BEFORE flipping the switch, then verify the switch
     # fails every protected route closed (with AND without a token).

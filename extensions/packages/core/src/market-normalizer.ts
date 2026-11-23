@@ -102,7 +102,11 @@ const UNICODE_FOLD_MAP: Readonly<Record<string, string>> = {
 
 /** Canonical, comparison-safe player name key with NBA/NFL Unicode folding. */
 export function playerNameKey(rawName: string): string {
-  let n = (rawName ?? "").toLowerCase().normalize("NFKD");
+  let n = (rawName ?? "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .toLowerCase()
+    .normalize("NFKD");
   // Strip combining marks left by NFKD for accented characters (ć, č, š, ž, ņ, ģ, ū, ö, ü, etc.).
   n = n.replace(/[\u0300-\u036f]/g, "");
   // Fold non-decomposing Latin characters (đ, ł, ø, ß, æ, œ, ı).

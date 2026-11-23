@@ -2,8 +2,10 @@
  * PropStein Live Sniper — DraftKings Read-Only Pregame Adapter (OBSERVED mode)
  * ============================================================================
  * Intelligence only: reads visible pregame player prop DOM elements for NFL
- * TD markets and NBA multi-stat markets. Never clicks, submits, or interacts
- * with wager controls. Never treats any DOM drive ID as a possession feed.
+ * TD markets and NBA multi-stat markets. Supports both canonical data-testid
+ * cards and DraftKings sportsbook-table__body-row Over/Under outcome cells.
+ * Never clicks, submits, or interacts with wager controls. Never treats any
+ * DOM drive ID as a possession feed.
  *
  * Gated behind api/extension_router.py capability flags + kill switch.
  * Rows with parse confidence < 0.90 are rejected as UNMATCHED.
@@ -11,15 +13,20 @@
 
 import type { MarketChangeEvent, ObservedMarket } from "@propstein/core";
 import { classifyMarketLabel, parseAmericanOddsText } from "@propstein/core";
-import type { AdapterDetectionResult, VisibleMarketAdapter } from "./adapter.ts";
+import {
+  parseMatchupFromHeaderOrUrl,
+  type AdapterDetectionResult,
+  type VisibleMarketAdapter,
+} from "./adapter.ts";
 import { diffMarkets, type DifferHooks } from "../dom-extractor.ts";
 
-export const DRAFTKINGS_ADAPTER_VERSION = "dk-pregame-observed-v1.0";
+export const DRAFTKINGS_ADAPTER_VERSION = "dk-pregame-observed-v1.1";
 
 /** Versioned read-only pregame selector set. */
 export const DRAFTKINGS_SELECTORS = {
   marketGroup: "div[data-testid='player-prop-markets'], div[data-testid='sportsbook-event-accordion'], section[data-testid='pregame-props']",
-  marketRow: "tr[data-testid*='prop-row'], div[data-testid='prop-card'], div[data-testid='dk-prop-row']",
+  marketRow: "tr[data-testid*='prop-row'], div[data-testid='prop-card'], div[data-testid='dk-prop-row'], tr[class*='sportsbook-table__body-row']",
+  outcomeCell: ".sportsbook-outcome-cell",
   playerName: "[data-testid='prop-player-name'], .sportsbook-row-name",
   marketTitle: "[data-testid='prop-market-title'], [class*='market-title'], .sportsbook-table-header__title",
   line: "[data-testid='prop-line'], .sportsbook-outcome-cell__line",
@@ -32,10 +39,20 @@ const SUPPORTED_PATHS = /^\/(leagues\/(football\/nfl|nfl|basketball\/nba|nba)|ev
 
 function parseNumericLine(raw: string | null | undefined): number | undefined {
   if (!raw) return undefined;
-  const m = raw.match(/-?\d+(?:\.\d+)?/);
+  const cleaned = raw.replace(/\u00BD/g, ".5").replace(/[−–—]/g, "-");
+  const m = cleaned.match(/-?\d+(?:\.\d+)?/);
   if (!m) return undefined;
   const v = Number(m[0]);
   return Number.isFinite(v) ? v : undefined;
+}
+
+function normalizeDkSelection(raw: string, isTdMarket: boolean): string {
+  const t = raw.trim().toUpperCase();
+  if (t === "O" || t === "OVER") return "OVER";
+  if (t === "U" || t === "UNDER") return "UNDER";
+  if (t === "YES" || t === "Y") return "YES";
+  if (t === "NO" || t === "N") return "NO";
+  return isTdMarket ? "YES" : "OVER";
 }
 
 function inferLeagueAndSport(root: Document, row: Element, marketTitle: string): { league: string; sport: string } {
@@ -72,8 +89,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     }
     const markets: ObservedMarket[] = [];
     for (const row of Array.from(rows)) {
-      const m = this.parseRow(root, group, row);
-      if (m) markets.push(m);
+      markets.push(...this.parseRowMarkets(root, group, row));
     }
     if (markets.length === 0) {
       return this.degraded("rows found but none parsed end-to-end — failing closed");
@@ -87,9 +103,10 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     };
   }
 
-  private parseRow(root: Document, group: Element | null, row: Element): ObservedMarket | undefined {
+  private parseRowMarkets(root: Document, group: Element | null, row: Element): ObservedMarket[] {
+    if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
     const playerName = row.querySelector(DRAFTKINGS_SELECTORS.playerName)?.textContent?.trim() ?? "";
-    if (!playerName) return undefined;
+    if (!playerName) return [];
 
     const marketTitle =
       row.querySelector(DRAFTKINGS_SELECTORS.marketTitle)?.textContent?.trim()
@@ -97,51 +114,60 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
       ?? root.querySelector("h1")?.textContent?.trim()
       ?? "";
 
-    const oddsEl = row.querySelector(DRAFTKINGS_SELECTORS.oddsButton);
-    const americanOdds = parseAmericanOddsText(oddsEl?.textContent ?? "");
-    if (americanOdds === undefined) return undefined;
-
-    const line = parseNumericLine(row.querySelector(DRAFTKINGS_SELECTORS.line)?.textContent);
-    const rawSelection = row.querySelector(DRAFTKINGS_SELECTORS.selection)?.textContent?.trim()
-      ?? row.getAttribute("data-selection")
-      ?? "";
     const classification = classifyMarketLabel(marketTitle);
     const isTdMarket = classification.code === "anytime_td" || classification.code === "first_td" || classification.code === "two_plus_td";
-    const selection = rawSelection || (isTdMarket ? "YES" : "OVER");
-
     const { league, sport } = inferLeagueAndSport(root, row, marketTitle);
+
+    const headerMatchup = parseMatchupFromHeaderOrUrl(root, league);
+    const homeTeam = row.getAttribute("data-home-team") ?? group?.getAttribute("data-home-team") ?? headerMatchup.homeTeam;
+    const awayTeam = row.getAttribute("data-away-team") ?? group?.getAttribute("data-away-team") ?? headerMatchup.awayTeam;
     const eventId = row.getAttribute("data-event-id") ?? group?.getAttribute("data-event-id") ?? undefined;
-    const homeTeam = row.getAttribute("data-home-team") ?? group?.getAttribute("data-home-team") ?? undefined;
-    const awayTeam = row.getAttribute("data-away-team") ?? group?.getAttribute("data-away-team") ?? undefined;
     const rawStatus = (row.getAttribute("data-market-status") ?? "OPEN").toUpperCase();
     const marketStatus = rawStatus === "SUSPENDED" ? "SUSPENDED" : rawStatus === "CLOSED" ? "CLOSED" : "OPEN";
 
-    // Strict confidence scoring: >= 0.90 ONLY when market classifies cleanly,
-    // odds parsed, and line is present for non-TD O/U markets.
-    let confidence = 0.95;
-    if (classification.code === "unknown") confidence = 0.55;
-    else if (!isTdMarket && line === undefined) confidence = 0.72;
-    else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
+    // Sportsbook table rows often contain paired Over / Under outcome cells.
+    const outcomeCells = Array.from(row.querySelectorAll(DRAFTKINGS_SELECTORS.outcomeCell));
+    const containers: Element[] = outcomeCells.length > 0 ? outcomeCells : [row];
+    const results: ObservedMarket[] = [];
 
-    return {
-      source: "draftkings",
-      ...(eventId ? { eventId } : {}),
-      ...(homeTeam ? { homeTeam } : {}),
-      ...(awayTeam ? { awayTeam } : {}),
-      sport,
-      league,
-      playerName,
-      marketType: marketTitle,
-      marketLabel: marketTitle,
-      selection,
-      ...(line !== undefined ? { line } : {}),
-      americanOdds,
-      marketStatus,
-      observedAt: this.now().toISOString(),
-      adapterVersion: this.adapterVersion,
-      detectionConfidence: confidence,
-      provenance: "visible-page",
-    };
+    for (const cell of containers) {
+      const oddsEl = cell.querySelector(DRAFTKINGS_SELECTORS.oddsButton);
+      const americanOdds = parseAmericanOddsText(oddsEl?.textContent ?? "");
+      if (americanOdds === undefined) continue;
+
+      const line = parseNumericLine(cell.querySelector(DRAFTKINGS_SELECTORS.line)?.textContent);
+      const rawSelection = cell.querySelector(DRAFTKINGS_SELECTORS.selection)?.textContent?.trim()
+        ?? row.getAttribute("data-selection")
+        ?? "";
+      const selection = normalizeDkSelection(rawSelection, isTdMarket);
+
+      let confidence = 0.95;
+      if (classification.code === "unknown") confidence = 0.55;
+      else if (!isTdMarket && line === undefined) confidence = 0.72;
+      else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
+      else if (!eventId && homeTeam && awayTeam) confidence = 0.93;
+
+      results.push({
+        source: "draftkings",
+        ...(eventId ? { eventId } : {}),
+        ...(homeTeam ? { homeTeam } : {}),
+        ...(awayTeam ? { awayTeam } : {}),
+        sport,
+        league,
+        playerName,
+        marketType: marketTitle,
+        marketLabel: marketTitle,
+        selection,
+        ...(line !== undefined ? { line } : {}),
+        americanOdds,
+        marketStatus,
+        observedAt: this.now().toISOString(),
+        adapterVersion: this.adapterVersion,
+        detectionConfidence: confidence,
+        provenance: "visible-page",
+      });
+    }
+    return results;
   }
 
   private degraded(reason: string): AdapterDetectionResult {
@@ -158,7 +184,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
       selectCards: (root) => Array.from(root.querySelectorAll(DRAFTKINGS_SELECTORS.marketRow)),
       parseCard: (el) => {
         const doc = el.ownerDocument ?? document;
-        return this.parseRow(doc, doc.querySelector(DRAFTKINGS_SELECTORS.marketGroup), el);
+        return this.parseRowMarkets(doc, doc.querySelector(DRAFTKINGS_SELECTORS.marketGroup), el)[0];
       },
     };
     this.unsubscribe = diffMarkets(hooks, callback, { targetSelector: DRAFTKINGS_SELECTORS.marketGroup });

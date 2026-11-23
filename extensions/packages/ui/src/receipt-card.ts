@@ -42,12 +42,16 @@ function escapeXml(raw: string): string {
     .replace(/'/g, "&apos;");
 }
 
+export function buildReceiptVerifyUrl(hash: string): string {
+  return `https://propstein.com/r/${encodeURIComponent(hash)}`;
+}
+
 export function buildObservedCopyText(card: ReceiptCardInput, hash: string): string {
   return [
     `${card.playerName} · ${card.marketName}`,
     `FAIR ${card.fairDisplay} vs BOOK ${card.bookDisplay} (Δ ${card.deltaDisplay})`,
     `${card.statusLabel} · #${hash}`,
-    "propstein.com",
+    `Verify: ${buildReceiptVerifyUrl(hash)}`,
   ].join(" | ");
 }
 
@@ -83,6 +87,6 @@ export function renderReceiptCardSvg(card: ReceiptCardInput, hash: string): stri
   <text x="890" y="366" fill="#9da3ab" font-family="IBM Plex Mono, monospace" font-size="20">DELTA</text>
   <text x="890" y="444" fill="#34d399" font-family="Space Grotesk, monospace" font-size="56" font-weight="700">${escapeXml(card.deltaDisplay)}</text>
   <text x="92" y="576" fill="#6b7077" font-family="IBM Plex Mono, monospace" font-size="20">RECEIPT #${escapeXml(hash)} · ${escapeXml(card.source)}</text>
-  <text x="1108" y="576" text-anchor="end" fill="#9da3ab" font-family="IBM Plex Mono, monospace" font-size="20">propstein.com · RESEARCH ONLY</text>
+  <text x="1108" y="576" text-anchor="end" fill="#9da3ab" font-family="IBM Plex Mono, monospace" font-size="20">propstein.com/r/${escapeXml(hash)} · RESEARCH ONLY</text>
 </svg>`;
 }
