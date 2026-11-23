@@ -40,7 +40,7 @@ def build_nba_slate_rows(research_payload: dict[str, Any] | list[dict[str, Any]]
         if proj_pts is None:
             continue
 
-        out.append({
+        row_dict: dict[str, Any] = {
             "player_id": str(r.get("player_id") or ""),
             "player_display_name": str(r.get("player_display_name") or r.get("player_name") or ""),
             "team": str(r.get("team") or ""),
@@ -62,7 +62,16 @@ def build_nba_slate_rows(research_payload: dict[str, Any] | list[dict[str, Any]]
             "edge_pct": None,
             "kelly_stake": 0.0,
             "gate_status": "RESEARCH_ONLY_UNVERIFIED",
-        })
+        }
+        # Pass through additive multi-stat markets (REB, AST, 3PM, PRA, PR, PA, RA) when present
+        for m in ("rebounds", "assists", "threes", "pra", "pr", "pa", "ra"):
+            for prefix in ("proj_", "sd_", "fair_line_", "p_over_fair_"):
+                k = f"{prefix}{m}"
+                if r.get(k) is not None:
+                    row_dict[k] = round(float(r[k]), 4 if prefix == "p_over_fair_" else 2)
+        if r.get("p_over_fair_points") is not None:
+            row_dict["p_over_fair_points"] = round(float(r["p_over_fair_points"]), 4)
+        out.append(row_dict)
 
     out.sort(key=lambda row: (-float(row["proj_points"]), row["player_display_name"]))
     return out
