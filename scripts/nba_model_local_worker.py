@@ -156,8 +156,21 @@ def main() -> int:
         print("no artifacts produced — nothing to commit.", file=sys.stderr)
         return 5
 
+    # Export fail-closed viewer/nba_slate_{date}.json and update sports.nba in slate-index.json
+    research_today = FEED / f"nba_research_{slate}.json"
+    extra_stage: list[str] = []
+    if research_today.exists():
+        if str(REPO / "src") not in sys.path:
+            sys.path.insert(0, str(REPO / "src"))
+        from nba_model.publish.slate_export import export_nba_slate_and_index
+        exp = export_nba_slate_and_index(research_today, slate, REPO / "viewer")
+        print(f"exported {exp['row_count']} NBA slate rows -> {exp['slate_path']}")
+        extra_stage.append(f"viewer/nba_slate_{slate}.json")
+        if exp["index_updated"]:
+            extra_stage.append("viewer/feeds/slate-index.json")
+
     git = ["git", "-C", str(REPO)]
-    if run(git + ["add", "viewer/feeds/nba_model", "viewer/feeds/grades"], env) != 0:
+    if run(git + ["add", "viewer/feeds/nba_model", "viewer/feeds/grades", *extra_stage], env) != 0:
         return 1
     dirty = subprocess.run(git + ["diff", "--staged", "--quiet"], env=env).returncode != 0
     if not dirty:

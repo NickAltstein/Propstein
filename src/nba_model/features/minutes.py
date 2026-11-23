@@ -76,12 +76,49 @@ class ExpectedMinutesModel:
                 np.clip(w_eff * recent_mean + (1 - w_eff) * season_mean, 4.0, NBA_MINUTES_CAP)
             )
             sd_minutes = max(3.0, float(fallback_sd or 3.0))
+
+            # Blowout haircut & wider uncertainty band when |spread| >= 9.5
+            spread_val = row.get("spread")
+            if spread_val is not None and pd.notna(spread_val):
+                abs_spread = abs(float(spread_val))
+                if abs_spread >= 9.5:
+                    if minutes_hat >= 24.0:
+                        haircut = min(3.5, 1.5 + 0.25 * (abs_spread - 9.5))
+                        minutes_hat = max(4.0, minutes_hat - haircut)
+                    sd_minutes = round(sd_minutes * 1.25, 2)
+
+            # Bounded vacated-minutes boost from availability / injury layer if present
+            vacated_boost = float(row.get("vacated_min_boost") or 0.0)
+            if vacated_boost > 0.0:
+                minutes_hat = float(np.clip(minutes_hat + min(vacated_boost, 8.0), 4.0, NBA_MINUTES_CAP))
+
+            minutes_p10 = float(np.clip(minutes_hat - 1.2816 * sd_minutes, 0.0, minutes_hat))
+            minutes_p90 = float(np.clip(minutes_hat + 1.2816 * sd_minutes, minutes_hat, NBA_MINUTES_CAP))
+
+            recent_min_delta = float(recent_mean - season_mean) if n_recent >= 2 else 0.0
+            usage_delta = float(row.get("usage_delta") or 0.0)
+            reasons: list[str] = []
+            if vacated_boost >= 3.5:
+                inj_reason = str(row.get("role_surge_reason") or "").strip()
+                reasons.append(inj_reason if inj_reason else f"+{vacated_boost:.1f} min vacated")
+            if recent_min_delta >= 5.0:
+                reasons.append(f"+{recent_min_delta:.1f} min recent surge")
+            if usage_delta >= 0.04:
+                reasons.append(f"+{usage_delta * 100:.1f}% usage jump")
+            role_surge = bool(reasons) or bool(row.get("role_surge"))
+            role_surge_reason = " · ".join(reasons) if reasons else str(row.get("role_surge_reason") or "")
+
             rows.append({
                 "player_id": row["player_id"],
                 "game_id": row["game_id"],
+                "minutes_p10": round(minutes_p10, 2),
                 "minutes_hat": round(minutes_hat, 2),
+                "minutes_p90": round(minutes_p90, 2),
                 "sd_minutes": round(sd_minutes, 2),
                 "minutes_source": source,
                 "n_recent": n_recent,
+                "recent_min_delta": round(recent_min_delta, 2),
+                "role_surge": role_surge,
+                "role_surge_reason": role_surge_reason,
             })
         return pd.DataFrame(rows)

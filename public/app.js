@@ -7259,7 +7259,44 @@
     return `<p class="cell-sub card-hit-rate">${side} ${line.toFixed(1)} · ${hasBookLine ? 'Book line' : 'Model fair line'} · ${summarize(5)}${values.length > 5 ? ` · ${summarize(10)}` : ''}</p>`;
   }
 
+  function nbaPointsCard(row) {
+    const name = row.player_display_name || row.player_name || 'Unknown';
+    const pos = row.position || 'G';
+    const matchup = `${row.team || ''} vs ${row.opponent || row.opponent_team || ''}`.trim();
+    const minHat = Number.isFinite(Number(row.minutes_hat)) ? Number(row.minutes_hat).toFixed(1) : '—';
+    const minP10 = Number.isFinite(Number(row.minutes_p10)) ? Number(row.minutes_p10).toFixed(1) : null;
+    const minP90 = Number.isFinite(Number(row.minutes_p90)) ? Number(row.minutes_p90).toFixed(1) : null;
+    const minBand = minP10 && minP90 ? `${minHat} (${minP10}–${minP90})` : minHat;
+    const fair = Number.isFinite(Number(row.fair_line_points)) ? Number(row.fair_line_points).toFixed(1) : '—';
+    const proj = Number.isFinite(Number(row.proj_points)) ? Number(row.proj_points).toFixed(1) : '—';
+    const surge = Boolean(row.role_surge);
+    const surgeReason = row.role_surge_reason ? String(row.role_surge_reason) : '';
+    const badges = [
+      `<span class="chip-pill" style="font-size:11px;padding:2px 6px;">MIN ${esc(minBand)}</span>`,
+    ];
+    if (surge) {
+      badges.push(`<span class="chip-pill" style="font-size:11px;padding:2px 6px;color:#34d399;">ROLE SURGE${surgeReason ? ` · ${esc(surgeReason)}` : ''}</span>`);
+    }
+    return `<article class="prop-card nba-points-card" data-nba-points-card="1" data-player-id="${esc(row.player_id || '')}" style="padding:12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.75);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+        <div>
+          <strong style="font-size:15px;">${esc(name)}</strong>
+          <span style="font-size:12px;opacity:0.75;margin-left:6px;">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${badges.join('')}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px 0;border-top:1px solid rgba(148,163,184,0.15);border-bottom:1px solid rgba(148,163,184,0.15);font-size:12px;">
+        <div><div style="opacity:0.7;font-size:10px;">MODEL FAIR (PTS)</div><strong>${esc(fair)}</strong></div>
+        <div><div style="opacity:0.7;font-size:10px;">PROJECTED PTS</div><strong>${esc(proj)}</strong></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;opacity:0.8;" data-nba-trust="1">MODEL FAIR · RESEARCH ONLY</div>
+    </article>`;
+  }
+
   function propCard(row, index = 0) {
+    if (SPORT_ID === 'nba' && row && Number.isFinite(Number(row.proj_points))) {
+      return nbaPointsCard(row);
+    }
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const dist = distributionRange(row);
