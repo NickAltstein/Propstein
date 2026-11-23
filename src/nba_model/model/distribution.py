@@ -104,3 +104,71 @@ class PointsDistribution:
         if dec > 2.0:
             return int(round((dec - 1) * 100.0))
         return int(round(-100.0 / (dec - 1)))
+
+
+@dataclass
+class NegativeBinomialDistribution:
+    """Discrete count distribution for NBA REB, AST, and zero-inflated 3PM.
+
+    Supports optional zero-inflation mass `zero_inflation` in [0, 0.95] (used
+    for 3PM where non-shooters / cold nights carry extra mass at 0). Falls back
+    smoothly to Poisson when variance <= mean.
+    """
+    mean: float
+    sd: float
+    zero_inflation: float = 0.0
+    dnp_prob: float = 0.0
+
+    def __post_init__(self):
+        if not (math.isfinite(self.mean) and math.isfinite(self.sd)):
+            raise ValueError(f"non-finite NB params: mean={self.mean}, sd={self.sd}")
+        self.mean = max(0.0, float(self.mean))
+        self.sd = max(0.5, float(self.sd))
+        self.zero_inflation = float(min(max(self.zero_inflation, 0.0), 0.95))
+        self.dnp_prob = float(min(max(self.dnp_prob, 0.0), 1.0))
+
+    def _base_cdf(self, k: int) -> float:
+        if k < 0:
+            return 0.0
+        if self.mean <= 1e-9:
+            return 1.0
+        cond_mean = self.mean / max(1.0 - self.zero_inflation, 0.05)
+        var = self.sd ** 2
+        if var <= cond_mean * 1.02:
+            base = float(stats.poisson.cdf(k, cond_mean))
+        else:
+            r = (cond_mean ** 2) / max(var - cond_mean, 1e-6)
+            p = r / (r + cond_mean)
+            base = float(stats.nbinom.cdf(k, r, p))
+        return self.zero_inflation + (1.0 - self.zero_inflation) * base
+
+    def p_over(self, line: float) -> float:
+        if line < 0:
+            return 1.0
+        k = math.floor(line + 1e-9)
+        return max(0.0, min(1.0, (1.0 - self._base_cdf(k)) * (1.0 - self.dnp_prob)))
+
+    def p_push(self, line: float) -> float:
+        if line < 0 or abs(line - round(line)) > 1e-9:
+            return 0.0
+        k = int(round(line))
+        pmf = self._base_cdf(k) - self._base_cdf(k - 1)
+        return max(0.0, min(1.0, pmf * (1.0 - self.dnp_prob)))
+
+    def p_under(self, line: float) -> float:
+        return max(0.0, 1.0 - self.p_over(line) - self.p_push(line))
+
+    def fair_line(self) -> float:
+        """Half-integer line k + 0.5 whose P(over) is closest to 0.5."""
+        if self.mean <= 0.05:
+            return 0.5
+        best_l = 0.5
+        best_err = abs(self.p_over(0.5) - 0.5)
+        hi = max(5, int(math.ceil(self.mean + 3.0 * self.sd)))
+        for k in range(hi):
+            l = k + 0.5
+            err = abs(self.p_over(l) - 0.5)
+            if err < best_err:
+                best_err = err
+                best_l = l
+        return best_l

@@ -32,6 +32,14 @@ const FIXTURE_NBA_SLATE = [
     proj_points: 27.4,
     fair_line_points: 27.5,
     sd_points: 6.1,
+    proj_rebounds: 12.1,
+    fair_line_rebounds: 11.5,
+    proj_assists: 9.4,
+    fair_line_assists: 9.5,
+    proj_threes: 1.8,
+    fair_line_threes: 1.5,
+    proj_pra: 48.9,
+    fair_line_pra: 48.5,
     market: 'points',
     actionable: false,
     edge_pct: null,
@@ -144,6 +152,16 @@ test('NBA Points board renders minutes band, Role Surge, and fail-closed copy at
     assert.equal(result.hasNull, false);
     assert.equal(result.hasEdgeOrKelly, false);
     assert.ok(result.scrollWidth <= result.innerWidth + 2, `Horizontal overflow: ${result.scrollWidth} > ${result.innerWidth}`);
+
+    // Switch to non-points market (PRA) and confirm multi-stat card updates fail-closed
+    const praBtn = page.locator('[data-market="pra"]').first();
+    await praBtn.click();
+    await page.waitForSelector('[data-nba-market="pra"]', { timeout: 5000 });
+    const praTxt = await page.locator('[data-nba-market="pra"]').first().innerText();
+    assert.match(praTxt, /MODEL FAIR \(PRA\)/);
+    assert.match(praTxt, /48\.5/);
+    assert.match(praTxt, /MODEL FAIR · RESEARCH ONLY/);
+    assert.equal(/\bkelly\b|[+-]\d+(\.\d+)?%\s*ev/i.test(praTxt), false);
   } finally {
     await browser.close();
     if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
