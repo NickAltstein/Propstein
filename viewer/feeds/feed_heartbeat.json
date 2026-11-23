@@ -2,13 +2,13 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-23T20:53:46Z",
-      "last_success_quotes": 122,
+      "last_success_at": "2026-11-23T22:29:28Z",
+      "last_success_quotes": 130,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-23T20:53:46Z",
-      "last_attempt_at": "2026-11-23T20:53:46Z",
+      "last_error_at": "2026-11-23T22:29:29Z",
+      "last_attempt_at": "2026-11-23T22:29:29Z",
       "schedule": {
-        "observed_at": "2026-11-23T20:53:46Z",
+        "observed_at": "2026-11-23T22:29:29Z",
         "state": "pending",
         "starts": [
           "2026-11-25T22:00:00Z",
@@ -24,11 +24,11 @@
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-23T21:30:17Z",
-      "last_success_quotes": 7,
+      "last_success_at": "2026-11-23T22:29:41Z",
+      "last_success_quotes": 8,
       "last_error": "No module named 'pydantic'",
       "last_error_at": "2026-11-23T04:02:42Z",
-      "last_attempt_at": "2026-11-23T21:30:17Z",
+      "last_attempt_at": "2026-11-23T22:29:41Z",
       "schedule": {
         "observed_at": null,
         "state": null,

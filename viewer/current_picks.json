@@ -324,6 +324,21 @@
     },
     {
       "rank": 22,
+      "player": "Jacory Croskey-Merritt",
+      "team": "WAS",
+      "opponent": "CIN",
+      "position": "RB",
+      "proj_rec": 1.5,
+      "fair_line_rec": 1.5,
+      "p_rec_at_fair_line": 0.433,
+      "proj_yards": 12.2,
+      "fair_line_yards": 8.5,
+      "implied_total": 24.2,
+      "spread": -6.0,
+      "questionable": 1
+    },
+    {
+      "rank": 23,
       "player": "Terry McLaurin",
       "team": "WAS",
       "opponent": "CIN",
@@ -338,7 +353,7 @@
       "questionable": 0
     },
     {
-      "rank": 23,
+      "rank": 24,
       "player": "Erick All",
       "team": "CIN",
       "opponent": "WAS",
@@ -353,7 +368,7 @@
       "questionable": 0
     },
     {
-      "rank": 24,
+      "rank": 25,
       "player": "Tanner Hudson",
       "team": "CIN",
       "opponent": "WAS",
@@ -365,21 +380,6 @@
       "fair_line_yards": 14.5,
       "implied_total": 30.2,
       "spread": 6.0,
-      "questionable": 0
-    },
-    {
-      "rank": 25,
-      "player": "Dyami Brown",
-      "team": "WAS",
-      "opponent": "CIN",
-      "position": "WR",
-      "proj_rec": 1.4,
-      "fair_line_rec": 1.5,
-      "p_rec_at_fair_line": 0.403,
-      "proj_yards": 17.4,
-      "fair_line_yards": 11.5,
-      "implied_total": 24.2,
-      "spread": -6.0,
       "questionable": 0
     }
   ],
@@ -722,6 +722,22 @@
     },
     {
       "rank": 22,
+      "player": "Jacory Croskey-Merritt",
+      "team": "WAS",
+      "opponent": "CIN",
+      "position": "RB",
+      "proj_rec": 1.5,
+      "fair_line_rec": 1.5,
+      "p_rec_at_fair_line": 0.433,
+      "proj_yards": 12.2,
+      "fair_line_yards": 8.5,
+      "implied_total": 24.2,
+      "spread": -6.0,
+      "questionable": 1,
+      "unposted_lines": 0
+    },
+    {
+      "rank": 23,
       "player": "Terry McLaurin",
       "team": "WAS",
       "opponent": "CIN",
@@ -737,7 +753,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 23,
+      "rank": 24,
       "player": "Erick All",
       "team": "CIN",
       "opponent": "WAS",
@@ -753,7 +769,7 @@
       "unposted_lines": 0
     },
     {
-      "rank": 24,
+      "rank": 25,
       "player": "Tanner Hudson",
       "team": "CIN",
       "opponent": "WAS",
@@ -765,22 +781,6 @@
       "fair_line_yards": 14.5,
       "implied_total": 30.2,
       "spread": 6.0,
-      "questionable": 0,
-      "unposted_lines": 0
-    },
-    {
-      "rank": 25,
-      "player": "Dyami Brown",
-      "team": "WAS",
-      "opponent": "CIN",
-      "position": "WR",
-      "proj_rec": 1.4,
-      "fair_line_rec": 1.5,
-      "p_rec_at_fair_line": 0.403,
-      "proj_yards": 17.4,
-      "fair_line_yards": 11.5,
-      "implied_total": 24.2,
-      "spread": -6.0,
       "questionable": 0,
       "unposted_lines": 0
     }
