@@ -20,9 +20,36 @@
       <div class="r-row"><dt>Short Hash</dt><dd>#${esc(rec.shortHash)}</dd></div>
       <div class="r-row"><dt>Snapshot SHA-256</dt><dd>${esc(rec.snapshotHash)}</dd></div>
       <div class="r-row"><dt>UTC Timestamp</dt><dd>${esc(rec.timestampUtc || '—')}</dd></div>
+      ${rec.market ? `<div class="r-row"><dt>Market</dt><dd>${esc(rec.market)}</dd></div>` : ''}
+      ${Number.isFinite(Number(rec.fairLine)) && rec.fairLine !== null ? `<div class="r-row"><dt>Committed Fair Line</dt><dd>${esc(Number(rec.fairLine).toFixed(1))}</dd></div>` : ''}
       <div class="r-row"><dt>Matchup</dt><dd>${esc(rec.team || '')}${rec.opponent ? ` vs ${esc(rec.opponent)}` : ''}</dd></div>
       <div class="r-row"><dt>Source Artifact</dt><dd>${esc(rec.source || 'committed snapshot')}</dd></div>
     </dl>`;
+  }
+
+  const SNAPSHOT_FILE_RE = /^(?:[a-z0-9_]+_)?snapshots_[A-Za-z0-9_-]+\.json$/;
+  const FALLBACK_SNAPSHOT_FILES = ['snapshots_2026_w7.json'];
+
+  async function committedSnapshotFiles() {
+    const files = new Set();
+    try {
+      const res = await fetch('/feeds/slate-index.json', { cache: 'no-store' });
+      if (res.ok) {
+        const manifest = await res.json();
+        const sports = manifest && manifest.sports && typeof manifest.sports === 'object' ? manifest.sports : {};
+        Object.values(sports).forEach((sport) => {
+          const slates = sport && sport.slates && typeof sport.slates === 'object' ? sport.slates : {};
+          Object.values(slates).forEach((cfg) => {
+            const f = cfg && typeof cfg.snapshots === 'string' ? cfg.snapshots : '';
+            if (SNAPSHOT_FILE_RE.test(f)) files.add(f);
+          });
+        });
+      }
+    } catch {
+      // Manifest unavailable: fall back to the known committed file list.
+    }
+    FALLBACK_SNAPSHOT_FILES.forEach((f) => files.add(f));
+    return [...files];
   }
 
   async function verify() {
@@ -47,29 +74,47 @@
       // Static-only hosting fallback below
     }
 
-    // 2. Static fallback against committed snapshot JSON
+    // 2. Static fallback against every committed snapshot file listed in the
+    //    slate index. Exactly one distinct committed hash must match; zero or
+    //    an ambiguous prefix fails closed to NOT_FOUND.
     try {
-      const res = await fetch('/snapshots_2026_w7.json', { cache: 'no-store' });
-      if (res.ok) {
-        const rows = await res.json();
-        const hit = Array.isArray(rows) && rows.find((r) => {
-          const ch = String(r?.content_hash || '').toLowerCase();
-          const sid = String(r?.snapshot_id || '').replace(/-/g, '').toLowerCase();
-          return (ch && ch.startsWith(hash)) || (sid && sid.startsWith(hash));
-        });
-        if (hit) {
-          renderVerified({
-            shortHash: hash.slice(0, 8),
-            snapshotHash: hit.content_hash || hit.snapshot_id,
-            timestampUtc: hit.created_at,
-            player: hit.player_name,
-            team: hit.team,
-            opponent: hit.opponent,
-            market: hit.market,
-            source: 'snapshots_2026_w7.json',
-          });
-          return;
+      const files = await committedSnapshotFiles();
+      const hits = new Map();
+      for (const file of files) {
+        let rows = null;
+        try {
+          const res = await fetch(`/${file}`, { cache: 'no-store' });
+          if (!res.ok) continue;
+          rows = await res.json();
+        } catch {
+          continue;
         }
+        if (!Array.isArray(rows)) continue;
+        for (const r of rows) {
+          if (!r || typeof r !== 'object') continue;
+          const ch = String(r.content_hash || '').toLowerCase();
+          const sid = String(r.snapshot_id || '').replace(/-/g, '').toLowerCase();
+          if ((ch && ch.startsWith(hash)) || (sid && sid.startsWith(hash))) {
+            const id = ch || sid;
+            if (!hits.has(id)) hits.set(id, { row: r, file });
+          }
+        }
+      }
+      if (hits.size === 1) {
+        const { row: hit, file } = hits.values().next().value;
+        const fair = Number(hit?.projection?.fair_line);
+        renderVerified({
+          shortHash: hash.slice(0, 12),
+          snapshotHash: hit.content_hash || hit.snapshot_id,
+          timestampUtc: hit.created_at,
+          player: hit.player_name,
+          team: hit.team,
+          opponent: hit.opponent,
+          market: hit.market,
+          fairLine: Number.isFinite(fair) ? fair : null,
+          source: file,
+        });
+        return;
       }
     } catch {
       // Fall through to fail-closed NOT_FOUND
