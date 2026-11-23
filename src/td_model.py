@@ -101,8 +101,45 @@ class TouchdownModel:
         self.feature_stds_: np.ndarray | None = None
         self.position_alpha_: dict[str, float] = {p: DEFAULT_DISPERSION for p in TD_POSITIONS}
         self.tds_per_implied_point_: float = PRIOR_TDS_PER_IMPLIED_PT
+        self.global_td_ratio: float = PRIOR_TDS_PER_IMPLIED_PT
+        self.td_ratio_map: dict[tuple[float, float], float] = {}
         self.points_per_td_: float = 1.0 / PRIOR_TDS_PER_IMPLIED_PT
         self.is_fitted_: bool = False
+
+    @staticmethod
+    def _fit_bucketed_td_ratios(
+        implied_totals: np.ndarray,
+        observed_tds: np.ndarray,
+        buckets: tuple[tuple[float, float], ...] = ((0.0, 20.0), (20.0, 24.0), (24.0, 28.0), (28.0, 100.0)),
+        min_games: int = 50,
+        shrink: float = 0.7,
+    ) -> tuple[float, dict[tuple[float, float], float]]:
+        """Fit global + total-bucketed offensive-TD / implied-total ratios on training window only."""
+        prior_pts = TEAM_TD_PRIOR_GAMES * DEFAULT_IMPLIED_TEAM_TOTAL
+        prior_tds = prior_pts * PRIOR_TDS_PER_IMPLIED_PT
+        total_implied = float(np.nansum(implied_totals))
+        total_obs = float(np.nansum(observed_tds))
+        global_r = float(np.clip((total_obs + prior_tds) / max(total_implied + prior_pts, 1e-6), 0.04, 0.25))
+
+        ratio_map: dict[tuple[float, float], float] = {}
+        for lo, hi in buckets:
+            mask = (implied_totals >= lo) & (implied_totals < hi)
+            n = int(mask.sum())
+            if n >= min_games:
+                b_imp = float(np.nansum(implied_totals[mask]))
+                b_obs = float(np.nansum(observed_tds[mask]))
+                r = b_obs / b_imp if b_imp > 0 else global_r
+                ratio_map[(lo, hi)] = float(np.clip(shrink * r + (1.0 - shrink) * global_r, 0.04, 0.25))
+            else:
+                ratio_map[(lo, hi)] = global_r
+        return global_r, ratio_map
+
+    def _expected_team_tds(self, implied_total: float) -> float:
+        imp = float(implied_total) if (implied_total is not None and math.isfinite(float(implied_total))) else DEFAULT_IMPLIED_TEAM_TOTAL
+        for (lo, hi), ratio in self.td_ratio_map.items():
+            if lo <= imp < hi:
+                return max(0.25, imp * ratio)
+        return max(0.25, imp * self.global_td_ratio)
 
     def _design_matrix(self, df: pd.DataFrame) -> np.ndarray:
         work = df.copy()
@@ -191,13 +228,14 @@ class TouchdownModel:
             else:
                 work_t["_imp"] = DEFAULT_IMPLIED_TEAM_TOTAL
             tg = work_t.groupby(group_cols, as_index=False).agg(_y=("_y", "sum"), _imp=("_imp", "mean"))
-            obs_tds_sum = float(tg["_y"].sum())
-            imp_pts_sum = float(tg["_imp"].sum())
-            prior_pts = TEAM_TD_PRIOR_GAMES * DEFAULT_IMPLIED_TEAM_TOTAL
-            prior_tds = prior_pts * PRIOR_TDS_PER_IMPLIED_PT
-            ratio = (obs_tds_sum + prior_tds) / max(imp_pts_sum + prior_pts, 1e-6)
-            self.tds_per_implied_point_ = float(np.clip(ratio, 0.04, 0.25))
+            self.global_td_ratio, self.td_ratio_map = self._fit_bucketed_td_ratios(
+                implied_totals=tg["_imp"].to_numpy(dtype=float),
+                observed_tds=tg["_y"].to_numpy(dtype=float),
+            )
+            self.tds_per_implied_point_ = self.global_td_ratio
         else:
+            self.global_td_ratio = PRIOR_TDS_PER_IMPLIED_PT
+            self.td_ratio_map = {}
             self.tds_per_implied_point_ = PRIOR_TDS_PER_IMPLIED_PT
         self.points_per_td_ = 1.0 / self.tds_per_implied_point_
 
@@ -237,9 +275,9 @@ class TouchdownModel:
                 imp_tot = pd.to_numeric(out["implied_team_total"], errors="coerce").fillna(
                     DEFAULT_IMPLIED_TEAM_TOTAL
                 )
-                target_tds = np.maximum(0.25, imp_tot * self.tds_per_implied_point_)
+                target_tds = imp_tot.apply(self._expected_team_tds)
             else:
-                target_tds = np.maximum(0.25, DEFAULT_IMPLIED_TEAM_TOTAL * self.tds_per_implied_point_)
+                target_tds = self._expected_team_tds(DEFAULT_IMPLIED_TEAM_TOTAL)
             scale = np.where(team_sums > 1e-6, target_tds / team_sums, 1.0)
             out["td_mean"] = np.clip(out["_raw_lam"] * scale, MIN_LAMBDA, MAX_LAMBDA)
         else:

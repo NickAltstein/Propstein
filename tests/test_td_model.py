@@ -77,9 +77,9 @@ def test_td_model_probability_coherence_team_totals_and_fail_closed():
     assert (preds["p_anytime_td"] <= 1.0).all()
     assert (preds["p_first_td"] <= preds["p_anytime_td"]).all()
 
-    # Team-level coherence: sum(td_mean) == implied_team_total * fitted tds_per_implied_point_
+    # Team-level coherence: sum(td_mean) == model._expected_team_tds(implied_team_total)
     for team, grp in preds.groupby("team"):
-        exp_tds = max(0.25, grp["implied_team_total"].iloc[0] * model.tds_per_implied_point_)
+        exp_tds = model._expected_team_tds(grp["implied_team_total"].iloc[0])
         assert abs(grp["td_mean"].sum() - exp_tds) < 1e-4
         assert abs(grp["team_td_share"].sum() - 1.0) < 1e-4
 
