@@ -185,11 +185,17 @@
       "gap_minutes": 21.35,
       "note": "dropped_tick_chain_continued",
       "to": "2026-11-23T00:25:27.307422+00:00"
+    },
+    {
+      "from": "2026-11-23T00:25:27.307422+00:00",
+      "gap_minutes": 29.98,
+      "note": "dropped_tick_chain_continued",
+      "to": "2026-11-23T00:55:26.334768+00:00"
     }
   ],
-  "last_record_hash": "1467a254e875d41ef2089b6a5983d11850fde0b3148fef4cd342a929f8b3c7fd",
-  "last_record_id": "badb549caf7520bcab4f1bf5",
-  "last_tick_at": "2026-11-23T00:25:27.307422+00:00",
+  "last_record_hash": "3ce9812122b3a7bc4b03d70fc163f5cc48b65205bc4f4e19852fed38eb0ceb7d",
+  "last_record_id": "580df275235b53decbdb73e4",
+  "last_tick_at": "2026-11-23T00:55:26.334768+00:00",
   "schema": "propwire.ladder_capture_index.v1",
   "ticks": [
     {
@@ -551,7 +557,17 @@
       "last_record_id": "badb549caf7520bcab4f1bf5",
       "record_count": 86,
       "sha256": "00edd9a895f222f36c88b35a9314488e04f8a423c4626ac1ef1b73ac4aff0d75"
+    },
+    {
+      "captured_at": "2026-11-23T00:55:26.334768+00:00",
+      "file_name": "ticks/2026-11-23/tick_20261123T005526Z.jsonl.gz",
+      "first_prev_record_hash": "1467a254e875d41ef2089b6a5983d11850fde0b3148fef4cd342a929f8b3c7fd",
+      "first_record_id": "3e401bd7e857574053eb1ae9",
+      "last_record_hash": "3ce9812122b3a7bc4b03d70fc163f5cc48b65205bc4f4e19852fed38eb0ceb7d",
+      "last_record_id": "580df275235b53decbdb73e4",
+      "record_count": 87,
+      "sha256": "983481ec34679e8d6f6b4202de698cec96b3f451aa419103af7dba1c842aaa2f"
     }
   ],
-  "total_records": 4497
+  "total_records": 4584
 }
