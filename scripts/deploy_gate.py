@@ -16,6 +16,12 @@ compares main against the commit of the last READY production deployment:
          against the last deployed commit, not the previous push.
   none   nothing served changed                       -> skip
 
+The hourly sweep (--sweep, from the workflow's schedule) drops the 60-min
+throttle: it deploys whenever anything served differs from the last
+production deploy and nothing is in flight. That closes the gap where the
+last data merge of the night lands inside the hour and nothing follows it.
+A missed sweep costs nothing; the next push or sweep catches up.
+
 While vercel.json still has automatic git deployments on, the gate only
 reports its decision (Vercel is already deploying every push; a hook call
 would deploy twice). A manual workflow_dispatch with force=true still calls
@@ -105,7 +111,7 @@ def auto_deploys_enabled(vercel_json: str = "vercel.json") -> bool:
 
 
 def decide(kind: str, *, last_ready_at: datetime | None, in_flight: bool, now: datetime,
-           min_data_interval: timedelta, force: bool = False) -> tuple[bool, str]:
+           min_data_interval: timedelta, force: bool = False, sweep: bool = False) -> tuple[bool, str]:
     """(deploy?, reason). Pure: no I/O."""
     if force:
         return True, "forced by workflow_dispatch"
@@ -115,6 +121,8 @@ def decide(kind: str, *, last_ready_at: datetime | None, in_flight: bool, now: d
         return False, "nothing served changed since the last production deploy"
     if in_flight:
         return False, "data-only change and a production deployment is already in flight"
+    if sweep:
+        return True, "hourly sweep: served data changed since the last production deploy"
     if last_ready_at is None:
         return True, "data changed and no READY production deployment is on record"
     age = now - last_ready_at
@@ -261,7 +269,7 @@ def run(args, env=os.environ) -> int:
     kind = CODE if paths is None else classify(paths)
     should, reason = decide(kind, last_ready_at=last_at, in_flight=in_flight, now=now,
                             min_data_interval=timedelta(minutes=args.min_data_interval),
-                            force=args.force)
+                            force=args.force, sweep=args.sweep)
     summary(f"deploy gate: last production {last_sha[:9] if last_sha else 'unknown'} "
             f"at {last_at.isoformat() if last_at else 'unknown'}; change: {kind}"
             f"{'' if paths is None else f' ({len(paths)} file(s))'}; "
@@ -300,6 +308,8 @@ def main(argv=None) -> int:
     ap.add_argument("--min-data-interval", type=float, default=60.0, help="minutes")
     ap.add_argument("--verify-timeout", type=float, default=180.0, help="seconds")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--sweep", action="store_true",
+                    help="scheduled catch-up: deploy any served change, ignoring the data throttle")
     ap.add_argument("--dry-run", action="store_true", help="decide and report, never call the hook")
     ap.add_argument("--vercel-json", default="vercel.json")
     return run(ap.parse_args(argv))

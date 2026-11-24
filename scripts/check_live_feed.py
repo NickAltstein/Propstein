@@ -9,9 +9,9 @@ its updated_at is older than --max-age-hours during an active NFL slate.
 It also reports how far the live feed lags the repo, which points at the
 deploy path rather than the poller.
 
-Slate rules match the other checks (scripts/slate_state.py): between weeks
-and a context-gated slate are reported and skipped; a live slate with no
-rows is left to the poller and feed_age.py, which already fail on it.
+Whether to check comes only from the named slate states
+(scripts/slate_state.py): NO_CURRENT_SLATE and SLATE_BLOCKED skip, every
+other state is checked.
 
 Env: ALARM_WEBHOOK_URL (optional) receives {"content","text"} on an alarm.
 """
@@ -26,7 +26,6 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -45,16 +44,16 @@ def parse_time(value) -> datetime:
 
 
 def slate_active(viewer: Path, now: datetime) -> tuple[bool, str]:
-    """(active?, reason). Same seven-day window as check_odds_freshness."""
+    """(check?, reason), from the named slate states alone (scripts/slate_state.py).
+
+    NO_CURRENT_SLATE (between weeks) and SLATE_BLOCKED (context gate) skip:
+    in both the poller deliberately does not refresh odds, so an old live
+    feed is expected and PR 258 defines neither as an alarm. Every other
+    state (OK, NO_SLATE_ROWS, UNKNOWN) is checked."""
     status = slate_state.classify(viewer, now=now)
-    if status["state"] != slate_state.OK:
+    if status["state"] in (slate_state.NO_CURRENT_SLATE, slate_state.SLATE_BLOCKED):
         return False, slate_state.summary(status)
-    index = json.loads((viewer / "feeds/slate-index.json").read_text(encoding="utf-8"))
-    nfl = index["sports"]["nfl"]
-    games = json.loads((viewer / nfl["slates"][nfl["default_slate"]]["games"]).read_text(encoding="utf-8"))
-    today = now.astimezone(ZoneInfo("America/New_York")).date()
-    active = any(-1 <= (datetime.fromisoformat(g["gameday"]).date() - today).days <= 7 for g in games)
-    return active, "active slate window" if active else "no NFL game within the active seven-day window"
+    return True, slate_state.summary(status)
 
 
 def fetch_live(url: str, opener=urllib.request.urlopen) -> dict:

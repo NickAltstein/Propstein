@@ -58,10 +58,10 @@ def test_served_paths_match_the_ignored_build_step():
 
 # ── decision ────────────────────────────────────────────────────────────
 
-def _decide(kind, last_age=None, in_flight=False, force=False):
+def _decide(kind, last_age=None, in_flight=False, force=False, sweep=False):
     last = None if last_age is None else NOW - last_age
     return gate.decide(kind, last_ready_at=last, in_flight=in_flight, now=NOW,
-                       min_data_interval=HOUR, force=force)
+                       min_data_interval=HOUR, force=force, sweep=sweep)
 
 
 def test_code_deploys_immediately_even_right_after_a_deploy():
@@ -77,6 +77,16 @@ def test_data_only_is_throttled_to_the_interval():
 def test_data_only_waits_for_an_in_flight_deployment():
     deploy, reason = _decide("data", last_age=timedelta(hours=3), in_flight=True)
     assert deploy is False and "in flight" in reason
+
+
+def test_hourly_sweep_deploys_data_the_throttle_left_behind():
+    # Last data merge of the night lands 5 min after a deploy; nothing follows.
+    assert _decide("data", last_age=timedelta(minutes=5))[0] is False
+    deploy, reason = _decide("data", last_age=timedelta(minutes=5), sweep=True)
+    assert deploy is True and "hourly sweep" in reason
+    # The sweep still never stacks on an in-flight deploy or deploys nothing.
+    assert _decide("data", last_age=timedelta(minutes=5), in_flight=True, sweep=True)[0] is False
+    assert _decide("none", last_age=timedelta(hours=5), sweep=True)[0] is False
 
 
 def test_nothing_served_never_deploys_unless_forced():
@@ -169,7 +179,7 @@ def _args(tmp_path, auto=False, **kw):
     vj = tmp_path / "vercel.json"
     vj.write_text(json.dumps({"git": {"deploymentEnabled": auto}}))
     base = dict(head="HEAD", min_data_interval=60.0, verify_timeout=1.0, force=False,
-                dry_run=False, vercel_json=str(vj))
+                sweep=False, dry_run=False, vercel_json=str(vj))
     base.update(kw)
     return Namespace(**base)
 
@@ -260,12 +270,49 @@ def test_vercel_api_failure_pages(tmp_path, stubs, monkeypatch):
     assert "HTTP 403" in stubs["alarms"][0]
 
 
+GATE_YML = ROOT / ".github/workflows/deploy_gate.yml"
+
+
+def _code(yml: str) -> str:
+    return "\n".join(l for l in yml.splitlines() if not l.lstrip().startswith("#"))
+
+
 def test_workflow_never_traces_and_reads_the_hook_from_secrets():
-    yml = (ROOT / ".github/workflows/deploy_gate.yml").read_text()
-    assert "set -x" not in yml.replace("no `set -x`", "")
+    yml = _code(GATE_YML.read_text())
+    assert "set -x" not in yml
     assert "VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" in yml
-    assert "branches: [main]" in yml and "schedule:" not in yml
+    assert "branches: [main]" in yml
     assert "contents: read" in yml
+
+
+def test_gate_runs_on_push_and_an_hourly_sweep():
+    yml = _code(GATE_YML.read_text())
+    assert "cron: '41 * * * *'" in yml
+    assert '"$EVENT" = "schedule"' in yml and "--sweep" in yml
+
+
+def test_gate_job_holds_its_secrets_in_a_main_only_environment():
+    yml = _code(GATE_YML.read_text())
+    assert "environment: deploy-gate" in yml
+
+
+def test_gate_never_runs_for_pull_requests():
+    yml = _code(GATE_YML.read_text())
+    assert "pull_request" not in yml, "fork PRs must never run with the deploy secrets"
+
+
+def test_every_action_in_the_gate_is_pinned_to_a_full_sha():
+    import re
+    uses = re.findall(r"uses:\s*(\S+)", _code(GATE_YML.read_text()))
+    assert uses
+    for ref in uses:
+        assert re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", ref), ref
+
+
+def test_no_other_workflow_references_the_vercel_api_token():
+    for wf in (ROOT / ".github/workflows").glob("*.y*ml"):
+        if wf.name != "deploy_gate.yml":
+            assert "VERCEL_API_TOKEN" not in wf.read_text(), wf.name
 
 
 # ── live-site freshness ─────────────────────────────────────────────────
@@ -282,6 +329,17 @@ def test_fresh_live_feed_passes():
     alarm, msg = live.evaluate({"updated_at": "2026-11-24T19:30:00Z"},
                                {"updated_at": "2026-11-24T19:30:00Z"}, NOW, 6)
     assert alarm is False and "deploy path" not in msg
+
+
+@pytest.mark.parametrize("state,checked", [
+    ("NO_CURRENT_SLATE", False), ("SLATE_BLOCKED", False),
+    ("OK", True), ("NO_SLATE_ROWS", True), ("UNKNOWN", True),
+])
+def test_live_check_activity_comes_from_slate_states_only(monkeypatch, state, checked):
+    monkeypatch.setattr(live.slate_state, "classify", lambda viewer, now=None: {
+        "state": state, "detail": "d"})
+    active, reason = live.slate_active(Path("."), NOW)
+    assert active is checked and reason.startswith(state)
 
 
 def test_live_check_skips_between_weeks(tmp_path, monkeypatch, capsys):
