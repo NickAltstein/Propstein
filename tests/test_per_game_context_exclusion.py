@@ -312,3 +312,135 @@ def test_autopilot_sync_week_files_marks_excluded_games_unpriced(tmp_path, monke
 
     picks = json.loads((viewer_dir / "current_picks_2026_w11.json").read_text(encoding="utf-8"))
     assert [p["game_id"] for p in picks["picks"]] == ["2026_11_KC_DEN"]
+
+
+def test_15_ready_1_missing_yields_partial_slate_with_counts_and_reason():
+    """15 READY + 1 missing -> slate_status=PARTIAL, 15 priced, 1 excluded with explicit reason."""
+    sched, journal, now, gids = _make_slate(16, missing_indices={0})
+    rep = evaluate_pricing_context(
+        sched, journal, now, allowed_exclusions={gids[0]}, max_excluded_games=3, block_on_stale=True
+    )
+    assert rep["ready_for_pricing"] is True
+    assert rep["slate_status"] == "PARTIAL"
+    assert rep["games_priced"] == 15
+    assert rep["games_excluded"] == 1
+    assert len(rep["excluded"]) == 1
+    assert rep["excluded"][0]["game_id"] == gids[0]
+    assert "weather_observed_at" in rep["excluded"][0]["reason"]
+    assert "weather_values" in rep["excluded"][0]["reason"]
+
+
+def test_all_games_missing_yields_zero_priced_blocked_slate_with_all_listed():
+    """All 16 games missing -> BLOCKED, 0 priced, all 16 listed with reasons."""
+    sched, journal, now, gids = _make_slate(16, missing_indices=set(range(16)))
+    rep = evaluate_pricing_context(
+        sched, journal, now, allowed_exclusions=set(gids), max_excluded_games=20, block_on_stale=True
+    )
+    assert rep["ready_for_pricing"] is False
+    assert rep["slate_status"] == "BLOCKED"
+    assert rep["games_priced"] == 0
+    assert rep["games_excluded"] == 16
+    assert len(rep["excluded"]) == 16
+    assert all("CONTEXT_MISSING:" in e["reason"] for e in rep["excluded"])
+
+
+def test_unknown_or_empty_exclusion_reason_fails_whole_slate_closed():
+    """An unknown reason or an empty/missing reason must fail the entire slate closed."""
+    ready_row = {
+        "game_id": "2026_11_T2A_T2B",
+        "player_name": "Ready WR",
+        "model_prob": 0.59,
+        "fair_line": 62.5,
+        "edge": 9.5,
+        "actionable": True,
+        "can_execute": True,
+    }
+    # 1. Unknown exclusion reason string
+    unknown_report = {
+        "ready_for_pricing": True,
+        "excluded": [
+            {"game_id": "2026_11_MIA_BUF", "status": "CONTEXT_MISSING", "missing_fields": ["unrecognized_future_reason"]}
+        ],
+    }
+    out_unknown = apply_context_exclusion_to_slate_rows([ready_row], unknown_report)
+    assert out_unknown[0]["context_status"] == "CONTEXT_MISSING"
+    assert out_unknown[0]["model_prob"] is None
+    assert out_unknown[0]["fair_line"] is None
+    assert out_unknown[0]["actionable"] is False
+
+    # 2. Empty missing_fields list
+    empty_report = {
+        "ready_for_pricing": True,
+        "excluded": [{"game_id": "2026_11_MIA_BUF", "status": "CONTEXT_MISSING", "missing_fields": []}],
+    }
+    out_empty = apply_context_exclusion_to_slate_rows([ready_row], empty_report)
+    assert out_empty[0]["context_status"] == "CONTEXT_MISSING"
+    assert out_empty[0]["model_prob"] is None
+    assert out_empty[0]["actionable"] is False
+
+    # 3. Missing missing_fields key altogether
+    missing_key_report = {
+        "ready_for_pricing": True,
+        "excluded": [{"game_id": "2026_11_MIA_BUF", "status": "CONTEXT_MISSING"}],
+    }
+    out_missing_key = apply_context_exclusion_to_slate_rows([ready_row], missing_key_report)
+    assert out_missing_key[0]["context_status"] == "CONTEXT_MISSING"
+    assert out_missing_key[0]["model_prob"] is None
+    assert out_missing_key[0]["actionable"] is False
+
+
+def test_excluded_game_strips_player_props_and_multi_game_combos():
+    """Player props and multi-game combos referencing an excluded game show no price anywhere."""
+    sched, journal, now, gids = _make_slate(16, missing_indices={0})
+    rep = evaluate_pricing_context(
+        sched, journal, now, allowed_exclusions={gids[0]}, max_excluded_games=3, block_on_stale=True
+    )
+    rows = [
+        # Single-game player prop on excluded game
+        {"game_id": gids[0], "player_name": "Excluded WR", "model_prob": 0.61, "fair_line": 71.5, "proj_yards": 73.0, "actionable": True},
+        # Multi-game combo via legs[] (1 excluded leg + 1 ready leg)
+        {
+            "combo_id": "combo-1",
+            "legs": [{"game_id": gids[0], "player_name": "Excluded WR"}, {"game_id": gids[2], "player_name": "Ready WR"}],
+            "model_prob": 0.35,
+            "fair_line": 2.5,
+            "actionable": True,
+        },
+        # Multi-game combo via game_ids[]
+        {
+            "combo_id": "combo-2",
+            "game_ids": [gids[2], gids[0]],
+            "model_prob": 0.31,
+            "fair_line": 3.5,
+            "actionable": True,
+        },
+        # Clean single-game prop on ready game
+        {"game_id": gids[2], "player_name": "Ready WR", "model_prob": 0.58, "fair_line": 65.5, "proj_yards": 67.0, "actionable": True},
+    ]
+    out = apply_context_exclusion_to_slate_rows(rows, rep)
+    for idx in (0, 1, 2):
+        assert out[idx]["context_status"] == "CONTEXT_MISSING"
+        assert out[idx]["model_prob"] is None
+        assert out[idx]["fair_line"] is None
+        assert out[idx]["proj_yards"] is None
+        assert out[idx]["actionable"] is False
+    assert out[3]["context_status"] == "READY"
+    assert out[3]["model_prob"] == 0.58
+    assert out[3]["proj_yards"] == 67.0
+
+
+def test_retractable_roof_unknown_is_excluded_and_never_priced_as_outdoor():
+    """A retractable stadium with unknown ESPN indoor status is excluded with retractable_roof_unknown."""
+    sched, journal, now, gids = _make_slate(16, missing_indices=set())
+    journal[0]["roof"] = "open"
+    journal[0]["weather_source"] = "nws_hourly_forecast_retractable_unknown"
+    rep = evaluate_pricing_context(
+        sched, journal, now, allowed_exclusions={gids[0]}, max_excluded_games=3, block_on_stale=True
+    )
+    assert rep["ready_for_pricing"] is True
+    assert rep["slate_status"] == "PARTIAL"
+    assert rep["games_priced"] == 15
+    assert rep["games_excluded"] == 1
+    assert rep["excluded"][0]["game_id"] == gids[0]
+    assert "retractable_roof_unknown" in rep["excluded"][0]["missing_fields"]
+    assert "retractable_roof_unknown" in rep["excluded"][0]["reason"]
