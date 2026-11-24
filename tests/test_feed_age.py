@@ -405,3 +405,73 @@ def test_watcher_passes_the_webhook_to_the_feed_age_step():
     step = step[:step.index("\n      - name:", 1)] if "\n      - name:" in step[1:] else step
     assert "ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}" in step
     assert "scripts/feed_age.py --check" in step
+
+
+def _long_block(tmp_path, blocked_hours=13):
+    _blocked_viewer(tmp_path, generated_at=stamp(NOW - timedelta(hours=1)))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=blocked_hours), slate=BLOCKED)
+
+
+def _blocked_lines(report):
+    return [a for a in report["alerts"] if "BLOCKED SLATE" in a]
+
+
+def test_blocked_page_fires_once_then_holds_between_reminders(tmp_path):
+    _long_block(tmp_path)
+    first = check(tmp_path, None, NOW, NFL, prior_status={"sports": {}})
+    assert len(_blocked_lines(first)) == 1
+    assert first["sports"]["nfl"]["blocked_page"]["decision"] == "first page"
+    # 30 min later, same reason: held, no alert (so no webhook and no failed job).
+    second = check(tmp_path, None, NOW + timedelta(minutes=30), NFL, prior_status=first)
+    assert _blocked_lines(second) == []
+    page = second["sports"]["nfl"]["blocked_page"]
+    assert page["last_paged_at"] == stamp(NOW) and page["decision"].startswith("held")
+    # Still held at 2h59m (carried forward from the held run's record).
+    third = check(tmp_path, None, NOW + timedelta(hours=2, minutes=59), NFL, prior_status=second)
+    assert _blocked_lines(third) == []
+    # Reminder at 3h.
+    fourth = check(tmp_path, None, NOW + timedelta(hours=3), NFL, prior_status=third)
+    assert len(_blocked_lines(fourth)) == 1
+    assert fourth["sports"]["nfl"]["blocked_page"]["decision"].startswith("reminder")
+
+
+def test_blocked_page_repeats_at_once_when_the_reason_changes(tmp_path):
+    _long_block(tmp_path)
+    first = check(tmp_path, None, NOW, NFL, prior_status={"sports": {}})
+    assert first["sports"]["nfl"]["blocked_page"]["reasons"] == ["duration"]
+    # A kickoff moves inside the window 30 min later: duration -> duration+kickoff.
+    soon = NOW + timedelta(minutes=30) + timedelta(hours=3)
+    et = soon.astimezone(ZoneInfo("America/New_York"))
+    (tmp_path / "games_2026_w11.json").write_text(json.dumps([
+        {"gameday": et.strftime("%Y-%m-%d"), "gametime": et.strftime("%H:%M")}]))
+    second = check(tmp_path, None, NOW + timedelta(minutes=30), NFL, prior_status=first)
+    assert len(_blocked_lines(second)) == 1
+    assert second["sports"]["nfl"]["blocked_page"]["decision"].startswith("reason changed")
+
+
+def test_a_cleared_block_forgets_its_page_so_the_next_block_pages_fresh(tmp_path):
+    _long_block(tmp_path)
+    first = check(tmp_path, None, NOW, NFL, prior_status={"sports": {}})
+    (tmp_path / "slate_2026_w11.json").write_text(json.dumps([
+        {"player_id": "00-1", "player_display_name": "A", "game_id": "2026_11_A_B"}]))
+    cleared = check(tmp_path, None, NOW + timedelta(minutes=30), NFL, prior_status=first)
+    assert "blocked_page" not in cleared["sports"]["nfl"]
+    (tmp_path / "slate_2026_w11.json").write_text(json.dumps([GATED_ROW]))
+    again = check(tmp_path, None, NOW + timedelta(hours=1), NFL, prior_status=cleared)
+    assert len(_blocked_lines(again)) == 1
+
+
+def test_main_reads_the_last_status_file_to_hold_repeats(tmp_path, monkeypatch):
+    from scripts import feed_age
+    _long_block(tmp_path)
+    cfg_path = tmp_path / "cfg.json"
+    cfg_path.write_text(json.dumps(NFL))
+    status = tmp_path / "feeds" / "feed_status.json"
+    sent = []
+    monkeypatch.setattr(feed_age, "deliver", lambda alerts, *a, **k: sent.append(list(alerts)) or [])
+    args = ["--check", "--viewer", str(tmp_path), "--config", str(cfg_path), "--status-out", str(status)]
+    assert feed_age.main(args + ["--now", stamp(NOW)]) == 1
+    assert json.loads(status.read_text())["sports"]["nfl"]["blocked_page"]["last_paged_at"] == stamp(NOW)
+    assert feed_age.main(args + ["--now", stamp(NOW + timedelta(minutes=30))]) == 0
+    assert [a for a in sent[1] if "BLOCKED SLATE" in a] == []

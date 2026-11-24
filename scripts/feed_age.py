@@ -24,7 +24,12 @@ A SLATE_BLOCKED slate raises a separate BLOCKED SLATE alarm (the feed
 level is unchanged) when it has been blocked longer than
 blocked_slate_alarm_hours, or as soon as a kickoff in that slate is within
 blocked_slate_kickoff_hours: a block that starts 10 hours before a
-Thursday game would otherwise never page in time. Its
+Thursday game would otherwise never page in time. It pages once when it
+first fires, again when the reason changes (e.g. duration -> kickoff),
+and otherwise at most every blocked_slate_repeat_hours as a reminder. The
+last page (time, reasons, slate) is kept in the status file this check
+already writes; a held-back repeat stays out of the alerts entirely, so it
+neither posts to the webhook nor fails the job. Its
 start time is the poller's heartbeat state_since; if the poller has not
 confirmed the block, slate-index.json's generated_at is used as a lower
 bound, so a block alarms even when the poller is down.
@@ -74,6 +79,7 @@ DEFAULT_CONFIG = {
     "no_current_slate_buffer_hours": slate_state.DEFAULT_NO_CURRENT_SLATE_BUFFER_HOURS,
     "blocked_slate_alarm_hours": 12.0,
     "blocked_slate_kickoff_hours": 4.0,
+    "blocked_slate_repeat_hours": 3.0,
 }
 NBA_ODDS_RE = re.compile(r"nba_odds_(\d{4}-\d{2}-\d{2})\.json$")
 EMPTY_ERROR = "empty/zero-event response"
@@ -419,6 +425,33 @@ def blocked_since(viewer: Path, row: dict, state: dict) -> tuple[datetime | None
         return None, "unknown"
 
 
+def blocked_page_decision(row: dict, prior: dict | None, now: datetime,
+                          repeat_hours: float) -> tuple[bool, dict | None, str]:
+    """(page now?, page record to keep, why). Pure.
+
+    Pages on the first firing, when the reasons or the slate change, or once
+    repeat_hours have passed since the last page. A row that is no longer
+    overdue keeps no record, so the next block pages fresh."""
+    st = row.get("slate_state") or {}
+    if st.get("state") != slate_state.SLATE_BLOCKED or not st.get("blocked_overdue"):
+        return False, None, "not firing"
+    reasons = sorted(st.get("blocked_reasons") or [])
+    record = {"last_paged_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "reasons": reasons,
+              "slate_key": st.get("slate_key")}
+    if not prior or not prior.get("last_paged_at"):
+        return True, record, "first page"
+    if sorted(prior.get("reasons") or []) != reasons or prior.get("slate_key") != st.get("slate_key"):
+        return True, record, f"reason changed from {'+'.join(prior.get('reasons') or []) or 'none'}"
+    try:
+        last = parse_time(prior["last_paged_at"])
+    except ValueError:
+        return True, record, "unreadable last page time"
+    if now - last >= timedelta(hours=repeat_hours):
+        return True, record, f"reminder ({repeat_hours:g}h since the last page)"
+    nxt = (last + timedelta(hours=repeat_hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return False, dict(prior), f"held: paged at {prior['last_paged_at']}, next reminder after {nxt}"
+
+
 def blocked_alarm(row: dict) -> str | None:
     """Alert line when a slate has been SLATE_BLOCKED longer than the limit."""
     st = row.get("slate_state") or {}
@@ -447,14 +480,25 @@ def parse_alarm(row: dict) -> str | None:
 
 
 def check(viewer: Path, heartbeat: dict | None = None, now: datetime | None = None,
-          cfg: dict | None = None) -> dict:
+          cfg: dict | None = None, prior_status: dict | None = None) -> dict:
+    """prior_status: the last status file, for BLOCKED SLATE repeat control.
+    None means no history, so a firing block pages."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     cfg = cfg or load_config()
     heartbeat = heartbeat if heartbeat is not None else load_heartbeat(viewer / HEARTBEAT_NAME)
     sports = [evaluate_sport(sport, viewer, heartbeat, now, cfg) for sport in cfg["sports"]]
     alerts = [alert_message(row) for row in sports if row["level"] in ("degraded", "critical")]
     alerts += [line for line in (parse_alarm(row) for row in sports) if line]
-    alerts += [line for line in (blocked_alarm(row) for row in sports) if line]
+    prior_sports = (prior_status or {}).get("sports") or {}
+    for row in sports:
+        prior = (prior_sports.get(row["sport"]) or {}).get("blocked_page")
+        page, record, why = blocked_page_decision(row, prior, now, float(cfg["blocked_slate_repeat_hours"]))
+        if record is not None:
+            row["blocked_page"] = dict(record, decision=why)
+        if page:
+            line = blocked_alarm(row)
+            if line:
+                alerts.append(line)
     return {
         "schema_version": "feed-status.v1",
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -502,7 +546,13 @@ def main(argv=None) -> int:
     now = parse_time(args.now) if args.now else datetime.now(timezone.utc)
     cfg = load_config(args.config)
     hb_path = args.heartbeat or (args.viewer / HEARTBEAT_NAME)
-    report = check(args.viewer, load_heartbeat(hb_path), now, cfg)
+    prior_status = None
+    if args.status_out and args.status_out.is_file():
+        try:
+            prior_status = json.loads(args.status_out.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prior_status = None
+    report = check(args.viewer, load_heartbeat(hb_path), now, cfg, prior_status=prior_status)
     status = {k: v for k, v in report.items() if k != "alerts"}
     if args.status_out:
         save_json(args.status_out, status)
