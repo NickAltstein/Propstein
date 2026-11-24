@@ -81,20 +81,33 @@ test('NBA Points board renders minutes band, Role Surge, and fail-closed copy at
       return;
     }
     if (urlPath === '/feeds/slate-index.json') {
-      const orig = JSON.parse(fs.readFileSync(path.join(VIEWER_DIR, 'feeds/slate-index.json'), 'utf8'));
-      const nbaSlates = orig.sports?.nba?.slates || {};
-      const keys = Object.keys(nbaSlates);
-      if (keys.length) {
-        const lastKey = keys[keys.length - 1];
-        nbaSlates[lastKey] = {
-          ...nbaSlates[lastKey],
-          marketOnly: false,
-          modelContextStatus: 'AVAILABLE',
-          actionLocked: false,
-        };
-      }
+      const pinnedIndex = {
+        schema_version: 'slate-index.v1',
+        generated_at: '2026-11-23T18:00:00Z',
+        sports: {
+          nba: {
+            default_slate: '2026-11-23',
+            slates: {
+              '2026-11-23': {
+                season: 2026,
+                date: '2026-11-23',
+                shortLabel: 'Nov 23',
+                slate: 'nba_slate_2026-11-23.json',
+                games: 'nba_games_2026-11-23.json',
+                odds: 'nba_odds_2026-11-23.json',
+                injuries: 'nba_injuries_2026-11-23.json',
+                snapshots: null,
+                historical: false,
+                marketOnly: false,
+                modelContextStatus: 'AVAILABLE',
+                actionLocked: false,
+              },
+            },
+          },
+        },
+      };
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(orig));
+      res.end(JSON.stringify(pinnedIndex));
       return;
     }
     const filePath = path.join(VIEWER_DIR, urlPath === '/' ? 'index.html' : urlPath);
