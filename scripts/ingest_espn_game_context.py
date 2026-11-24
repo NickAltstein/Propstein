@@ -46,6 +46,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -62,7 +63,40 @@ REPORT_PATH = DATA_DIR / "game_context_provenance_report.json"
 
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
 ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary"
+NWS_POINTS_URL = "https://api.weather.gov/points"
 NFLVERSE_GAMES_URL = "https://github.com/nflverse/nfldata/raw/master/data/games.csv"
+
+# Coordinates (lat, lon) for US outdoor and retractable-roof NFL home stadiums,
+# used only as a public-domain NWS (api.weather.gov) hourly forecast fallback
+# when ESPN's summary gameInfo.weather omits temperature or wind/gust.
+OUTDOOR_STADIUM_COORDS: dict[str, tuple[float, float]] = {
+    "ARI": (33.5276, -112.2626),
+    "ATL": (33.7554, -84.4008),
+    "BAL": (39.2780, -76.6227),
+    "BUF": (42.7738, -78.7870),
+    "CAR": (35.2258, -80.8528),
+    "CHI": (41.8623, -87.6167),
+    "CIN": (39.0954, -84.5160),
+    "CLE": (41.5061, -81.6995),
+    "DAL": (32.7473, -97.0945),
+    "DEN": (39.7439, -105.0201),
+    "GB": (44.5013, -88.0622),
+    "HOU": (29.6847, -95.4107),
+    "IND": (39.7601, -86.1639),
+    "JAX": (30.3239, -81.6373),
+    "KC": (39.0489, -94.4839),
+    "MIA": (25.9580, -80.2389),
+    "NE": (42.0909, -71.2643),
+    "NYG": (40.8135, -74.0745),
+    "NYJ": (40.8135, -74.0745),
+    "PHI": (39.9008, -75.1675),
+    "PIT": (40.4468, -80.0158),
+    "SEA": (47.5952, -122.3316),
+    "SF": (37.4033, -121.9694),
+    "TB": (27.9759, -82.5033),
+    "TEN": (36.1665, -86.7713),
+    "WAS": (38.9076, -76.8645),
+}
 
 ET = ZoneInfo("America/New_York")
 LIVE_GRACE = timedelta(hours=4)
@@ -339,7 +373,114 @@ def fetch_event_weather(event_id: str, timeout: int = 8) -> dict | None:
         {"event_id": event_id, "observed_at": observed_at, "gameInfo": game_info},
         sort_keys=True,
     ).encode("utf-8")
-    return {"temp": temp, "wind": wind, "observed_at": observed_at, "payload": payload}
+    return {
+        "temp": temp,
+        "wind": wind,
+        "observed_at": observed_at,
+        "weather_source": "espn_summary_gameinfo",
+        "payload": payload,
+    }
+
+
+def _parse_nws_wind_mph(raw: object) -> float | None:
+    """Parse NWS windSpeed strings like '10 mph' or '10 to 15 mph' into mph."""
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    nums = [float(x) for x in re.findall(r"\d+(?:\.\d+)?", raw)]
+    if not nums:
+        return None
+    return sum(nums) / len(nums)
+
+
+def fetch_nws_weather(
+    home_team: str,
+    kickoff_utc: datetime,
+    timeout: int = 10,
+    espn_temp_f: float | None = None,
+) -> dict | None:
+    """Fetch public-domain NWS hourly forecast (°F, mph) when ESPN omits wind/temp.
+
+    Uses NOAA/NWS api.weather.gov (US federal public domain, commercial-safe,
+    no API key). Fails closed (returns None) on unknown stadium, HTTP/JSON
+    error, or missing kickoff-hour temperature/wind. Never fabricates values.
+    """
+    coords = OUTDOOR_STADIUM_COORDS.get(home_team)
+    if coords is None:
+        return None
+    lat, lon = coords
+    kickoff_utc = kickoff_utc.astimezone(timezone.utc)
+    headers = {
+        "User-Agent": "PropSteinGameContext/1.0 (https://propstein.com)",
+        "Accept": "application/geo+json",
+    }
+    try:
+        pt_req = urllib.request.Request(f"{NWS_POINTS_URL}/{lat},{lon}", headers=headers)
+        with urllib.request.urlopen(pt_req, timeout=timeout) as resp:
+            pt_data = json.loads(resp.read().decode("utf-8"))
+        hourly_url = (pt_data.get("properties") or {}).get("forecastHourly")
+        if not hourly_url:
+            return None
+        fc_req = urllib.request.Request(hourly_url, headers=headers)
+        with urllib.request.urlopen(fc_req, timeout=timeout) as resp:
+            fc_data = json.loads(resp.read().decode("utf-8"))
+        observed_at = datetime.now(timezone.utc).isoformat()
+    except Exception:
+        return None
+
+    periods = (fc_data.get("properties") or {}).get("periods") or []
+    matched = None
+    for period in periods:
+        start = parse_ts(period.get("startTime"))
+        end = parse_ts(period.get("endTime"))
+        if start is not None and end is not None and start <= kickoff_utc < end:
+            matched = period
+            break
+    if matched is None:
+        return None
+    raw_temp = matched.get("temperature")
+    if raw_temp is None:
+        return None
+    try:
+        temp = float(raw_temp)
+    except (TypeError, ValueError):
+        return None
+    if str(matched.get("temperatureUnit") or "F").upper() == "C":
+        temp = round(temp * 9.0 / 5.0 + 32.0, 1)
+    wind = _parse_nws_wind_mph(matched.get("windSpeed"))
+    if wind is None:
+        return None
+
+    temp_diff = round(temp - espn_temp_f, 1) if espn_temp_f is not None else None
+    if temp_diff is not None and abs(temp_diff) >= 3.0:
+        print(
+            f"[espn-context] weather divergence for {home_team}: "
+            f"ESPN={espn_temp_f}°F vs NWS={temp}°F (delta={temp_diff:+.1f}°F)",
+            file=sys.stderr,
+        )
+
+    payload = json.dumps(
+        {
+            "home_team": home_team,
+            "kickoff_utc": kickoff_utc.isoformat(),
+            "observed_at": observed_at,
+            "latitude": lat,
+            "longitude": lon,
+            "temperature_f": temp,
+            "wind_mph": wind,
+            "espn_temp_f": espn_temp_f,
+            "temp_divergence_f": temp_diff,
+            "nws_period": matched,
+            "source": "nws_hourly_forecast",
+        },
+        sort_keys=True,
+    ).encode("utf-8")
+    return {
+        "temp": temp,
+        "wind": wind,
+        "observed_at": observed_at,
+        "weather_source": "nws_hourly_forecast",
+        "payload": payload,
+    }
 
 
 def _event_teams(event: dict) -> tuple[str, str] | None:
@@ -369,6 +510,7 @@ def parse_espn_games(
     fetch_time_utc: str,
     fetch_weather: bool = True,
     weather_fetcher=None,
+    fallback_weather_fetcher=None,
     expected_game_ids: set[str] | None = None,
 ) -> list[dict]:
     """Parse one scoreboard into pregame records.
@@ -396,6 +538,13 @@ def parse_espn_games(
     if now_utc.tzinfo is None:
         raise ValueError("fetch_time_utc must include a timezone")
     fetcher = weather_fetcher or fetch_event_weather
+    # Engage NWS fallback automatically only when using the live default fetcher
+    # (never reach out to network when unit tests inject a custom weather_fetcher).
+    fallback_fetcher = (
+        fallback_weather_fetcher
+        if fallback_weather_fetcher is not None
+        else (fetch_nws_weather if weather_fetcher is None else None)
+    )
     records: list[dict] = []
     excluded: set[str] = set()
     problems: list[str] = []
@@ -485,11 +634,18 @@ def parse_espn_games(
             weather_source = "espn_venue_enclosure"
         elif fetch_weather and event.get("id"):
             fetched = fetcher(str(event["id"]))
+            if not (fetched and fetched.get("temp") is not None and fetched.get("wind") is not None):
+                if fallback_fetcher is not None:
+                    espn_temp = parse_optional_float((event.get("weather") or {}).get("temperature"))
+                    try:
+                        fetched = fallback_fetcher(teams[1], kickoff, espn_temp_f=espn_temp)
+                    except TypeError:
+                        fetched = fallback_fetcher(teams[1], kickoff)
             if fetched and fetched.get("temp") is not None and fetched.get("wind") is not None:
                 temp = float(fetched["temp"])
                 wind = float(fetched["wind"])
                 weather_observed_at = fetched.get("observed_at")
-                weather_source = "espn_summary_gameinfo"
+                weather_source = fetched.get("weather_source") or "espn_summary_gameinfo"
                 weather_payload = fetched.get("payload")
 
         record = {
@@ -948,12 +1104,15 @@ def evaluate_pricing_context(
                 "status": "READY",
                 "missing_fields": [],
             }
-        observed = parse_ts(row.get("spread_observed_at"))
-        if observed is not None and now - observed > STALE_AFTER:
+        spread_obs = parse_ts(row.get("spread_observed_at"))
+        weather_obs = parse_ts(row.get("weather_observed_at"))
+        oldest_obs = min((t for t in (spread_obs, weather_obs) if t is not None), default=None)
+        if oldest_obs is not None and now - oldest_obs > STALE_AFTER:
             stale.append({
                 "game_id": gid,
                 "spread_observed_at": row.get("spread_observed_at"),
-                "age_hours": round((now - observed).total_seconds() / 3600, 1),
+                "weather_observed_at": row.get("weather_observed_at"),
+                "age_hours": round((now - oldest_obs).total_seconds() / 3600, 1),
             })
     if games_ingested is None and season is not None:
         batches = [

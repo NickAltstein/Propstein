@@ -693,3 +693,123 @@ def test_provenance_report_blocks_when_pricing_window_lacks_weather():
     stale = evaluate_pricing_context(schedule, journal, stale_now, games_ingested=1)
     assert stale["ready_for_pricing"] is True
     assert stale["stale_captures"][0]["game_id"] == "2026_09_NYJ_KC"
+
+
+def test_outdoor_stadium_coords_cover_all_us_outdoor_home_teams_and_unknown_fails_closed():
+    """Every US outdoor/retractable NFL home team must have coordinates; unknown team returns None."""
+    from scripts.ingest_espn_game_context import OUTDOOR_STADIUM_COORDS, fetch_nws_weather
+
+    expected_outdoor_or_retractable = {
+        "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN",
+        "GB", "HOU", "IND", "JAX", "KC", "MIA", "NE", "NYG", "NYJ", "PHI",
+        "PIT", "SEA", "SF", "TB", "TEN", "WAS",
+    }
+    assert expected_outdoor_or_retractable.issubset(set(OUTDOOR_STADIUM_COORDS.keys()))
+    assert fetch_nws_weather("UNKNOWN_VENUE", datetime(2026, 11, 27, 1, 20, tzinfo=timezone.utc)) is None
+
+
+def test_non_sunday_outdoor_game_uses_nws_fallback_and_checks_weather_staleness():
+    """Thursday outdoor game (Thanksgiving KC @ BUF) where ESPN omits wind/gust:
+    - Missing fallback fails closed (CONTEXT_MISSING).
+    - NWS fallback supplies real forecast with weather_source='nws_hourly_forecast'.
+    - Stale weather_observed_at (>36h) blocks pricing when block_on_stale=True.
+    """
+    from scripts.ingest_espn_game_context import ET, weather_ok
+
+    fetch_ts = "2026-11-24T14:00:00+00:00"
+    event = {
+        "id": "401873082",
+        "date": "2026-11-27T01:20Z",  # Thursday 2026-11-26 20:20 ET (non-Sunday)
+        "status": {"type": {"state": "pre"}},
+        "weather": {"temperature": 43},
+        "competitions": [
+            {
+                "competitors": [
+                    {"homeAway": "home", "team": {"abbreviation": "BUF"}},
+                    {"homeAway": "away", "team": {"abbreviation": "KC"}},
+                ],
+                "odds": [{"provider": {"name": "DraftKings"}, "spread": -3.0, "overUnder": 47.5}],
+                "venue": {"fullName": "Highmark Stadium", "indoor": False},
+            }
+        ],
+    }
+    payload = {"events": [event]}
+    schedule = [
+        {
+            "game_id": "2026_12_KC_BUF",
+            "season": "2026",
+            "week": "12",
+            "gameday": "2026-11-26",
+            "gametime": "20:20",
+            "away_team": "KC",
+            "home_team": "BUF",
+            "stadium": "Highmark Stadium",
+            "roof": "outdoors",
+            "spread_line": "",
+            "total_line": "",
+            "temp": "",
+            "wind": "",
+            "result": "",
+        }
+    ]
+    now = datetime(2026, 11, 24, 9, 30, tzinfo=ET)
+
+    # 1. ESPN omits wind/gust, fallback fails -> fail closed
+    records_missing = parse_espn_games(
+        payload,
+        2026,
+        12,
+        fetch_ts,
+        fetch_weather=True,
+        weather_fetcher=lambda _eid: None,
+        fallback_weather_fetcher=lambda _team, _ko, **_kw: None,
+        expected_game_ids={"2026_12_KC_BUF"},
+    )
+    assert records_missing[0]["weather_observed_at"] is None
+    assert weather_ok(records_missing[0]) is False
+    report_blocked = evaluate_pricing_context(schedule, records_missing, now)
+    assert report_blocked["ready_for_pricing"] is False
+    assert report_blocked["per_game_readiness"]["2026_12_KC_BUF"]["status"] == "CONTEXT_MISSING"
+
+    # 2. NWS fallback supplies real hourly forecast -> READY with explicit source
+    def fake_nws(home_team: str, kickoff_utc: datetime, espn_temp_f=None):
+        assert home_team == "BUF"
+        assert espn_temp_f == 43.0
+        assert kickoff_utc.strftime("%Y-%m-%dT%H:%M") == "2026-11-27T01:20"
+        return {
+            "temp": 37.0,
+            "wind": 10.0,
+            "observed_at": "2026-11-24T14:00:05+00:00",
+            "weather_source": "nws_hourly_forecast",
+            "payload": b'{"source":"nws_hourly_forecast"}',
+        }
+
+    records_ok = parse_espn_games(
+        payload,
+        2026,
+        12,
+        fetch_ts,
+        fetch_weather=True,
+        weather_fetcher=lambda _eid: None,
+        fallback_weather_fetcher=fake_nws,
+        expected_game_ids={"2026_12_KC_BUF"},
+    )
+    assert records_ok[0]["temp"] == 37.0
+    assert records_ok[0]["wind"] == 10.0
+    assert records_ok[0]["weather_source"] == "nws_hourly_forecast"
+    assert weather_ok(records_ok[0]) is True
+    report_ready = evaluate_pricing_context(schedule, records_ok, now, block_on_stale=True)
+    assert report_ready["ready_for_pricing"] is True
+
+    # 3. Stale weather_observed_at (>36h before Thursday afternoon) blocks when block_on_stale=True
+    stale_weather_rec = {
+        **records_ok[0],
+        "spread_observed_at": "2026-11-26T12:00:00+00:00",
+        "total_observed_at": "2026-11-26T12:00:00+00:00",
+        "weather_observed_at": "2026-11-24T14:00:05+00:00",  # 46h old on Nov 26 12:00Z
+    }
+    thursday_noon = datetime(2026, 11, 26, 12, 0, tzinfo=timezone.utc).astimezone(ET)
+    report_stale = evaluate_pricing_context(schedule, [stale_weather_rec], thursday_noon, block_on_stale=True)
+    assert report_stale["ready_for_pricing"] is False
+    assert len(report_stale["stale_captures"]) == 1
+    assert report_stale["stale_captures"][0]["game_id"] == "2026_12_KC_BUF"
