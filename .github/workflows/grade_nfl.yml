@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: grade-nfl
+  group: grade-nfl-data
   cancel-in-progress: false
 
 jobs:
@@ -24,8 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ secrets.DATA_BOT_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -59,6 +58,19 @@ jobs:
           git add viewer/feeds/grades viewer/share/grades
           DAY="$(date -u +%F)"
           bash scripts/open_automerge_data_pr.sh \
-            "bot/grade-nfl" \
-            "chore(data): NFL weekly grades ${DAY}" \
+            "grade-nfl" \
             "chore(data): NFL weekly grades ${DAY}"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
+          fi
+          MESSAGE="PropStein NFL weekly grading FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

@@ -24,11 +24,11 @@ on:
 
 # Keep NBA publishing independent from the NFL autopilot and news watcher.
 concurrency:
-  group: nba-daily-market-slate
+  group: nba-daily-data
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   refresh:
@@ -38,8 +38,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ secrets.DATA_BOT_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Check whether today's NBA slate is already published
@@ -122,24 +121,19 @@ jobs:
           git add viewer/feeds 'viewer/nba_*.json'
           DAY="$(date -u +%F)"
           bash scripts/open_automerge_data_pr.sh \
-            "bot/nba-daily" \
-            "chore(data): NBA daily refresh ${DAY}" \
+            "nba-daily" \
             "chore(data): NBA daily refresh ${DAY}"
 
-      # Same optional webhook as the odds alarm. Without it a failed day only
-      # leaves a red X (NBA lines stopped Nov 8, 2026 with no alert).
-      - name: Notify on failure (webhook, optional)
+      - name: Notify on failure (webhook)
         if: failure()
         env:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
-            echo "ALARM_WEBHOOK_URL secret not configured; alarm visible only in Actions history and owner email."
-            exit 0
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
           fi
-          MESSAGE="PropStein NBA slate refresh failed (Kalshi fetch or publish failure). ${RUN_URL}"
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" \
-            -H 'Content-Type: application/json' \
-            -d "{\"content\": \"$MESSAGE\", \"text\": \"$MESSAGE\"}" \
-            || echo "WARN: webhook POST failed; alarm still recorded in Actions history."
+          MESSAGE="PropStein NBA slate refresh FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

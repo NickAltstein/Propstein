@@ -24,7 +24,7 @@ on:
         default: card
 
 concurrency:
-  group: autopilot
+  group: freeze-ufc-data
   cancel-in-progress: false
 
 jobs:
@@ -32,10 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -69,15 +71,25 @@ jobs:
             *) echo "unknown phase $PHASE"; exit 2 ;;
           esac
 
-      - name: Commit and push UFC data (if changed)
+      - name: Open auto-merge PR for UFC data (if changed)
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add viewer/ufc_*.json
-          if git diff --staged --quiet; then
-            echo "No UFC data changes."
-            exit 0
+          bash scripts/open_automerge_data_pr.sh \
+            "freeze-ufc" \
+            "chore(ufc): ${{ steps.phase.outputs.phase }} $(date -u +%FT%H:%MZ)"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
           fi
-          git commit -m "chore(ufc): ${{ steps.phase.outputs.phase }} $(date -u +%FT%H:%MZ) [skip ci]"
-          git pull --rebase origin main
-          git push
+          MESSAGE="PropStein UFC fight-week snapshot FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

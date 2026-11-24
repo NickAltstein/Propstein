@@ -10,11 +10,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: close-quality-capture
+  group: close-quality-capture-data
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   capture:
@@ -24,6 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Python
@@ -35,27 +36,34 @@ jobs:
         run: |
           PYTHONPATH=. python -m src.close_quality_capture
 
-      - name: Commit and push only when new capture records exist
+      - name: Open auto-merge PR only when new capture records exist
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
           if [ ! -f data/close_quality_captures.jsonl ]; then
-            echo "No close-quality captures yet — skipping commit."
+            echo "No close-quality captures yet — skipping PR."
             exit 0
           fi
           git add -N data/close_quality_captures.jsonl 2>/dev/null || true
           if git diff --quiet data/close_quality_captures.jsonl; then
-            echo "No new close-quality capture records — skipping commit."
+            echo "No new close-quality capture records — skipping PR."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/close_quality_captures.jsonl data/close_quality_capture_status.json
-          git commit -m "chore(data): append close-quality captures [skip ci] [vercel skip]"
-          for attempt in 1 2 3; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Concurrent push conflict (attempt $attempt/3); retrying..."
-            git rebase --abort 2>/dev/null || true
-            sleep 3
-          done
-          exit 1
+          bash scripts/open_automerge_data_pr.sh \
+            "close-quality-capture" \
+            "chore(data): append close-quality captures [vercel skip]"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
+          fi
+          MESSAGE="PropStein close-quality capture FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

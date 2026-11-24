@@ -16,11 +16,11 @@ on:
   workflow_dispatch:        # one-click live validation of the free path
 
 concurrency:
-  group: nba-model-daily
+  group: nba-model-daily-data
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   # 2026-27 NBA opening night (ET). The window below is capped at 45 days
@@ -35,8 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ secrets.DATA_BOT_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Probe stats.nba.com reachability
@@ -135,6 +134,19 @@ jobs:
           git add viewer/feeds/nba_model
           DAY="$(date -u +%F)"
           bash scripts/open_automerge_data_pr.sh \
-            "bot/nba-model-daily" \
-            "chore(data): NBA model daily refresh ${DAY}" \
+            "nba-model-daily" \
             "chore(data): NBA model daily refresh ${DAY}"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
+          fi
+          MESSAGE="PropStein NBA model daily refresh FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

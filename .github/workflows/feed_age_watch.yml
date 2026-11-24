@@ -16,10 +16,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: feed-age-watch
+  group: feed-age-watch-data
   cancel-in-progress: false
 
 jobs:
@@ -29,22 +29,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Check feed age and publish fail-closed state
+      - name: Check feed age and open auto-merge PR if status changed
         env:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
           FEED_AGE_UPTIME_URL: ${{ secrets.FEED_AGE_UPTIME_URL }}
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
           set +e
           python3 scripts/feed_age.py --check --status-out viewer/feeds/feed_status.json
           code=$?
           set -e
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add viewer/feeds/feed_status.json
-          if ! git diff --staged --quiet; then
-            git commit -m "chore(data): feed age status $(date -u +%F) [skip ci]"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
+          DAY="$(date -u +%F)"
+          bash scripts/open_automerge_data_pr.sh \
+            "feed-age-watch" \
+            "chore(data): feed age status ${DAY}"
           exit "$code"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
+          fi
+          MESSAGE="PropStein feed age watch FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

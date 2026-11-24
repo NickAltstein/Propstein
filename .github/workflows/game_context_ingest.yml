@@ -14,9 +14,14 @@ on:
         description: 'NFL week to ingest (leave blank for active week)'
         required: false
         type: string
+      force_fail_pr_step:
+        description: 'Deliberately fail the PR step to verify failure webhook alert'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
-  group: autopilot
+  group: game-context-ingest-data
   cancel-in-progress: false
 
 jobs:
@@ -25,13 +30,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ secrets.DATA_BOT_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 2
 
       - name: Set up Python 3.12
@@ -53,6 +57,7 @@ jobs:
       - name: Open auto-merge PR for game context captures (if changed)
         env:
           GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
+          FORCE_FAIL_PR_STEP: ${{ inputs.force_fail_pr_step }}
         run: |
           git add \
             data/game_context_captures.jsonl \
@@ -60,21 +65,19 @@ jobs:
             data/raw_espn_captures
           DAY="$(date -u +%F)"
           bash scripts/open_automerge_data_pr.sh \
-            "bot/game-context-ingest" \
-            "chore(data): ingest live nfl game context ${DAY} [vercel skip]" \
-            "chore(data): ingest live nfl game context ${DAY}"
+            "game-context-ingest" \
+            "chore(data): ingest live nfl game context ${DAY} [vercel skip]"
 
-      - name: Notify on failure (webhook, optional)
+      - name: Notify on failure (webhook)
         if: failure()
         env:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
-            echo "ALARM_WEBHOOK_URL secret not configured; alarm visible only in Actions history and owner email."
-            exit 0
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured — failure alert could not be sent."
+            exit 1
           fi
           MESSAGE="PropStein NFL game-context ingest/provenance FAILED (pricing may block after 36h staleness). ${RUN_URL}"
           python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json \
-            || echo "WARN: webhook POST failed; alarm still recorded in Actions history."
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

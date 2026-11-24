@@ -49,7 +49,7 @@ on:
         default: false
 
 concurrency:
-  group: autopilot
+  group: daily-update-data
   cancel-in-progress: false
 
 jobs:
@@ -57,13 +57,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ secrets.DATA_BOT_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Check EST pre-kickoff window
         id: window
@@ -155,8 +154,7 @@ jobs:
             src/top_picks.json src/current_picks.json src/slate_projections.json src/slate_projections.csv
           DAY="$(date -u +%F)"
           bash scripts/open_automerge_data_pr.sh \
-            "bot/daily-update" \
-            "chore(data): autopilot slate refresh ${DAY}" \
+            "daily-update" \
             "chore(data): autopilot slate refresh ${DAY}"
 
       - name: Fail if pricing context is missing
