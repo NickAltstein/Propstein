@@ -479,13 +479,23 @@ def fetch_nws_weather(
         )
 
     is_retractable = roof_type == "retractable"
-    weather_source = "nws_hourly_forecast_retractable_open" if is_retractable else "nws_hourly_forecast"
+    if is_retractable:
+        weather_source = (
+            "nws_hourly_forecast_retractable_unknown"
+            if roof_state == "retractable_unknown"
+            else "nws_hourly_forecast_retractable_open"
+        )
+    else:
+        weather_source = "nws_hourly_forecast"
 
     payload = json.dumps(
         {
             "venue_id": str(venue_id),
             "venue_name": venue_name,
             "retractable_roof": is_retractable,
+            "retractable_roof_status": (
+                "unknown" if roof_state == "retractable_unknown" else ("open" if is_retractable else None)
+            ),
             "roof_state": roof_state or roof_type,
             "kickoff_utc": kickoff_utc.isoformat(),
             "observed_at": observed_at,
@@ -665,13 +675,18 @@ def parse_espn_games(
                     venue_id = str(venue.get("id") or "").strip() or None
                     venue_country = (venue.get("address") or {}).get("country")
                     espn_temp = parse_optional_float((event.get("weather") or {}).get("temperature"))
+                    effective_roof_state = (
+                        "retractable_unknown"
+                        if venue_name in RETRACTABLE_ROOFS and venue.get("indoor") is None
+                        else roof
+                    )
                     try:
                         fetched = fallback_fetcher(
                             venue_id,
                             kickoff,
                             espn_temp_f=espn_temp,
                             country=venue_country,
-                            roof_state=roof,
+                            roof_state=effective_roof_state,
                         )
                     except TypeError:
                         fetched = fallback_fetcher(venue_id, kickoff)
