@@ -38,9 +38,18 @@ def check(viewer: Path = VIEWER, now: datetime | None = None,
         raise ValueError("current time has no timezone")
     now = now.astimezone(timezone.utc)
     index = json.loads((viewer / "feeds/slate-index.json").read_text())
-    nfl = index["sports"]["nfl"]
-    slate = nfl["slates"][nfl["default_slate"]]
-    games = json.loads((viewer / slate["games"]).read_text())
+    nfl = index.get("sports", {}).get("nfl", {})
+    default_key = nfl.get("default_slate")
+    if not default_key:
+        raise ValueError("no default slate set in slate-index.json")
+    slates = nfl.get("slates", {})
+    if default_key not in slates:
+        raise ValueError(f"default slate {default_key!r} not found in slate-index.json")
+    slate = slates[default_key]
+    games_file = slate.get("games")
+    if not games_file or not (viewer / games_file).is_file():
+        raise ValueError(f"games file {games_file!r} missing for slate {default_key}")
+    games = json.loads((viewer / games_file).read_text())
     today_et = now.astimezone(ZoneInfo("America/New_York")).date()
     active = any(-1 <= (datetime.fromisoformat(game["gameday"]).date() - today_et).days <= 7
                  for game in games)

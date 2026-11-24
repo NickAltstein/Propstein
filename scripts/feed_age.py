@@ -190,9 +190,18 @@ def _game_starts(viewer: Path, sport: str) -> list[datetime]:
         return starts
     try:
         index = json.loads(index_path.read_text(encoding="utf-8"))
-        nfl = index["sports"]["nfl"]
-        slate = nfl["slates"][nfl["default_slate"]]
-        games = json.loads((viewer / slate["games"]).read_text(encoding="utf-8"))
+        nfl = index.get("sports", {}).get("nfl", {})
+        default_key = nfl.get("default_slate")
+        if not default_key:
+            return starts
+        slates = nfl.get("slates", {})
+        if default_key not in slates:
+            return starts
+        slate = slates[default_key]
+        games_file = slate.get("games")
+        if not games_file or not (viewer / games_file).is_file():
+            return starts
+        games = json.loads((viewer / games_file).read_text(encoding="utf-8"))
     except (OSError, ValueError, KeyError, TypeError):
         return starts
     for game in games:
