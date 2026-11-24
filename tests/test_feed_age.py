@@ -2,6 +2,7 @@
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from scripts.feed_age import ROOT, alert_message, check, load_config, note_fetch
 
@@ -343,3 +344,64 @@ def test_blocked_slate_ignores_a_heartbeat_for_a_different_slate(tmp_path):
     report = check(tmp_path, None, NOW, NFL)
     assert report["sports"]["nfl"]["slate_state"]["blocked_hours"] == 1.0
     assert report["alerts"] == []
+
+
+def _blocked_with_kickoff(tmp_path, kickoff_utc: datetime):
+    _blocked_viewer(tmp_path, generated_at=stamp(NOW - timedelta(hours=1)))
+    et = kickoff_utc.astimezone(ZoneInfo("America/New_York"))
+    (tmp_path / "games_2026_w11.json").write_text(json.dumps([
+        {"gameday": et.strftime("%Y-%m-%d"), "gametime": et.strftime("%H:%M")}]))
+
+
+def test_blocked_slate_pages_early_when_a_kickoff_is_near(tmp_path):
+    # Blocked for only 1h, kickoff in 3h: inside the 4h window, so page now.
+    _blocked_with_kickoff(tmp_path, NOW + timedelta(hours=3))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=1), slate=BLOCKED)
+    report = check(tmp_path, None, NOW, NFL)
+    st = report["sports"]["nfl"]["slate_state"]
+    assert st["blocked_overdue"] is True and st["blocked_reasons"] == ["kickoff"]
+    assert st["blocked_next_kickoff"] == stamp(NOW + timedelta(hours=3))
+    assert len(report["alerts"]) == 1 and "next kickoff" in report["alerts"][0]
+
+
+def test_blocked_slate_with_a_distant_kickoff_waits_for_the_duration_limit(tmp_path):
+    _blocked_with_kickoff(tmp_path, NOW + timedelta(hours=10))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=1), slate=BLOCKED)
+    report = check(tmp_path, None, NOW, NFL)
+    assert report["alerts"] == []
+    assert report["sports"]["nfl"]["slate_state"]["blocked_next_kickoff"] is None
+
+
+def test_kickoff_already_past_does_not_count_as_near(tmp_path):
+    _blocked_with_kickoff(tmp_path, NOW - timedelta(minutes=30))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=1), slate=BLOCKED)
+    assert check(tmp_path, None, NOW, NFL)["alerts"] == []
+
+
+def test_kickoff_window_comes_from_config(tmp_path):
+    _blocked_with_kickoff(tmp_path, NOW + timedelta(hours=6))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=1), slate=BLOCKED)
+    assert check(tmp_path, None, NOW, NFL)["alerts"] == []
+    assert check(tmp_path, None, NOW, dict(NFL, blocked_slate_kickoff_hours=8))["alerts"]
+
+
+def test_both_reasons_are_reported_together(tmp_path):
+    _blocked_with_kickoff(tmp_path, NOW + timedelta(hours=2))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=13), slate=BLOCKED)
+    st = check(tmp_path, None, NOW, NFL)["sports"]["nfl"]["slate_state"]
+    assert st["blocked_reasons"] == ["duration", "kickoff"]
+
+
+def test_watcher_passes_the_webhook_to_the_feed_age_step():
+    """The BLOCKED SLATE, parse and staleness alarms page from feed_age.py
+    itself; without the secret on that step they would land in the job log only."""
+    yml = (ROOT / ".github" / "workflows" / "feed_age_watch.yml").read_text()
+    step = yml[yml.index("- name: Check feed age"):]
+    step = step[:step.index("\n      - name:", 1)] if "\n      - name:" in step[1:] else step
+    assert "ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}" in step
+    assert "scripts/feed_age.py --check" in step

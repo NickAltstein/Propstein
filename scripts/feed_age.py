@@ -20,8 +20,11 @@ NFL also reports a named slate state (scripts/slate_state.py):
                     exclusion reasons in the status file;
   NO_SLATE_ROWS     live slate with nothing to price; critical at once.
 
-A slate that stays SLATE_BLOCKED longer than blocked_slate_alarm_hours
-raises a separate BLOCKED SLATE alarm (the feed level is unchanged). Its
+A SLATE_BLOCKED slate raises a separate BLOCKED SLATE alarm (the feed
+level is unchanged) when it has been blocked longer than
+blocked_slate_alarm_hours, or as soon as a kickoff in that slate is within
+blocked_slate_kickoff_hours: a block that starts 10 hours before a
+Thursday game would otherwise never page in time. Its
 start time is the poller's heartbeat state_since; if the poller has not
 confirmed the block, slate-index.json's generated_at is used as a lower
 bound, so a block alarms even when the poller is down.
@@ -70,6 +73,7 @@ DEFAULT_CONFIG = {
     "nfl_ingest_utc_hour": slate_state.DEFAULT_INGEST_UTC_HOUR,
     "no_current_slate_buffer_hours": slate_state.DEFAULT_NO_CURRENT_SLATE_BUFFER_HOURS,
     "blocked_slate_alarm_hours": 12.0,
+    "blocked_slate_kickoff_hours": 4.0,
 }
 NBA_ODDS_RE = re.compile(r"nba_odds_(\d{4}-\d{2}-\d{2})\.json$")
 EMPTY_ERROR = "empty/zero-event response"
@@ -369,12 +373,19 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
             since, source = blocked_since(viewer, row, state)
             limit = float(cfg["blocked_slate_alarm_hours"])
             hours = None if since is None else (now - since).total_seconds() / 3600
+            # Kickoffs come from the blocked slate's own games file.
+            window = timedelta(hours=float(cfg["blocked_slate_kickoff_hours"]))
+            upcoming = sorted(t for t in _game_starts(viewer, "nfl") if now <= t <= now + window)
+            kickoff = upcoming[0] if upcoming else None
+            too_long = hours is not None and hours > limit
             out["slate_state"].update({
                 "blocked_since": None if since is None else since.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "blocked_since_source": source,
                 "blocked_hours": None if hours is None else round(hours, 1),
                 "blocked_limit_hours": limit,
-                "blocked_overdue": hours is not None and hours > limit,
+                "blocked_next_kickoff": None if kickoff is None else kickoff.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "blocked_overdue": too_long or kickoff is not None,
+                "blocked_reasons": [r for r, hit in (("duration", too_long), ("kickoff", kickoff is not None)) if hit],
             })
         if "line_collisions_excluded" in row:
             out["line_collisions_excluded"] = row["line_collisions_excluded"]
@@ -415,9 +426,11 @@ def blocked_alarm(row: dict) -> str | None:
         return None
     reasons = "; ".join(f"{e.get('matchup') or e.get('game_id')}: {e.get('reason')}"
                         for e in (st.get("exclusions") or [])) or "(no reasons recorded)"
+    kickoff = (f"; next kickoff {st['blocked_next_kickoff']} is inside the warning window"
+               if st.get("blocked_next_kickoff") else "")
     return (f"PropStein BLOCKED SLATE: {row['sport'].upper()} slate {st.get('slate_key')!r} has been "
             f"SLATE_BLOCKED for {st.get('blocked_hours')}h (since {st.get('blocked_since')}, "
-            f"from {st.get('blocked_since_source')}; limit {st.get('blocked_limit_hours'):g}h); "
+            f"from {st.get('blocked_since_source')}; limit {st.get('blocked_limit_hours'):g}h){kickoff}; "
             f"exclusions: {reasons}")
 
 
