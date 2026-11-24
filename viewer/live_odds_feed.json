@@ -1,13 +1,13 @@
 {
   "feed_status": "LIVE_POLYMARKET_CLOB_RECEIPTED",
-  "updated_at": "2026-11-24T17:25:52.641209Z",
+  "updated_at": "2026-11-24T17:30:41.380417Z",
   "quotes": [
     {
-      "quote_id": "pm_e4db827a5200ac72",
+      "quote_id": "pm_5c09a8475e3cef67",
       "provider_quote_id": "7298254",
-      "receipt_id": "pm_e4db827a5200ac72",
+      "receipt_id": "pm_5c09a8475e3cef67",
       "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-courtland-sutton-19pt5",
-      "content_hash": "e4db827a5200ac724c02b8c2392d370bc80e2294c24c2048933d1a3b3f59f000",
+      "content_hash": "5c09a8475e3cef678f516a97b15b03a2f3bd8885b6c28ca2beb36c334e738a84",
       "book": "Polymarket",
       "player_id": "00-0034348",
       "player_name": "Courtland Sutton",
@@ -20,15 +20,15 @@
       "fair_line": 23.5,
       "over_odds": -223,
       "under_odds": 127,
-      "observed_at": "2026-11-24T17:25:52.641209+00:00",
+      "observed_at": "2026-11-24T17:30:41.380417+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 22.77,
+      "liquidity_usd": 46.23,
       "over_token_id": "73841459941839039455139675118407549435965442692165387386755524419860895580549",
       "under_token_id": "55247412391922105578139122449035919397586298281772576206089225341137891110033",
       "over_ask_price": 0.69,
       "under_ask_price": 0.44,
-      "over_ask_depth_usd": 22.77,
-      "under_ask_depth_usd": 23.76,
+      "over_ask_depth_usd": 46.23,
+      "under_ask_depth_usd": 47.96,
       "event_title": "Broncos vs. Steelers - Player Props",
       "end_date": "2026-11-27T20:00:00Z",
       "evaluation": {
@@ -45,7 +45,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_89a86470b9e29602",
+      "verification_receipt_id": "pmr_ccc9d79ba49b25aa",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -59,7 +59,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -72,15 +72,88 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641209+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380417+00:00"
     },
     {
-      "quote_id": "pm_e0fbacb734a7cde6",
+      "quote_id": "pm_51ef2b5980dd6b9d",
+      "provider_quote_id": "7298255",
+      "receipt_id": "pm_51ef2b5980dd6b9d",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-courtland-sutton-29pt5",
+      "content_hash": "51ef2b5980dd6b9d3cee06fb696e01240f5cf9fdf8dbe163ccb62529e63fd6d8",
+      "book": "Polymarket",
+      "player_id": "00-0034348",
+      "player_name": "Courtland Sutton",
+      "team": "DEN",
+      "opponent": "PIT",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 23.5,
+      "over_odds": -108,
+      "under_odds": -150,
+      "observed_at": "2026-11-24T17:30:41.380418+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 38.4,
+      "over_token_id": "50827549680383008669878146085462856091725585105450339274496088199727177695324",
+      "under_token_id": "29146341385593161441245358047523973820024330011320936342175464177132916928619",
+      "over_ask_price": 0.52,
+      "under_ask_price": 0.6,
+      "over_ask_depth_usd": 38.48,
+      "under_ask_depth_usd": 38.4,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0312,
+        "break_even_adv": -0.0888,
+        "expected_return": -0.1479,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_743333418fd9ba3f",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380418+00:00"
+    },
+    {
+      "quote_id": "pm_07cb34ad4c9fc968",
       "provider_quote_id": "7298261",
-      "receipt_id": "pm_e0fbacb734a7cde6",
+      "receipt_id": "pm_07cb34ad4c9fc968",
       "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-darnell-washington-14pt5",
-      "content_hash": "e0fbacb734a7cde68fda10655094587c113d258d4870159e0422c8b21f2da6df",
+      "content_hash": "07cb34ad4c9fc968d9fae14bcd8d0a64ba4f2a563e521bb5a7997761f47f9081",
       "book": "Polymarket",
       "player_id": "00-0038558",
       "player_name": "Darnell Washington",
@@ -92,16 +165,16 @@
       "line": 14.5,
       "fair_line": 15.5,
       "over_odds": -156,
-      "under_odds": -1150,
-      "observed_at": "2026-11-24T17:25:52.641210+00:00",
+      "under_odds": -100,
+      "observed_at": "2026-11-24T17:30:41.380419+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 23.18,
       "over_token_id": "95362703184494388920571184276252416989462847549273757935098727302943355938923",
       "under_token_id": "28916227058260721834761472616659742859823921971960036301302659372421700424163",
       "over_ask_price": 0.61,
-      "under_ask_price": 0.92,
+      "under_ask_price": 0.5,
       "over_ask_depth_usd": 23.18,
-      "under_ask_depth_usd": 115.92,
+      "under_ask_depth_usd": 45.5,
       "event_title": "Broncos vs. Steelers - Player Props",
       "end_date": "2026-11-27T20:00:00Z",
       "evaluation": {
@@ -118,7 +191,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_da0d413611b1975b",
+      "verification_receipt_id": "pmr_338c6945f899deda",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -132,7 +205,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -145,15 +218,234 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641210+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380419+00:00"
     },
     {
-      "quote_id": "pm_991f04ec9a239176",
+      "quote_id": "pm_1d89911dda60f0c6",
+      "provider_quote_id": "7298263",
+      "receipt_id": "pm_1d89911dda60f0c6",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-darnell-washington-24pt5",
+      "content_hash": "1d89911dda60f0c6df870b7b88c17234bb70f95e9ed95757109a5be1eba5d451",
+      "book": "Polymarket",
+      "player_id": "00-0038558",
+      "player_name": "Darnell Washington",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "TE",
+      "market": "receiving_yards",
+      "line": 24.5,
+      "fair_line": 15.5,
+      "over_odds": 138,
+      "under_odds": -223,
+      "observed_at": "2026-11-24T17:30:41.380420+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 22.08,
+      "over_token_id": "110493650097113530350111961049308649134424966809854198074017631151778022282646",
+      "under_token_id": "8220145901906768341288379513917095956567899283677706448601507986844841441490",
+      "over_ask_price": 0.42,
+      "under_ask_price": 0.69,
+      "over_ask_depth_usd": 22.68,
+      "under_ask_depth_usd": 22.08,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.1306,
+        "break_even_adv": 0.0202,
+        "expected_return": 0.0293,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_cbb7060ad870ed6d",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380420+00:00"
+    },
+    {
+      "quote_id": "pm_955f07ff6b45cd28",
+      "provider_quote_id": "7298269",
+      "receipt_id": "pm_955f07ff6b45cd28",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-dk-metcalf-29pt5",
+      "content_hash": "955f07ff6b45cd28a660c4bd249f4f475bff7a6f39b2017faafd1bbdee676c64",
+      "book": "Polymarket",
+      "player_id": "00-0035640",
+      "player_name": "DK Metcalf",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 30.0,
+      "over_odds": -150,
+      "under_odds": -113,
+      "observed_at": "2026-11-24T17:30:41.380421+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 22.26,
+      "over_token_id": "66921405339746937131671651838198197415138341916318813622516277838093750540034",
+      "under_token_id": "49432919200104242251206619461060494330598570725677787215073990797475852700248",
+      "over_ask_price": 0.6,
+      "under_ask_price": 0.53,
+      "over_ask_depth_usd": 34.2,
+      "under_ask_depth_usd": 22.26,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "OVER",
+        "prob_edge": 0.0787,
+        "break_even_adv": 0.0787,
+        "expected_return": 0.1311,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_f690dab7eb9dd074",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380421+00:00"
+    },
+    {
+      "quote_id": "pm_7aed0b5b54d13878",
+      "provider_quote_id": "7298271",
+      "receipt_id": "pm_7aed0b5b54d13878",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-dk-metcalf-49pt5",
+      "content_hash": "7aed0b5b54d13878f46d4d6306a2a1d165ccf964fe0ed60b7d437b8183e3896b",
+      "book": "Polymarket",
+      "player_id": "00-0035640",
+      "player_name": "DK Metcalf",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 49.5,
+      "fair_line": 30.0,
+      "over_odds": 178,
+      "under_odds": -300,
+      "observed_at": "2026-11-24T17:30:41.380422+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 11.16,
+      "over_token_id": "5372687713484591327356661037136365890392497609059629952702335889345006961326",
+      "under_token_id": "65759203322029632876359989332750600713648223947023314542032379378679561970291",
+      "over_ask_price": 0.36,
+      "under_ask_price": 0.75,
+      "over_ask_depth_usd": 11.16,
+      "under_ask_depth_usd": 21.75,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.1811,
+        "break_even_adv": 0.0711,
+        "expected_return": 0.0949,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_65df3a42baeda7bb",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380422+00:00"
+    },
+    {
+      "quote_id": "pm_08085d4472e2436b",
       "provider_quote_id": "7298276",
-      "receipt_id": "pm_991f04ec9a239176",
+      "receipt_id": "pm_08085d4472e2436b",
       "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-evan-engram-19pt5",
-      "content_hash": "991f04ec9a23917608dac33f879ca4ec5c44c113bb699a7c912982fc28a782a6",
+      "content_hash": "08085d4472e2436b992cb9cc15b1a27c364701361e8c5e50fc4e3dff7297e77f",
       "book": "Polymarket",
       "player_id": "00-0033881",
       "player_name": "Evan Engram",
@@ -166,14 +458,14 @@
       "fair_line": 22.5,
       "over_odds": -122,
       "under_odds": -133,
-      "observed_at": "2026-11-24T17:25:52.641211+00:00",
+      "observed_at": "2026-11-24T17:30:41.380423+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.95,
       "over_token_id": "23619144852615146872740041755811391615512606949608272853331191733007142216361",
       "under_token_id": "103484102888094998227362164183008261317864125434239883656489983818920756016545",
       "over_ask_price": 0.55,
       "under_ask_price": 0.57,
-      "over_ask_depth_usd": 21.45,
+      "over_ask_depth_usd": 29.7,
       "under_ask_depth_usd": 19.95,
       "event_title": "Broncos vs. Steelers - Player Props",
       "end_date": "2026-11-27T20:00:00Z",
@@ -191,7 +483,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_edb0a74673b0253c",
+      "verification_receipt_id": "pmr_3fd3ac677d51b96f",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -205,7 +497,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -218,8 +510,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641211+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380423+00:00"
     },
     {
       "quote_id": "pm_1a6d7c03fb70ff96",
@@ -239,7 +531,7 @@
       "fair_line": 22.5,
       "over_odds": 122,
       "under_odds": -178,
-      "observed_at": "2026-11-24T17:25:52.641212+00:00",
+      "observed_at": "2026-11-24T17:30:41.380424+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.35,
       "over_token_id": "48679390695095904263894398958417526257845448766601668748234926508083005238506",
@@ -278,7 +570,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -291,8 +583,300 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641212+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380424+00:00"
+    },
+    {
+      "quote_id": "pm_85bd30cadf521263",
+      "provider_quote_id": "7298283",
+      "receipt_id": "pm_85bd30cadf521263",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-germie-bernard-29pt5",
+      "content_hash": "85bd30cadf52126334560ecba5e2eb158586808086c420b5d6f279590371faae",
+      "book": "Polymarket",
+      "player_id": "00-0041489",
+      "player_name": "Germie Bernard",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 29.5,
+      "over_odds": 117,
+      "under_odds": -178,
+      "observed_at": "2026-11-24T17:30:41.380425+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 19.2,
+      "over_token_id": "96408275514376409862746916926563270705124040125098925201366031503229901207836",
+      "under_token_id": "65959628454079533991707847735501161744898917418462209432707977441757608312770",
+      "over_ask_price": 0.46,
+      "under_ask_price": 0.64,
+      "over_ask_depth_usd": 19.78,
+      "under_ask_depth_usd": 19.2,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "OVER",
+        "prob_edge": 0.1956,
+        "break_even_adv": 0.1948,
+        "expected_return": 0.4227,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_dfa0f8577e0e4f32",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380425+00:00"
+    },
+    {
+      "quote_id": "pm_8a38f7d2177a845e",
+      "provider_quote_id": "7298297",
+      "receipt_id": "pm_8a38f7d2177a845e",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-jaylen-warren-14pt5",
+      "content_hash": "8a38f7d2177a845eb8b902b86c5177910164236b06da7148d034c07d82a51b6e",
+      "book": "Polymarket",
+      "player_id": "00-0037228",
+      "player_name": "Jaylen Warren",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "RB",
+      "market": "receiving_yards",
+      "line": 14.5,
+      "fair_line": 12.5,
+      "over_odds": -138,
+      "under_odds": -117,
+      "observed_at": "2026-11-24T17:30:41.380426+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 20.88,
+      "over_token_id": "54793352345115151461912665635288021119726829556268645037940280097120111283778",
+      "under_token_id": "110880300634026526422806797306384918753271155324741046594232949369786255003145",
+      "over_ask_price": 0.58,
+      "under_ask_price": 0.54,
+      "over_ask_depth_usd": 20.88,
+      "under_ask_depth_usd": 23.22,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0032,
+        "break_even_adv": -0.116,
+        "expected_return": -0.2151,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_83d1bdb90ea99973",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380426+00:00"
+    },
+    {
+      "quote_id": "pm_0c6f51d279f84cf3",
+      "provider_quote_id": "7298298",
+      "receipt_id": "pm_0c6f51d279f84cf3",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-jaylen-warren-19pt5",
+      "content_hash": "0c6f51d279f84cf34233c5650e9fae8930425a29730468d9b237984ce7e1181b",
+      "book": "Polymarket",
+      "player_id": "00-0037228",
+      "player_name": "Jaylen Warren",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "RB",
+      "market": "receiving_yards",
+      "line": 19.5,
+      "fair_line": 12.5,
+      "over_odds": 108,
+      "under_odds": -178,
+      "observed_at": "2026-11-24T17:30:41.380427+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 46.72,
+      "over_token_id": "93369289230362982513276612998130329272842286825862494506790360826149094750852",
+      "under_token_id": "75889720003798304362312797628483586327812522948945399449468899469213693136688",
+      "over_ask_price": 0.48,
+      "under_ask_price": 0.64,
+      "over_ask_depth_usd": 48.48,
+      "under_ask_depth_usd": 46.72,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.2078,
+        "break_even_adv": 0.0875,
+        "expected_return": 0.1367,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_ee9122005a2f5e75",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380427+00:00"
+    },
+    {
+      "quote_id": "pm_dfcd41cc414e8ca7",
+      "provider_quote_id": "7298304",
+      "receipt_id": "pm_dfcd41cc414e8ca7",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-jonah-coleman-19pt5",
+      "content_hash": "dfcd41cc414e8ca7fd0111b662dfc076603f2e45f3972487108a47bfd825eb98",
+      "book": "Polymarket",
+      "player_id": "00-0041496",
+      "player_name": "Jonah Coleman",
+      "team": "DEN",
+      "opponent": "PIT",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "RB",
+      "market": "receiving_yards",
+      "line": 19.5,
+      "fair_line": 16.5,
+      "over_odds": -122,
+      "under_odds": -133,
+      "observed_at": "2026-11-24T17:30:41.380428+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 10.26,
+      "over_token_id": "107916852078405522758330180016904250466738005890772619466110433324746014237961",
+      "under_token_id": "111430761528895715019765767696284320758817736793228818936197169997213773795561",
+      "over_ask_price": 0.55,
+      "under_ask_price": 0.57,
+      "over_ask_depth_usd": 23.65,
+      "under_ask_depth_usd": 10.26,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0111,
+        "break_even_adv": -0.1097,
+        "expected_return": -0.1921,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_27ef990fdcc8e097",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380428+00:00"
     },
     {
       "quote_id": "pm_3d9a3298cd283fbd",
@@ -312,7 +896,7 @@
       "fair_line": 21.0,
       "over_odds": -194,
       "under_odds": 113,
-      "observed_at": "2026-11-24T17:25:52.641213+00:00",
+      "observed_at": "2026-11-24T17:30:41.380429+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 23.76,
       "over_token_id": "102165937263982153877655989748615222579330525371498342751751428879177628999586",
@@ -351,7 +935,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -364,8 +948,154 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641213+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380429+00:00"
+    },
+    {
+      "quote_id": "pm_820da229a651e396",
+      "provider_quote_id": "7298311",
+      "receipt_id": "pm_820da229a651e396",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-pat-bryant-29pt5",
+      "content_hash": "820da229a651e396705f5ca099edb48cc4ccd057ef2c0b64281557fd4a311dbb",
+      "book": "Polymarket",
+      "player_id": "00-0040134",
+      "player_name": "Pat Bryant",
+      "team": "DEN",
+      "opponent": "PIT",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 21.0,
+      "over_odds": -104,
+      "under_odds": -156,
+      "observed_at": "2026-11-24T17:30:41.380430+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 23.18,
+      "over_token_id": "2895446343889076989513636360608167636850051059296960360143634192849671748052",
+      "under_token_id": "39380511028448528204796263838122865017858399788603250689233646221758442678773",
+      "over_ask_price": 0.51,
+      "under_ask_price": 0.61,
+      "over_ask_depth_usd": 25.5,
+      "under_ask_depth_usd": 23.18,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.1333,
+        "break_even_adv": 0.0139,
+        "expected_return": 0.0228,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_b428f232f61ccb3e",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380430+00:00"
+    },
+    {
+      "quote_id": "pm_4d949b23b0f83f4c",
+      "provider_quote_id": "7298318",
+      "receipt_id": "pm_4d949b23b0f83f4c",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-recyd-pat-freiermuth-19pt5",
+      "content_hash": "4d949b23b0f83f4c7bacf81c41889c0d306c01575b783242fab8865c1b4e3e51",
+      "book": "Polymarket",
+      "player_id": "00-0036894",
+      "player_name": "Pat Freiermuth",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
+      "position": "TE",
+      "market": "receiving_yards",
+      "line": 19.5,
+      "fair_line": 20.0,
+      "over_odds": -133,
+      "under_odds": -117,
+      "observed_at": "2026-11-24T17:30:41.380431+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 20.52,
+      "over_token_id": "8585730316158615341711712085473532410273834516487493326203989264685772456811",
+      "under_token_id": "33412790606965151034576447100826123781900539075012656118386278882057909873827",
+      "over_ask_price": 0.57,
+      "under_ask_price": 0.54,
+      "over_ask_depth_usd": 20.52,
+      "under_ask_depth_usd": 42.12,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "OVER",
+        "prob_edge": 0.1302,
+        "break_even_adv": 0.1293,
+        "expected_return": 0.2266,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_d36d103e867a39b8",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380431+00:00"
     },
     {
       "quote_id": "pm_fb2455d8f8cb9ace",
@@ -385,7 +1115,7 @@
       "fair_line": 20.0,
       "over_odds": 104,
       "under_odds": -186,
-      "observed_at": "2026-11-24T17:25:52.641214+00:00",
+      "observed_at": "2026-11-24T17:30:41.380432+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 11.27,
       "over_token_id": "27080863889476463073959824526196559816182704446695671409975195999462663328194",
@@ -424,7 +1154,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -437,45 +1167,45 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641214+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380432+00:00"
     },
     {
-      "quote_id": "pm_ac79fbbdae769e6b",
-      "provider_quote_id": "7293627",
-      "receipt_id": "pm_ac79fbbdae769e6b",
-      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-recyd-ceedee-lamb-49pt5",
-      "content_hash": "ac79fbbdae769e6b97dfd4ea580d56392acbbd8f1980054e0238010b56a34c94",
+      "quote_id": "pm_d2f7861a3a6577a1",
+      "provider_quote_id": "7298339",
+      "receipt_id": "pm_d2f7861a3a6577a1",
+      "source_url": "https://polymarket.com/market/nfl-den-pit-2026-11-27-rec-dk-metcalf-2pt5",
+      "content_hash": "d2f7861a3a6577a116559dc53ab079a19d8dc7f9670e3e8d07b87d66e1751c1e",
       "book": "Polymarket",
-      "player_id": "00-0036358",
-      "player_name": "CeeDee Lamb",
-      "team": "DAL",
-      "opponent": "PHI",
-      "game_id": "2026_12_PHI_DAL",
+      "player_id": "00-0035640",
+      "player_name": "DK Metcalf",
+      "team": "PIT",
+      "opponent": "DEN",
+      "game_id": "2026_12_DEN_PIT",
       "position": "WR",
-      "market": "receiving_yards",
-      "line": 49.5,
-      "fair_line": 96.0,
-      "over_odds": -567,
-      "under_odds": 245,
-      "observed_at": "2026-11-24T17:25:52.641215+00:00",
+      "market": "receptions",
+      "line": 2.5,
+      "fair_line": 2.5,
+      "over_odds": -133,
+      "under_odds": -127,
+      "observed_at": "2026-11-24T17:30:41.380433+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 20.01,
-      "over_token_id": "70769486791708708385705666809603338258074251238492229303720912935793033036475",
-      "under_token_id": "99023847827773940711044134079434941490246669554481080409841659211172296436563",
-      "over_ask_price": 0.85,
-      "under_ask_price": 0.29,
-      "over_ask_depth_usd": 62.05,
-      "under_ask_depth_usd": 20.01,
-      "event_title": "Eagles vs. Cowboys - Player Props",
-      "end_date": "2026-11-26T21:30:00Z",
+      "liquidity_usd": 11.4,
+      "over_token_id": "5477608564803645484439922642803297080380612468740856756983182911981943585503",
+      "under_token_id": "17662903034661792554381239950488040110031664976581380244911907676374884454672",
+      "over_ask_price": 0.57,
+      "under_ask_price": 0.56,
+      "over_ask_depth_usd": 11.4,
+      "under_ask_depth_usd": 19.6,
+      "event_title": "Broncos vs. Steelers - Player Props",
+      "end_date": "2026-11-27T20:00:00Z",
       "evaluation": {
-        "is_qualified": true,
+        "is_qualified": false,
         "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.0739,
-        "break_even_adv": 0.0738,
-        "expected_return": 0.0869,
+        "best_side": "UNDER",
+        "prob_edge": -0.002,
+        "break_even_adv": -0.1275,
+        "expected_return": -0.2278,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -483,7 +1213,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_1a0e4afba9d263e3",
+      "verification_receipt_id": "pmr_bb2d3967d6062b43",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -497,7 +1227,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -510,8 +1240,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641215+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380433+00:00"
+    },
+    {
+      "quote_id": "pm_35bd7f6efb882e83",
+      "provider_quote_id": "7293627",
+      "receipt_id": "pm_35bd7f6efb882e83",
+      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-recyd-ceedee-lamb-49pt5",
+      "content_hash": "35bd7f6efb882e8354178774fdc39b82fa949c670e513a670b95a58519413cad",
+      "book": "Polymarket",
+      "player_id": "00-0036358",
+      "player_name": "CeeDee Lamb",
+      "team": "DAL",
+      "opponent": "PHI",
+      "game_id": "2026_12_PHI_DAL",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 49.5,
+      "fair_line": 96.0,
+      "over_odds": -4900,
+      "under_odds": 245,
+      "observed_at": "2026-11-24T17:30:41.380434+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 20.01,
+      "over_token_id": "70769486791708708385705666809603338258074251238492229303720912935793033036475",
+      "under_token_id": "99023847827773940711044134079434941490246669554481080409841659211172296436563",
+      "over_ask_price": 0.98,
+      "under_ask_price": 0.29,
+      "over_ask_depth_usd": 245.0,
+      "under_ask_depth_usd": 20.01,
+      "event_title": "Eagles vs. Cowboys - Player Props",
+      "end_date": "2026-11-26T21:30:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0561,
+        "break_even_adv": -0.2138,
+        "expected_return": -0.7375,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_2cca6f8264cbcb14",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380434+00:00"
     },
     {
       "quote_id": "pm_fcb224ba3e517e92",
@@ -531,7 +1334,7 @@
       "fair_line": 96.0,
       "over_odds": -156,
       "under_odds": -104,
-      "observed_at": "2026-11-24T17:25:52.641216+00:00",
+      "observed_at": "2026-11-24T17:30:41.380435+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.52,
       "over_token_id": "90913195136748032636424550404061306983562862954518298528697590301881312160731",
@@ -570,7 +1373,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -583,8 +1386,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641216+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380435+00:00"
     },
     {
       "quote_id": "pm_46d9fa19ac84cbf3",
@@ -604,7 +1407,7 @@
       "fair_line": 27.0,
       "over_odds": -376,
       "under_odds": 178,
-      "observed_at": "2026-11-24T17:25:52.641217+00:00",
+      "observed_at": "2026-11-24T17:30:41.380436+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 39.96,
       "over_token_id": "75688049830525169414725937883229202217317108998566255270867818415404206374422",
@@ -643,7 +1446,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -656,8 +1459,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641217+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380436+00:00"
     },
     {
       "quote_id": "pm_6749de8f2cd72953",
@@ -677,7 +1480,7 @@
       "fair_line": 27.0,
       "over_odds": 203,
       "under_odds": -456,
-      "observed_at": "2026-11-24T17:25:52.641218+00:00",
+      "observed_at": "2026-11-24T17:30:41.380437+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 22.14,
       "over_token_id": "51222940597515195295019214372224745344044456155422936411856150009586333071876",
@@ -716,7 +1519,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -729,15 +1532,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641218+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380437+00:00"
     },
     {
-      "quote_id": "pm_3f7fb5236a136868",
+      "quote_id": "pm_0e559d3220948e94",
       "provider_quote_id": "7293663",
-      "receipt_id": "pm_3f7fb5236a136868",
+      "receipt_id": "pm_0e559d3220948e94",
       "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-recyd-george-pickens-69pt5",
-      "content_hash": "3f7fb5236a1368687905adda2e923ce45da8a7eea1bf5f38e3d52f674c3f35d9",
+      "content_hash": "0e559d3220948e94fadc769469d1cc272161ef89b8431e4b696b92bdac1b9cba",
       "book": "Polymarket",
       "player_id": "00-0037247",
       "player_name": "George Pickens",
@@ -750,14 +1553,14 @@
       "fair_line": 78.0,
       "over_odds": -122,
       "under_odds": -133,
-      "observed_at": "2026-11-24T17:25:52.641219+00:00",
+      "observed_at": "2026-11-24T17:30:41.380438+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 39.6,
+      "liquidity_usd": 18.7,
       "over_token_id": "102544318000134010901807349350900706764804521313251343250765902188116516186704",
       "under_token_id": "112355549477178273927383527474599715066367630806225093212018535026593498466266",
       "over_ask_price": 0.55,
       "under_ask_price": 0.57,
-      "over_ask_depth_usd": 39.6,
+      "over_ask_depth_usd": 18.7,
       "under_ask_depth_usd": 45.6,
       "event_title": "Eagles vs. Cowboys - Player Props",
       "end_date": "2026-11-26T21:30:00Z",
@@ -775,7 +1578,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_780e6bdb1618e95d",
+      "verification_receipt_id": "pmr_af50272356650e1b",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -789,7 +1592,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -802,15 +1605,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641219+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380438+00:00"
     },
     {
-      "quote_id": "pm_aabbd168944aa534",
+      "quote_id": "pm_05c0f708a9bfdcb0",
       "provider_quote_id": "7293664",
-      "receipt_id": "pm_aabbd168944aa534",
+      "receipt_id": "pm_05c0f708a9bfdcb0",
       "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-recyd-george-pickens-79pt5",
-      "content_hash": "aabbd168944aa534f53833bc7a757825b0c74de1dadfcf208a4f6bca0633fadb",
+      "content_hash": "05c0f708a9bfdcb0fef0f06241029c0e5a2bd3a0ea33d1d51c3dfc25ecc5004f",
       "book": "Polymarket",
       "player_id": "00-0037247",
       "player_name": "George Pickens",
@@ -822,16 +1625,16 @@
       "line": 79.5,
       "fair_line": 78.0,
       "over_odds": 113,
-      "under_odds": -194,
-      "observed_at": "2026-11-24T17:25:52.641220+00:00",
+      "under_odds": -2400,
+      "observed_at": "2026-11-24T17:30:41.380439+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 37.6,
       "over_token_id": "34265925891616642254657094291249127944293110305542913005064453237791958522056",
       "under_token_id": "192793644760933652085757389656457144717237816451583573705177862943783530161",
       "over_ask_price": 0.47,
-      "under_ask_price": 0.66,
+      "under_ask_price": 0.96,
       "over_ask_depth_usd": 37.6,
-      "under_ask_depth_usd": 40.92,
+      "under_ask_depth_usd": 88.32,
       "event_title": "Eagles vs. Cowboys - Player Props",
       "end_date": "2026-11-26T21:30:00Z",
       "evaluation": {
@@ -848,7 +1651,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_7dc8d44bdaf5cde9",
+      "verification_receipt_id": "pmr_98658860214645c0",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -862,7 +1665,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -875,8 +1678,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641220+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380439+00:00"
     },
     {
       "quote_id": "pm_746ddcd903026956",
@@ -896,7 +1699,7 @@
       "fair_line": 34.0,
       "over_odds": -456,
       "under_odds": 212,
-      "observed_at": "2026-11-24T17:25:52.641221+00:00",
+      "observed_at": "2026-11-24T17:30:41.380440+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 21.44,
       "over_token_id": "82158623921733296311799109848027718795175466684398930245051011092174277483474",
@@ -935,7 +1738,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -948,8 +1751,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641221+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380440+00:00"
     },
     {
       "quote_id": "pm_d876abd793c3fb51",
@@ -969,7 +1772,7 @@
       "fair_line": 34.0,
       "over_odds": -133,
       "under_odds": -133,
-      "observed_at": "2026-11-24T17:25:52.641222+00:00",
+      "observed_at": "2026-11-24T17:30:41.380441+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 45.03,
       "over_token_id": "83980282045881566022649166859144158565055860644163406499756892484401831277478",
@@ -1008,7 +1811,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1021,8 +1824,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641222+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380441+00:00"
     },
     {
       "quote_id": "pm_75684b169324d8e6",
@@ -1042,7 +1845,7 @@
       "fair_line": 25.0,
       "over_odds": 317,
       "under_odds": -567,
-      "observed_at": "2026-11-24T17:25:52.641223+00:00",
+      "observed_at": "2026-11-24T17:30:41.380442+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 18.72,
       "over_token_id": "3819767092164165035262300152659923140503748860362172172975313759030487143403",
@@ -1081,7 +1884,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1094,45 +1897,45 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641223+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380442+00:00"
     },
     {
-      "quote_id": "pm_85366de5b5060f05",
-      "provider_quote_id": "7293683",
-      "receipt_id": "pm_85366de5b5060f05",
-      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-rec-ceedee-lamb-5pt5",
-      "content_hash": "85366de5b5060f05f5a913a24604117b464e69071b99883ed374fec508d5f2ae",
+      "quote_id": "pm_017096572e7a75b6",
+      "provider_quote_id": "7293681",
+      "receipt_id": "pm_017096572e7a75b6",
+      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-recyd-ryan-flournoy-69pt5",
+      "content_hash": "017096572e7a75b69355f71067d9d11aaaae6af1227a281ca1f0be1867623136",
       "book": "Polymarket",
-      "player_id": "00-0036358",
-      "player_name": "CeeDee Lamb",
+      "player_id": "00-0039410",
+      "player_name": "Ryan Flournoy",
       "team": "DAL",
       "opponent": "PHI",
       "game_id": "2026_12_PHI_DAL",
       "position": "WR",
-      "market": "receptions",
-      "line": 5.5,
-      "fair_line": 7.5,
-      "over_odds": -335,
-      "under_odds": 163,
-      "observed_at": "2026-11-24T17:25:52.641224+00:00",
+      "market": "receiving_yards",
+      "line": 69.5,
+      "fair_line": 25.0,
+      "over_odds": 355,
+      "under_odds": -1011,
+      "observed_at": "2026-11-24T17:30:41.380443+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 22.04,
-      "over_token_id": "24555414475826479457970694802639051828819068689786729304379942959853586593148",
-      "under_token_id": "74532898799920412833328463573586152808258059677567420477686750005724254567893",
-      "over_ask_price": 0.77,
-      "under_ask_price": 0.38,
-      "over_ask_depth_usd": 81.62,
-      "under_ask_depth_usd": 22.04,
+      "liquidity_usd": 18.2,
+      "over_token_id": "34425309434924120263591303187854105946243096463712861020807520743786673305945",
+      "under_token_id": "43143360712324292142244992324090408769583234444744775722467056960649546938512",
+      "over_ask_price": 0.22,
+      "under_ask_price": 0.91,
+      "over_ask_depth_usd": 21.12,
+      "under_ask_depth_usd": 18.2,
       "event_title": "Eagles vs. Cowboys - Player Props",
       "end_date": "2026-11-26T21:30:00Z",
       "evaluation": {
-        "is_qualified": false,
+        "is_qualified": true,
         "status": "OBSERVED",
         "best_side": "UNDER",
-        "prob_edge": -0.0185,
-        "break_even_adv": -0.1318,
-        "expected_return": -0.3465,
+        "prob_edge": -0.17,
+        "break_even_adv": 0.04,
+        "expected_return": 0.044,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -1140,7 +1943,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_30d9d540e9bee436",
+      "verification_receipt_id": "pmr_de82954e093c1a35",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -1154,7 +1957,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1167,8 +1970,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641224+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380443+00:00"
+    },
+    {
+      "quote_id": "pm_52a610dd7dfa8572",
+      "provider_quote_id": "7293683",
+      "receipt_id": "pm_52a610dd7dfa8572",
+      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-rec-ceedee-lamb-5pt5",
+      "content_hash": "52a610dd7dfa8572f6945dfcb51635fa1c93cf69b57ac28e3fcf06b595ca9d1e",
+      "book": "Polymarket",
+      "player_id": "00-0036358",
+      "player_name": "CeeDee Lamb",
+      "team": "DAL",
+      "opponent": "PHI",
+      "game_id": "2026_12_PHI_DAL",
+      "position": "WR",
+      "market": "receptions",
+      "line": 5.5,
+      "fair_line": 7.5,
+      "over_odds": -376,
+      "under_odds": 163,
+      "observed_at": "2026-11-24T17:30:41.380444+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 22.04,
+      "over_token_id": "24555414475826479457970694802639051828819068689786729304379942959853586593148",
+      "under_token_id": "74532898799920412833328463573586152808258059677567420477686750005724254567893",
+      "over_ask_price": 0.79,
+      "under_ask_price": 0.38,
+      "over_ask_depth_usd": 395.0,
+      "under_ask_depth_usd": 22.04,
+      "event_title": "Eagles vs. Cowboys - Player Props",
+      "end_date": "2026-11-26T21:30:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0385,
+        "break_even_adv": -0.1318,
+        "expected_return": -0.3465,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_13f2cb6913f1b93e",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380444+00:00"
     },
     {
       "quote_id": "pm_412b1d1e0ea33ca9",
@@ -1188,7 +2064,7 @@
       "fair_line": 7.5,
       "over_odds": -150,
       "under_odds": -104,
-      "observed_at": "2026-11-24T17:25:52.641225+00:00",
+      "observed_at": "2026-11-24T17:30:41.380445+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 23.4,
       "over_token_id": "61801722501962731207010837840992673075640486205030676334846851331816350381814",
@@ -1227,7 +2103,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1240,81 +2116,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641225+00:00"
-    },
-    {
-      "quote_id": "pm_4cee5914aeade119",
-      "provider_quote_id": "7293695",
-      "receipt_id": "pm_4cee5914aeade119",
-      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-rec-darius-cooper-1pt5",
-      "content_hash": "4cee5914aeade119f98eb9a1883d03618f69379193b9b1edcb4c9292aad8cb27",
-      "book": "Polymarket",
-      "player_id": "00-0040024",
-      "player_name": "Darius Cooper",
-      "team": "PHI",
-      "opponent": "DAL",
-      "game_id": "2026_12_PHI_DAL",
-      "position": "WR",
-      "market": "receptions",
-      "line": 1.5,
-      "fair_line": 2.5,
-      "over_odds": -245,
-      "under_odds": -4900,
-      "observed_at": "2026-11-24T17:25:52.641226+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 22.01,
-      "over_token_id": "39163290692582839041982819793545172737730868634472914248975625741126544470383",
-      "under_token_id": "86856628207653435932769730097381490208107295652535688589625288824018352157601",
-      "over_ask_price": 0.71,
-      "under_ask_price": 0.98,
-      "over_ask_depth_usd": 22.01,
-      "under_ask_depth_usd": 245.0,
-      "event_title": "Eagles vs. Cowboys - Player Props",
-      "end_date": "2026-11-26T21:30:00Z",
-      "evaluation": {
-        "is_qualified": false,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.0363,
-        "break_even_adv": 0.0362,
-        "expected_return": 0.0509,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_86c24d1f63dad2ce",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641226+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380445+00:00"
     },
     {
       "quote_id": "pm_60774d029f574dea",
@@ -1334,7 +2137,7 @@
       "fair_line": 2.5,
       "over_odds": 117,
       "under_odds": -186,
-      "observed_at": "2026-11-24T17:25:52.641227+00:00",
+      "observed_at": "2026-11-24T17:30:41.380446+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 12.88,
       "over_token_id": "1307080759762014888493703550508933593992660124602321446094191262012459958673",
@@ -1373,7 +2176,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1386,8 +2189,154 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641227+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380446+00:00"
+    },
+    {
+      "quote_id": "pm_5dbdce3a05227a27",
+      "provider_quote_id": "7293707",
+      "receipt_id": "pm_5dbdce3a05227a27",
+      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-rec-george-pickens-3pt5",
+      "content_hash": "5dbdce3a05227a277493c84e5c032de1962a72e0dfbae2874cd735d804fa5980",
+      "book": "Polymarket",
+      "player_id": "00-0037247",
+      "player_name": "George Pickens",
+      "team": "DAL",
+      "opponent": "PHI",
+      "game_id": "2026_12_PHI_DAL",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3.5,
+      "fair_line": 5.5,
+      "over_odds": -355,
+      "under_odds": 163,
+      "observed_at": "2026-11-24T17:30:41.380447+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 36.48,
+      "over_token_id": "23962988549416479882001302625674260302195870139885875880674975614410741572346",
+      "under_token_id": "54864568817733006018797549224875257648482867305627889546638694435852516079789",
+      "over_ask_price": 0.78,
+      "under_ask_price": 0.38,
+      "over_ask_depth_usd": 88.14,
+      "under_ask_depth_usd": 36.48,
+      "event_title": "Eagles vs. Cowboys - Player Props",
+      "end_date": "2026-11-26T21:30:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "OVER",
+        "prob_edge": 0.0333,
+        "break_even_adv": 0.0331,
+        "expected_return": 0.0424,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_a2cc8c61ae27a089",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380447+00:00"
+    },
+    {
+      "quote_id": "pm_938ac125f2456ac3",
+      "provider_quote_id": "7293715",
+      "receipt_id": "pm_938ac125f2456ac3",
+      "source_url": "https://polymarket.com/market/nfl-phi-dal-2026-11-26-rec-javonte-williams-2pt5",
+      "content_hash": "938ac125f2456ac3394a65863fed5d592c16a152e813e9d9df27a9c65256d19b",
+      "book": "Polymarket",
+      "player_id": "00-0036997",
+      "player_name": "Javonte Williams",
+      "team": "DAL",
+      "opponent": "PHI",
+      "game_id": "2026_12_PHI_DAL",
+      "position": "RB",
+      "market": "receptions",
+      "line": 2.5,
+      "fair_line": 1.5,
+      "over_odds": 178,
+      "under_odds": -300,
+      "observed_at": "2026-11-24T17:30:41.380448+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 35.25,
+      "over_token_id": "112634194013290816257074186731736156936654315605590208362884035219296585726666",
+      "under_token_id": "89230562916454333822908166498100385844792662921757922625962083530280308671558",
+      "over_ask_price": 0.36,
+      "under_ask_price": 0.75,
+      "over_ask_depth_usd": 36.0,
+      "under_ask_depth_usd": 35.25,
+      "event_title": "Eagles vs. Cowboys - Player Props",
+      "end_date": "2026-11-26T21:30:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0038,
+        "break_even_adv": -0.1062,
+        "expected_return": -0.1417,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_6f9ae97fc77d770a",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380448+00:00"
     },
     {
       "quote_id": "pm_7fa618cc7c4d5223",
@@ -1407,7 +2356,7 @@
       "fair_line": 1.5,
       "over_odds": 355,
       "under_odds": -733,
-      "observed_at": "2026-11-24T17:25:52.641228+00:00",
+      "observed_at": "2026-11-24T17:30:41.380449+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 17.6,
       "over_token_id": "74654974595432515125781965642373875682890645119476000927318985989655314288019",
@@ -1446,7 +2395,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1459,8 +2408,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641228+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380449+00:00"
     },
     {
       "quote_id": "pm_a19a0ca90b3b3ccc",
@@ -1480,7 +2429,7 @@
       "fair_line": 3.5,
       "over_odds": -170,
       "under_odds": -117,
-      "observed_at": "2026-11-24T17:25:52.641229+00:00",
+      "observed_at": "2026-11-24T17:30:41.380450+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 17.64,
       "over_token_id": "48915156019891015077934202082932952318394644301014377140358350249599453798595",
@@ -1519,7 +2468,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1532,8 +2481,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641229+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380450+00:00"
     },
     {
       "quote_id": "pm_12b4a184f0d994f4",
@@ -1553,7 +2502,7 @@
       "fair_line": 2.5,
       "over_odds": -150,
       "under_odds": -113,
-      "observed_at": "2026-11-24T17:25:52.641230+00:00",
+      "observed_at": "2026-11-24T17:30:41.380451+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 18.6,
       "over_token_id": "102843417411899943878595686417804187225168740327537979856693175026350281661899",
@@ -1592,7 +2541,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1605,8 +2554,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641230+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380451+00:00"
     },
     {
       "quote_id": "pm_731550b3c9af3949",
@@ -1626,7 +2575,7 @@
       "fair_line": 2.5,
       "over_odds": 245,
       "under_odds": -456,
-      "observed_at": "2026-11-24T17:25:52.641231+00:00",
+      "observed_at": "2026-11-24T17:30:41.380452+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 38.86,
       "over_token_id": "27043516616743181503006434871587165451556595909826238671930858769759546477473",
@@ -1665,7 +2614,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1678,8 +2627,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641231+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380452+00:00"
     },
     {
       "quote_id": "pm_23b735c01e1d85b1",
@@ -1699,7 +2648,7 @@
       "fair_line": 14.5,
       "over_odds": -170,
       "under_odds": -100,
-      "observed_at": "2026-11-24T17:25:52.641232+00:00",
+      "observed_at": "2026-11-24T17:30:41.380453+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 10.71,
       "over_token_id": "35448174816749689638343298954776653486813319432047645992196204291049827177307",
@@ -1738,7 +2687,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1751,8 +2700,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641232+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380453+00:00"
     },
     {
       "quote_id": "pm_d3e636b1a5525148",
@@ -1772,7 +2721,7 @@
       "fair_line": 14.5,
       "over_odds": 257,
       "under_odds": -426,
-      "observed_at": "2026-11-24T17:25:52.641233+00:00",
+      "observed_at": "2026-11-24T17:30:41.380454+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 11.2,
       "over_token_id": "48485602611232849905553407525015228661075822270410785907658756774881853716404",
@@ -1811,7 +2760,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1824,8 +2773,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641233+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380454+00:00"
     },
     {
       "quote_id": "pm_f2858899eaeb529f",
@@ -1845,7 +2794,7 @@
       "fair_line": 1.5,
       "over_odds": 170,
       "under_odds": -257,
-      "observed_at": "2026-11-24T17:25:52.641234+00:00",
+      "observed_at": "2026-11-24T17:30:41.380455+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 11.84,
       "over_token_id": "12432611015347804175240379020887882778172089829575552827980667764687238471203",
@@ -1884,7 +2833,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1897,8 +2846,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641234+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380455+00:00"
     },
     {
       "quote_id": "pm_dfc381ef9100d44a",
@@ -1918,7 +2867,7 @@
       "fair_line": 1.5,
       "over_odds": 376,
       "under_odds": -733,
-      "observed_at": "2026-11-24T17:25:52.641235+00:00",
+      "observed_at": "2026-11-24T17:30:41.380456+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 11.13,
       "over_token_id": "6318164389912670107577285548448563477442778508505279907728379995522315853028",
@@ -1957,7 +2906,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -1970,8 +2919,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641235+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380456+00:00"
     },
     {
       "quote_id": "pm_d37c63b22e29a3d4",
@@ -1991,7 +2940,7 @@
       "fair_line": 43.5,
       "over_odds": -223,
       "under_odds": 133,
-      "observed_at": "2026-11-24T17:25:52.641236+00:00",
+      "observed_at": "2026-11-24T17:30:41.380457+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 10.35,
       "over_token_id": "90684974991970758477553261191983141046645858232604958102099137818336421668039",
@@ -2030,7 +2979,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2043,8 +2992,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641236+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380457+00:00"
     },
     {
       "quote_id": "pm_c72457d2de4cabbe",
@@ -2064,7 +3013,7 @@
       "fair_line": 13.5,
       "over_odds": -203,
       "under_odds": 122,
-      "observed_at": "2026-11-24T17:25:52.641237+00:00",
+      "observed_at": "2026-11-24T17:30:41.380458+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 20.77,
       "over_token_id": "85432120572300716651675443936396838032391768988086256228542706905284612203620",
@@ -2103,7 +3052,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2116,307 +3065,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641237+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380458+00:00"
     },
     {
-      "quote_id": "pm_259c6761482cc9be",
-      "provider_quote_id": "7293306",
-      "receipt_id": "pm_259c6761482cc9be",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-dandre-swift-19pt5",
-      "content_hash": "259c6761482cc9bedbce8ddfa1491b667702e935fb6a437cab567c2727562cc9",
-      "book": "Polymarket",
-      "player_id": "00-0036275",
-      "player_name": "D'Andre Swift",
-      "team": "CHI",
-      "opponent": "DET",
-      "game_id": "2026_12_CHI_DET",
-      "position": "RB",
-      "market": "receiving_yards",
-      "line": 19.5,
-      "fair_line": 13.5,
-      "over_odds": 117,
-      "under_odds": -3233,
-      "observed_at": "2026-11-24T17:25:52.641238+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 17.94,
-      "over_token_id": "55663029065561624072355002680997716002850503681435160650100095237429057917737",
-      "under_token_id": "4987872753397536360118729733781709757875901979703777087414513939447310023778",
-      "over_ask_price": 0.46,
-      "under_ask_price": 0.97,
-      "over_ask_depth_usd": 17.94,
-      "under_ask_depth_usd": 84.39,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.0799,
-        "break_even_adv": -0.3501,
-        "expected_return": -0.3609,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_ad8e0e7e7195928e",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641238+00:00"
-    },
-    {
-      "quote_id": "pm_53e9e4e2c304f0a1",
-      "provider_quote_id": "7293311",
-      "receipt_id": "pm_53e9e4e2c304f0a1",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-isaac-teslaa-14pt5",
-      "content_hash": "53e9e4e2c304f0a18809cc5f64f91c1825651d3dab3efe6218aa8d70700a2a54",
-      "book": "Polymarket",
-      "player_id": "00-0040669",
-      "player_name": "Isaac TeSlaa",
-      "team": "DET",
-      "opponent": "CHI",
-      "game_id": "2026_12_CHI_DET",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 14.5,
-      "fair_line": 19.0,
-      "over_odds": -163,
-      "under_odds": -108,
-      "observed_at": "2026-11-24T17:25:52.641239+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 36.58,
-      "over_token_id": "22915142452275412618986677890936894724232344756671293152582091755619719115130",
-      "under_token_id": "79836115698604334613585503013424509089519682872281663546304882860554969820829",
-      "over_ask_price": 0.62,
-      "under_ask_price": 0.52,
-      "over_ask_depth_usd": 36.58,
-      "under_ask_depth_usd": 43.16,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.2326,
-        "break_even_adv": 0.2328,
-        "expected_return": 0.3756,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_9154ccdb77ef4d0a",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641239+00:00"
-    },
-    {
-      "quote_id": "pm_6472a4f247e47f6a",
-      "provider_quote_id": "7293314",
-      "receipt_id": "pm_6472a4f247e47f6a",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-isaac-teslaa-29pt5",
-      "content_hash": "6472a4f247e47f6aa1ecbc6065b3de23646d19eb37efd48206384a37283c76d7",
-      "book": "Polymarket",
-      "player_id": "00-0040669",
-      "player_name": "Isaac TeSlaa",
-      "team": "DET",
-      "opponent": "CHI",
-      "game_id": "2026_12_CHI_DET",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 29.5,
-      "fair_line": 19.0,
-      "over_odds": 144,
-      "under_odds": -233,
-      "observed_at": "2026-11-24T17:25:52.641240+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 45.1,
-      "over_token_id": "23151605346911696876369863689644106979724037209124015821684739711765281720001",
-      "under_token_id": "89500849888117088285610754007655915550239768178638159419537475138478774960969",
-      "over_ask_price": 0.41,
-      "under_ask_price": 0.7,
-      "over_ask_depth_usd": 45.1,
-      "under_ask_depth_usd": 46.9,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.0762,
-        "break_even_adv": -0.0335,
-        "expected_return": -0.0479,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_0c8257c5a7cfbb41",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641240+00:00"
-    },
-    {
-      "quote_id": "pm_9e3ce38499b98ceb",
-      "provider_quote_id": "7293335",
-      "receipt_id": "pm_9e3ce38499b98ceb",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-kalif-raymond-14pt5",
-      "content_hash": "9e3ce38499b98ceb7fd3be0ac682500308395230a7b4eff0fe4c50cc8f3534a6",
-      "book": "Polymarket",
-      "player_id": "00-0032464",
-      "player_name": "Kalif Raymond",
-      "team": "CHI",
-      "opponent": "DET",
-      "game_id": "2026_12_CHI_DET",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 14.5,
-      "fair_line": 22.5,
-      "over_odds": -233,
-      "under_odds": 117,
-      "observed_at": "2026-11-24T17:25:52.641241+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 18.9,
-      "over_token_id": "44686831049747877041598821610567095005902250731833859809086834275323222669187",
-      "under_token_id": "113518070866579025666726561080323151734914470334522321822893759782364885022189",
-      "over_ask_price": 0.7,
-      "under_ask_price": 0.46,
-      "over_ask_depth_usd": 18.9,
-      "under_ask_depth_usd": 45.08,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.1911,
-        "break_even_adv": 0.1914,
-        "expected_return": 0.2735,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_308174acaab10381",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641241+00:00"
-    },
-    {
-      "quote_id": "pm_4e932104dd55c874",
+      "quote_id": "pm_be52c1759eb1fefd",
       "provider_quote_id": "7293337",
-      "receipt_id": "pm_4e932104dd55c874",
+      "receipt_id": "pm_be52c1759eb1fefd",
       "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-kalif-raymond-24pt5",
-      "content_hash": "4e932104dd55c874fb24771560d73be2739584de713ea2b89861797cb0750aa5",
+      "content_hash": "be52c1759eb1fefdc4aed53750ba8352d61e7e353ac5d5abbb73b8b6ba499dd1",
       "book": "Polymarket",
       "player_id": "00-0032464",
       "player_name": "Kalif Raymond",
@@ -2428,16 +3085,16 @@
       "line": 24.5,
       "fair_line": 22.5,
       "over_odds": -104,
-      "under_odds": -2400,
-      "observed_at": "2026-11-24T17:25:52.641242+00:00",
+      "under_odds": -3233,
+      "observed_at": "2026-11-24T17:30:41.380459+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 36.72,
       "over_token_id": "43524315893530239108972712634771276919805992283449696783182031209786131010069",
       "under_token_id": "61134782653102982206155702348178532390120169537878441265725583178277697685833",
       "over_ask_price": 0.51,
-      "under_ask_price": 0.96,
+      "under_ask_price": 0.97,
       "over_ask_depth_usd": 36.72,
-      "under_ask_depth_usd": 154.56,
+      "under_ask_depth_usd": 313.31,
       "event_title": "Bears vs. Lions - Player Props",
       "end_date": "2026-11-26T18:00:00Z",
       "evaluation": {
@@ -2454,7 +3111,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_d003bfe5ab548a56",
+      "verification_receipt_id": "pmr_fd722a91296dcd72",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -2468,7 +3125,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2481,81 +3138,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641242+00:00"
-    },
-    {
-      "quote_id": "pm_9fc073f518a4c924",
-      "provider_quote_id": "7293338",
-      "receipt_id": "pm_9fc073f518a4c924",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-kalif-raymond-29pt5",
-      "content_hash": "9fc073f518a4c9248f2bfd8a848dbe0f4d76d990e9ba8abe3d63264bdf27d226",
-      "book": "Polymarket",
-      "player_id": "00-0032464",
-      "player_name": "Kalif Raymond",
-      "team": "CHI",
-      "opponent": "DET",
-      "game_id": "2026_12_CHI_DET",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 29.5,
-      "fair_line": 22.5,
-      "over_odds": 122,
-      "under_odds": -194,
-      "observed_at": "2026-11-24T17:25:52.641243+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 40.92,
-      "over_token_id": "15295539722434929334869721560751079685592057945413819472782242439841261004923",
-      "under_token_id": "55611017650763405703994984072853940878174371328967321999702386966061915362254",
-      "over_ask_price": 0.45,
-      "under_ask_price": 0.66,
-      "over_ask_depth_usd": 45.0,
-      "under_ask_depth_usd": 40.92,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": false,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.0134,
-        "break_even_adv": 0.0129,
-        "expected_return": 0.0287,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_977372571290346f",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641243+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380459+00:00"
     },
     {
       "quote_id": "pm_1e96e1a8bd73bd6b",
@@ -2575,7 +3159,7 @@
       "fair_line": 44.0,
       "over_odds": -285,
       "under_odds": 144,
-      "observed_at": "2026-11-24T17:25:52.641244+00:00",
+      "observed_at": "2026-11-24T17:30:41.380460+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 11.1,
       "over_token_id": "33536092886429506539560037327760471248548098302203213297024509026436563342040",
@@ -2614,7 +3198,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2627,81 +3211,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641244+00:00"
-    },
-    {
-      "quote_id": "pm_fa4688ef34b23694",
-      "provider_quote_id": "7293358",
-      "receipt_id": "pm_fa4688ef34b23694",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-recyd-rome-odunze-79pt5",
-      "content_hash": "fa4688ef34b23694b8fd6a68f61ee35f2b7e8c443e39f9e1b9b9c88900311d15",
-      "book": "Polymarket",
-      "player_id": "00-0039919",
-      "player_name": "Rome Odunze",
-      "team": "CHI",
-      "opponent": "DET",
-      "game_id": "2026_12_CHI_DET",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 79.5,
-      "fair_line": 44.0,
-      "over_odds": 257,
-      "under_odds": -525,
-      "observed_at": "2026-11-24T17:25:52.641245+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 19.32,
-      "over_token_id": "28838052100748596937240242556888850182245466089793480763342611538078252315925",
-      "under_token_id": "116635227314538769879318368430417591448421278773665708189982804280509683704",
-      "over_ask_price": 0.28,
-      "under_ask_price": 0.84,
-      "over_ask_depth_usd": 19.32,
-      "under_ask_depth_usd": 46.2,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.212,
-        "break_even_adv": 0.092,
-        "expected_return": 0.1095,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_0d57484e4b24a5da",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641245+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380460+00:00"
     },
     {
       "quote_id": "pm_a5f113a733879888",
@@ -2721,7 +3232,7 @@
       "fair_line": 5.5,
       "over_odds": -285,
       "under_odds": 150,
-      "observed_at": "2026-11-24T17:25:52.641246+00:00",
+      "observed_at": "2026-11-24T17:30:41.380461+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 10.36,
       "over_token_id": "111564998356222579649756465986862372038264593467355283646781161871357655819798",
@@ -2760,7 +3271,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2773,8 +3284,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641246+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380461+00:00"
     },
     {
       "quote_id": "pm_b0c1a744d0010f9f",
@@ -2794,7 +3305,7 @@
       "fair_line": 4.5,
       "over_odds": -1150,
       "under_odds": 300,
-      "observed_at": "2026-11-24T17:25:52.641247+00:00",
+      "observed_at": "2026-11-24T17:30:41.380462+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 32.75,
       "over_token_id": "32717579998571946295170018994982417172507185111175745114068240155717589977767",
@@ -2833,7 +3344,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2846,8 +3357,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641247+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380462+00:00"
+    },
+    {
+      "quote_id": "pm_21e4aa666a7110c2",
+      "provider_quote_id": "7293389",
+      "receipt_id": "pm_21e4aa666a7110c2",
+      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-rec-dandre-swift-1pt5",
+      "content_hash": "21e4aa666a7110c2e675e0393809d4dac5fce889cb4ae2b868a2dfa004318e43",
+      "book": "Polymarket",
+      "player_id": "00-0036275",
+      "player_name": "D'Andre Swift",
+      "team": "CHI",
+      "opponent": "DET",
+      "game_id": "2026_12_CHI_DET",
+      "position": "RB",
+      "market": "receptions",
+      "line": 1.5,
+      "fair_line": 1.5,
+      "over_odds": -257,
+      "under_odds": 127,
+      "observed_at": "2026-11-24T17:30:41.380463+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 19.8,
+      "over_token_id": "98455411239224245199809013210392889536491847795627456315167104122903983852112",
+      "under_token_id": "21622624660063238515381442595801426692943621409672092970430724661705279253446",
+      "over_ask_price": 0.72,
+      "under_ask_price": 0.44,
+      "over_ask_depth_usd": 38.16,
+      "under_ask_depth_usd": 19.8,
+      "event_title": "Bears vs. Lions - Player Props",
+      "end_date": "2026-11-26T18:00:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0153,
+        "break_even_adv": -0.1452,
+        "expected_return": -0.3296,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_e70fbf7e57953deb",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380463+00:00"
     },
     {
       "quote_id": "pm_40a53b45cb4c8e94",
@@ -2867,7 +3451,7 @@
       "fair_line": 1.5,
       "over_odds": -300,
       "under_odds": 144,
-      "observed_at": "2026-11-24T17:25:52.641248+00:00",
+      "observed_at": "2026-11-24T17:30:41.380464+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.27,
       "over_token_id": "77007886604278442486479279037779055303934747004587143473299076542875162875571",
@@ -2906,7 +3490,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2919,8 +3503,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641248+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380464+00:00"
     },
     {
       "quote_id": "pm_c764483073f16609",
@@ -2940,7 +3524,7 @@
       "fair_line": 3.5,
       "over_odds": -614,
       "under_odds": 223,
-      "observed_at": "2026-11-24T17:25:52.641249+00:00",
+      "observed_at": "2026-11-24T17:30:41.380465+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 20.15,
       "over_token_id": "97441280681264298002764519892748092562356721758978595492017926906838425682756",
@@ -2979,7 +3563,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -2992,45 +3576,45 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641249+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380465+00:00"
     },
     {
-      "quote_id": "pm_52c6ddde9c628767",
-      "provider_quote_id": "7293420",
-      "receipt_id": "pm_52c6ddde9c628767",
-      "source_url": "https://polymarket.com/market/nfl-chi-det-2026-11-26-rec-rome-odunze-4pt5",
-      "content_hash": "52c6ddde9c6287673600421e01988fe6b3f004a999cb6367526c95d50a473b0f",
+      "quote_id": "pm_c42dcf03550ecd24",
+      "provider_quote_id": "7293093",
+      "receipt_id": "pm_c42dcf03550ecd24",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-recyd-josh-downs-19pt5",
+      "content_hash": "c42dcf03550ecd243d29de736470d82511b7cf14f70737b528c2dc75aa2632ed",
       "book": "Polymarket",
-      "player_id": "00-0039919",
-      "player_name": "Rome Odunze",
-      "team": "CHI",
-      "opponent": "DET",
-      "game_id": "2026_12_CHI_DET",
+      "player_id": "00-0038997",
+      "player_name": "Josh Downs",
+      "team": "KC",
+      "opponent": "BUF",
+      "game_id": "2026_12_KC_BUF",
       "position": "WR",
-      "market": "receptions",
-      "line": 4.5,
-      "fair_line": 3.5,
-      "over_odds": 223,
-      "under_odds": -376,
-      "observed_at": "2026-11-24T17:25:52.641250+00:00",
+      "market": "receiving_yards",
+      "line": 19.5,
+      "fair_line": 31.0,
+      "over_odds": -400,
+      "under_odds": 186,
+      "observed_at": "2026-11-24T17:30:41.380466+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 10.23,
-      "over_token_id": "53786453837167460889099372673869095209350887258641365568896249924740492541979",
-      "under_token_id": "37647045241208981983452368196390884085221555112730936314493166473702252257266",
-      "over_ask_price": 0.31,
-      "under_ask_price": 0.79,
-      "over_ask_depth_usd": 10.23,
-      "under_ask_depth_usd": 24.49,
-      "event_title": "Bears vs. Lions - Player Props",
-      "end_date": "2026-11-26T18:00:00Z",
+      "liquidity_usd": 31.5,
+      "over_token_id": "107954295434606829867780348109264832793413697269758660851443367752232933919043",
+      "under_token_id": "50923535108248535841057089725269707792426285283371491733188540203616442784676",
+      "over_ask_price": 0.8,
+      "under_ask_price": 0.35,
+      "over_ask_depth_usd": 74.4,
+      "under_ask_depth_usd": 31.5,
+      "event_title": "Chiefs vs. Bills - Player Props",
+      "end_date": "2026-11-27T01:20:00Z",
       "evaluation": {
-        "is_qualified": false,
+        "is_qualified": true,
         "status": "OBSERVED",
         "best_side": "OVER",
-        "prob_edge": 0.0377,
-        "break_even_adv": 0.0381,
-        "expected_return": 0.1232,
+        "prob_edge": 0.09,
+        "break_even_adv": 0.09,
+        "expected_return": 0.1125,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -3038,7 +3622,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_50d802fad96c39e9",
+      "verification_receipt_id": "pmr_6172ecbfe7605b31",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -3052,7 +3636,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3065,8 +3649,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641250+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380466+00:00"
+    },
+    {
+      "quote_id": "pm_a4ecc9620575be53",
+      "provider_quote_id": "7293096",
+      "receipt_id": "pm_a4ecc9620575be53",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-recyd-josh-downs-49pt5",
+      "content_hash": "a4ecc9620575be53324413a6e17dda980cc6247a10d7e867d396d2637fc32e2e",
+      "book": "Polymarket",
+      "player_id": "00-0038997",
+      "player_name": "Josh Downs",
+      "team": "KC",
+      "opponent": "BUF",
+      "game_id": "2026_12_KC_BUF",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 49.5,
+      "fair_line": 31.0,
+      "over_odds": 133,
+      "under_odds": -194,
+      "observed_at": "2026-11-24T17:30:41.380467+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 48.84,
+      "over_token_id": "20506034067221222994947264187148308963463607085223389547393307958295854639404",
+      "under_token_id": "49095949813748546332084823948958610976248105860185230293982073776305171507182",
+      "over_ask_price": 0.43,
+      "under_ask_price": 0.66,
+      "over_ask_depth_usd": 50.74,
+      "under_ask_depth_usd": 48.84,
+      "event_title": "Chiefs vs. Bills - Player Props",
+      "end_date": "2026-11-27T01:20:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.2477,
+        "break_even_adv": 0.1579,
+        "expected_return": 0.2392,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_d203c3c78d38bded",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380467+00:00"
     },
     {
       "quote_id": "pm_e00d0579c902dd8b",
@@ -3086,7 +3743,7 @@
       "fair_line": 24.0,
       "over_odds": -144,
       "under_odds": -108,
-      "observed_at": "2026-11-24T17:25:52.641251+00:00",
+      "observed_at": "2026-11-24T17:30:41.380468+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 21.24,
       "over_token_id": "21934734890413536999256856615170981930284112863510431991050519674438013838436",
@@ -3125,7 +3782,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3138,8 +3795,154 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641251+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380468+00:00"
+    },
+    {
+      "quote_id": "pm_6c06276f29c24d48",
+      "provider_quote_id": "7293110",
+      "receipt_id": "pm_6c06276f29c24d48",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-recyd-khalil-shakir-39pt5",
+      "content_hash": "6c06276f29c24d4825ad3eb269114a495ce077b385fa859741ebcf4e7e228bcf",
+      "book": "Polymarket",
+      "player_id": "00-0037261",
+      "player_name": "Khalil Shakir",
+      "team": "BUF",
+      "opponent": "KC",
+      "game_id": "2026_12_KC_BUF",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 39.5,
+      "fair_line": 33.0,
+      "over_odds": -117,
+      "under_odds": -138,
+      "observed_at": "2026-11-24T17:30:41.380469+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 20.3,
+      "over_token_id": "114760872761812445619252627504186802606657349125666251651491746204785209710485",
+      "under_token_id": "108960271724131052035953016372352861897152677091549549818331815232192123331898",
+      "over_ask_price": 0.54,
+      "under_ask_price": 0.58,
+      "over_ask_depth_usd": 20.52,
+      "under_ask_depth_usd": 20.3,
+      "event_title": "Chiefs vs. Bills - Player Props",
+      "end_date": "2026-11-27T01:20:00Z",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.0495,
+        "break_even_adv": -0.0704,
+        "expected_return": -0.1213,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_0e015760863df69c",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380469+00:00"
+    },
+    {
+      "quote_id": "pm_91f01582fc41c414",
+      "provider_quote_id": "7293117",
+      "receipt_id": "pm_91f01582fc41c414",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-recyd-rashee-rice-29pt5",
+      "content_hash": "91f01582fc41c414eb3482857f90a1ec39b8a83a5f50f38f7ef427e212c00ecf",
+      "book": "Polymarket",
+      "player_id": "00-0039067",
+      "player_name": "Rashee Rice",
+      "team": "KC",
+      "opponent": "BUF",
+      "game_id": "2026_12_KC_BUF",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 48.0,
+      "over_odds": -335,
+      "under_odds": 163,
+      "observed_at": "2026-11-24T17:30:41.380470+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 37.62,
+      "over_token_id": "38698395939291674684868493476095884666925899162124891249927948542623147296443",
+      "under_token_id": "32059009752744064985658368070417867374352847408332246008533357433280177823840",
+      "over_ask_price": 0.77,
+      "under_ask_price": 0.38,
+      "over_ask_depth_usd": 78.54,
+      "under_ask_depth_usd": 37.62,
+      "event_title": "Chiefs vs. Bills - Player Props",
+      "end_date": "2026-11-27T01:20:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "OVER",
+        "prob_edge": 0.1198,
+        "break_even_adv": 0.1197,
+        "expected_return": 0.1554,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_4f038e444e944ee6",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380470+00:00"
     },
     {
       "quote_id": "pm_a0e7270bbdf95df2",
@@ -3159,7 +3962,7 @@
       "fair_line": 48.0,
       "over_odds": 122,
       "under_odds": -213,
-      "observed_at": "2026-11-24T17:25:52.641252+00:00",
+      "observed_at": "2026-11-24T17:30:41.380471+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 36.72,
       "over_token_id": "94704855641844211725048998987829214393316971998201268956231295474916318140546",
@@ -3198,7 +4001,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3211,8 +4014,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641252+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380471+00:00"
     },
     {
       "quote_id": "pm_2c5b9b7129a7d1e8",
@@ -3232,7 +4035,7 @@
       "fair_line": 38.5,
       "over_odds": 108,
       "under_odds": -178,
-      "observed_at": "2026-11-24T17:25:52.641253+00:00",
+      "observed_at": "2026-11-24T17:30:41.380472+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 36.0,
       "over_token_id": "97488475429225771715408606072202271072727495104286139576607508791325093377258",
@@ -3271,7 +4074,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3284,8 +4087,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641253+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380472+00:00"
     },
     {
       "quote_id": "pm_d85832ea57a6ecc0",
@@ -3305,7 +4108,7 @@
       "fair_line": 38.5,
       "over_odds": 233,
       "under_odds": -376,
-      "observed_at": "2026-11-24T17:25:52.641254+00:00",
+      "observed_at": "2026-11-24T17:30:41.380473+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 38.71,
       "over_token_id": "62138211905667938921554000885415533420629756213170469979416391768777978444795",
@@ -3344,7 +4147,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3357,8 +4160,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641254+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380473+00:00"
     },
     {
       "quote_id": "pm_27b63acbad20e522",
@@ -3378,7 +4181,7 @@
       "fair_line": 25.5,
       "over_odds": -178,
       "under_odds": 104,
-      "observed_at": "2026-11-24T17:25:52.641255+00:00",
+      "observed_at": "2026-11-24T17:30:41.380474+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.84,
       "over_token_id": "64013188859050323813622837711401604556468145169011579916258486161578609705002",
@@ -3417,7 +4220,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3430,15 +4233,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641255+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380474+00:00"
     },
     {
-      "quote_id": "pm_18f05bdfb03ac31e",
+      "quote_id": "pm_f2ebe7f91a67368a",
       "provider_quote_id": "7293135",
-      "receipt_id": "pm_18f05bdfb03ac31e",
+      "receipt_id": "pm_f2ebe7f91a67368a",
       "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-recyd-xavier-worthy-19pt5",
-      "content_hash": "18f05bdfb03ac31ef280cf184e3ca41572b431553a3aa4c477a5ba73370d14e2",
+      "content_hash": "f2ebe7f91a67368a9baf1b8c15fc876248fa1e9088f973143e9238d15348c414",
       "book": "Polymarket",
       "player_id": "00-0039894",
       "player_name": "Xavier Worthy",
@@ -3450,16 +4253,16 @@
       "line": 19.5,
       "fair_line": 25.5,
       "over_odds": -117,
-      "under_odds": -127,
-      "observed_at": "2026-11-24T17:25:52.641256+00:00",
+      "under_odds": -1011,
+      "observed_at": "2026-11-24T17:30:41.380475+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 38.64,
+      "liquidity_usd": 41.58,
       "over_token_id": "95346785539292019471619690083526361061527331387498138150490120718487064276169",
       "under_token_id": "18233668232565207025364955708464734011488549040475121290738077489287581244278",
       "over_ask_price": 0.54,
-      "under_ask_price": 0.56,
+      "under_ask_price": 0.91,
       "over_ask_depth_usd": 41.58,
-      "under_ask_depth_usd": 38.64,
+      "under_ask_depth_usd": 109.2,
       "event_title": "Chiefs vs. Bills - Player Props",
       "end_date": "2026-11-27T01:20:00Z",
       "evaluation": {
@@ -3476,7 +4279,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_6662d08c6625c458",
+      "verification_receipt_id": "pmr_8ddc927bae7b05cd",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -3490,7 +4293,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3503,8 +4306,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641256+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380475+00:00"
+    },
+    {
+      "quote_id": "pm_0221633d3f422d38",
+      "provider_quote_id": "7293150",
+      "receipt_id": "pm_0221633d3f422d38",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-rec-josh-downs-5pt5",
+      "content_hash": "0221633d3f422d38cc5d36a5a88b476af0d696201480d413381d5780db616435",
+      "book": "Polymarket",
+      "player_id": "00-0038997",
+      "player_name": "Josh Downs",
+      "team": "KC",
+      "opponent": "BUF",
+      "game_id": "2026_12_KC_BUF",
+      "position": "WR",
+      "market": "receptions",
+      "line": 5.5,
+      "fair_line": 2.5,
+      "over_odds": 317,
+      "under_odds": -567,
+      "observed_at": "2026-11-24T17:30:41.380476+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 19.68,
+      "over_token_id": "4853735576667322029609671161036885511127517253791059114437590843010920177540",
+      "under_token_id": "108054371257448631973367797051906882721336483982905544875078006613197121856688",
+      "over_ask_price": 0.24,
+      "under_ask_price": 0.85,
+      "over_ask_depth_usd": 19.68,
+      "under_ask_depth_usd": 22.95,
+      "event_title": "Chiefs vs. Bills - Player Props",
+      "end_date": "2026-11-27T01:20:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.1304,
+        "break_even_adv": 0.0403,
+        "expected_return": 0.0474,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_cb124bec45dd1bd5",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380476+00:00"
     },
     {
       "quote_id": "pm_2ee6c2482fe8247e",
@@ -3524,7 +4400,7 @@
       "fair_line": 1.5,
       "over_odds": 300,
       "under_odds": -567,
-      "observed_at": "2026-11-24T17:25:52.641257+00:00",
+      "observed_at": "2026-11-24T17:30:41.380477+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 10.75,
       "over_token_id": "22731656868800275760043506302538416983348201606086289006973061520509906113990",
@@ -3563,7 +4439,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3576,8 +4452,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641257+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380477+00:00"
     },
     {
       "quote_id": "pm_4c0cd66fb659ce03",
@@ -3597,7 +4473,7 @@
       "fair_line": 2.5,
       "over_odds": 163,
       "under_odds": -257,
-      "observed_at": "2026-11-24T17:25:52.641258+00:00",
+      "observed_at": "2026-11-24T17:30:41.380478+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 18.72,
       "over_token_id": "77885297400126433641751418528908348405281067657759597211372399171342289979647",
@@ -3636,7 +4512,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3649,8 +4525,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641258+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380478+00:00"
     },
     {
       "quote_id": "pm_ac9ec348f4bd96e6",
@@ -3670,7 +4546,7 @@
       "fair_line": 4.5,
       "over_odds": -245,
       "under_odds": 144,
-      "observed_at": "2026-11-24T17:25:52.641259+00:00",
+      "observed_at": "2026-11-24T17:30:41.380479+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 22.01,
       "over_token_id": "19169763244203814779367570204109618376303376896580658848776280314807381097936",
@@ -3709,7 +4585,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3722,15 +4598,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641259+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380479+00:00"
     },
     {
-      "quote_id": "pm_c7f7df85770ca478",
-      "provider_quote_id": "7293167",
-      "receipt_id": "pm_c7f7df85770ca478",
-      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-rec-travis-kelce-3pt5",
-      "content_hash": "c7f7df85770ca478e4268cdd8fb351204412f902163fd77619cc32109ed09728",
+      "quote_id": "pm_002d4f9e89ee8ee9",
+      "provider_quote_id": "7293166",
+      "receipt_id": "pm_002d4f9e89ee8ee9",
+      "source_url": "https://polymarket.com/market/nfl-kc-buf-2026-11-27-rec-travis-kelce-2pt5",
+      "content_hash": "002d4f9e89ee8ee9571331754d0079717c8894edeb9608c7899c0f7e3bd3dae6",
       "book": "Polymarket",
       "player_id": "00-0030506",
       "player_name": "Travis Kelce",
@@ -3739,28 +4615,28 @@
       "game_id": "2026_12_KC_BUF",
       "position": "TE",
       "market": "receptions",
-      "line": 3.5,
+      "line": 2.5,
       "fair_line": 3.5,
-      "over_odds": -170,
-      "under_odds": -4900,
-      "observed_at": "2026-11-24T17:25:52.641260+00:00",
+      "over_odds": -525,
+      "under_odds": 186,
+      "observed_at": "2026-11-24T17:30:41.380480+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 10.71,
-      "over_token_id": "55650313845015225036818117478357253613258212068495850308822384588801228874556",
-      "under_token_id": "109696395113748314071636162909415336632007135757330604942039606877002929561602",
-      "over_ask_price": 0.63,
-      "under_ask_price": 0.98,
-      "over_ask_depth_usd": 10.71,
-      "under_ask_depth_usd": 180.32,
+      "liquidity_usd": 19.95,
+      "over_token_id": "52554341039105058225515311733662117963068187703126068516416375534974528183243",
+      "under_token_id": "94307312415166841119247461379843743664032994077893688039155398482865418458915",
+      "over_ask_price": 0.84,
+      "under_ask_price": 0.35,
+      "over_ask_depth_usd": 420.0,
+      "under_ask_depth_usd": 19.95,
       "event_title": "Chiefs vs. Bills - Player Props",
       "end_date": "2026-11-27T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
         "status": "OBSERVED",
         "best_side": "UNDER",
-        "prob_edge": -0.013,
-        "break_even_adv": -0.597,
-        "expected_return": -0.6092,
+        "prob_edge": -0.0491,
+        "break_even_adv": -0.1406,
+        "expected_return": -0.402,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -3768,7 +4644,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_6b1069f3d02bee57",
+      "verification_receipt_id": "pmr_e561174b53d17b56",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -3782,7 +4658,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3795,8 +4671,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641260+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380480+00:00"
     },
     {
       "quote_id": "pm_32f64561e0f367af",
@@ -3816,7 +4692,7 @@
       "fair_line": 2.5,
       "over_odds": 270,
       "under_odds": -426,
-      "observed_at": "2026-11-24T17:25:52.641261+00:00",
+      "observed_at": "2026-11-24T17:30:41.380481+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 23.76,
       "over_token_id": "18124397310648048764907287197670690404279344580181353816959480727985494829457",
@@ -3855,7 +4731,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3868,8 +4744,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641261+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380481+00:00"
     },
     {
       "quote_id": "pm_1145fe6f5e587b87",
@@ -3889,7 +4765,7 @@
       "fair_line": 24.0,
       "over_odds": -113,
       "under_odds": -138,
-      "observed_at": "2026-11-24T17:25:52.641262+00:00",
+      "observed_at": "2026-11-24T17:30:41.380482+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 43.46,
       "over_token_id": "94788305217318554632000607133506224094961258359327364962128473228351195805548",
@@ -3928,7 +4804,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -3941,8 +4817,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641262+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380482+00:00"
     },
     {
       "quote_id": "pm_8cde750f12d7c149",
@@ -3962,7 +4838,7 @@
       "fair_line": 16.5,
       "over_odds": -122,
       "under_odds": -133,
-      "observed_at": "2026-11-24T17:25:52.641263+00:00",
+      "observed_at": "2026-11-24T17:30:41.380483+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 35.75,
       "over_token_id": "77720362485820752940133456809729531569370156941447259894009328137075461726375",
@@ -4001,7 +4877,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4014,8 +4890,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641263+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380483+00:00"
     },
     {
       "quote_id": "pm_a1f0a6f03e011cb2",
@@ -4035,7 +4911,7 @@
       "fair_line": 16.5,
       "over_odds": 113,
       "under_odds": -194,
-      "observed_at": "2026-11-24T17:25:52.641264+00:00",
+      "observed_at": "2026-11-24T17:30:41.380484+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 19.14,
       "over_token_id": "1777887119129108105578508309710239440424803918560556128143301765707936547871",
@@ -4074,7 +4950,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4087,8 +4963,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641264+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380484+00:00"
     },
     {
       "quote_id": "pm_efd7bce7c114ee57",
@@ -4108,7 +4984,7 @@
       "fair_line": 1.5,
       "over_odds": 456,
       "under_odds": -1011,
-      "observed_at": "2026-11-24T17:25:52.641265+00:00",
+      "observed_at": "2026-11-24T17:30:41.380485+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 10.44,
       "over_token_id": "97017544775423486504653862889978667471168603597332050592406695920380027623587",
@@ -4147,7 +5023,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4160,81 +5036,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641265+00:00"
-    },
-    {
-      "quote_id": "pm_13e0cc2e35de8d40",
-      "provider_quote_id": "7275186",
-      "receipt_id": "pm_13e0cc2e35de8d40",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-christian-watson-89pt5",
-      "content_hash": "13e0cc2e35de8d409cebcb62b263f6d51be6d11fb9995090c467578649f4b82b",
-      "book": "Polymarket",
-      "player_id": "00-0038124",
-      "player_name": "Christian Watson",
-      "team": "GB",
-      "opponent": "LA",
-      "game_id": "2026_12_GB_LA",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 89.5,
-      "fair_line": 46.5,
-      "over_odds": 138,
-      "under_odds": -213,
-      "observed_at": "2026-11-24T17:25:52.641266+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 42.47,
-      "over_token_id": "36811430214445646625210885533027674648398066217157330337830969475769809487479",
-      "under_token_id": "54140732719606773723192409147697617003277166975243797261927088071315259473725",
-      "over_ask_price": 0.42,
-      "under_ask_price": 0.68,
-      "over_ask_depth_usd": 47.04,
-      "under_ask_depth_usd": 42.47,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.37,
-        "break_even_adv": 0.2695,
-        "expected_return": 0.396,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_a8bbe9e712bfec47",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641266+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380485+00:00"
     },
     {
       "quote_id": "pm_b211ea83101a4d67",
@@ -4254,7 +5057,7 @@
       "fair_line": 46.5,
       "over_odds": 245,
       "under_odds": -456,
-      "observed_at": "2026-11-24T17:25:52.641267+00:00",
+      "observed_at": "2026-11-24T17:30:41.380486+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 17.69,
       "over_token_id": "104319814199947557127077238134333762979551447852687792715479076419737379989237",
@@ -4293,7 +5096,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4306,45 +5109,45 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641267+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380486+00:00"
     },
     {
-      "quote_id": "pm_679eb66e5e9af486",
-      "provider_quote_id": "7275199",
-      "receipt_id": "pm_679eb66e5e9af486",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-konata-mumpfield-29pt5",
-      "content_hash": "679eb66e5e9af4864161bf2f03d573d4b82f850e7d1202ec794316634b42bf9a",
+      "quote_id": "pm_46869195f88b81f5",
+      "provider_quote_id": "7275194",
+      "receipt_id": "pm_46869195f88b81f5",
+      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-colby-parkinson-19pt5",
+      "content_hash": "46869195f88b81f5133154d8366f11a322e25227179e4dcb533fe188989c0ac8",
       "book": "Polymarket",
-      "player_id": "00-0040590",
-      "player_name": "Konata Mumpfield",
+      "player_id": "00-0036244",
+      "player_name": "Colby Parkinson",
       "team": "LA",
       "opponent": "GB",
       "game_id": "2026_12_GB_LA",
-      "position": "WR",
+      "position": "TE",
       "market": "receiving_yards",
-      "line": 29.5,
-      "fair_line": 18.5,
-      "over_odds": -163,
-      "under_odds": 113,
-      "observed_at": "2026-11-24T17:25:52.641268+00:00",
+      "line": 19.5,
+      "fair_line": 18.0,
+      "over_odds": -133,
+      "under_odds": -113,
+      "observed_at": "2026-11-24T17:30:41.380487+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 17.72,
-      "over_token_id": "71869399843971361238551223634583808581679407603126387397603397539511954129457",
-      "under_token_id": "91606664593165037406816343953510590862195927132748737283010291103946630164435",
-      "over_ask_price": 0.62,
-      "under_ask_price": 0.47,
-      "over_ask_depth_usd": 22.32,
-      "under_ask_depth_usd": 17.72,
+      "liquidity_usd": 72.36,
+      "over_token_id": "105421427288167959469983016748582136396216744808867491330325455968538737550337",
+      "under_token_id": "59981550383859264116371801393045580211308335167187225387145363894804355181745",
+      "over_ask_price": 0.57,
+      "under_ask_price": 0.53,
+      "over_ask_depth_usd": 76.38,
+      "under_ask_depth_usd": 72.36,
       "event_title": "Packers vs. Rams - Player Props",
       "end_date": "2026-11-26T01:00:00Z",
       "evaluation": {
         "is_qualified": true,
         "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.3134,
-        "break_even_adv": 0.224,
-        "expected_return": 0.477,
+        "best_side": "OVER",
+        "prob_edge": 0.0524,
+        "break_even_adv": 0.0516,
+        "expected_return": 0.0903,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -4352,7 +5155,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_d4316b53719a2313",
+      "verification_receipt_id": "pmr_28d878744bedb7dc",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -4366,7 +5169,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4379,81 +5182,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641268+00:00"
-    },
-    {
-      "quote_id": "pm_917cfd583002777c",
-      "provider_quote_id": "7275209",
-      "receipt_id": "pm_917cfd583002777c",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-matthew-golden-89pt5",
-      "content_hash": "917cfd583002777c32a9925979a2221a1d8f3312f02b17ade8476f48f0e7988e",
-      "book": "Polymarket",
-      "player_id": "00-0040667",
-      "player_name": "Matthew Golden",
-      "team": "GB",
-      "opponent": "LA",
-      "game_id": "2026_12_GB_LA",
-      "position": "WR",
-      "market": "receiving_yards",
-      "line": 89.5,
-      "fair_line": 67.0,
-      "over_odds": 144,
-      "under_odds": -245,
-      "observed_at": "2026-11-24T17:25:52.641269+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 43.46,
-      "over_token_id": "1372027782207298707419220572789360941013803103779148302918938463038475575572",
-      "under_token_id": "91261064970659494033361612737577763425464553106755349358218759766352614550323",
-      "over_ask_price": 0.41,
-      "under_ask_price": 0.71,
-      "over_ask_depth_usd": 43.46,
-      "under_ask_depth_usd": 48.94,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.1106,
-        "break_even_adv": -0.0095,
-        "expected_return": -0.0134,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_0aaf0c38c9057a51",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641269+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380487+00:00"
     },
     {
       "quote_id": "pm_41663dfa7bf57ff3",
@@ -4473,7 +5203,7 @@
       "fair_line": 15.0,
       "over_odds": -108,
       "under_odds": -133,
-      "observed_at": "2026-11-24T17:25:52.641270+00:00",
+      "observed_at": "2026-11-24T17:30:41.380488+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 43.68,
       "over_token_id": "43018371195756831568295578711549823327102121952624520381221423850560125629019",
@@ -4512,7 +5242,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4525,8 +5255,8 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641270+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380488+00:00"
     },
     {
       "quote_id": "pm_d3ffccf834d51102",
@@ -4546,7 +5276,7 @@
       "fair_line": 25.0,
       "over_odds": -170,
       "under_odds": 113,
-      "observed_at": "2026-11-24T17:25:52.641271+00:00",
+      "observed_at": "2026-11-24T17:30:41.380489+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 22.05,
       "over_token_id": "193427293070659272741923130190210538751306091587037711050876373030926832482",
@@ -4585,7 +5315,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4598,118 +5328,45 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641271+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380489+00:00"
     },
     {
-      "quote_id": "pm_27181e3c73374b4c",
-      "provider_quote_id": "7275225",
-      "receipt_id": "pm_27181e3c73374b4c",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-tyler-higbee-19pt5",
-      "content_hash": "27181e3c73374b4c595c291058609d5ef409dfbb042c9d4907d20b0c5d80dd0c",
+      "quote_id": "pm_f5717de91fe4681f",
+      "provider_quote_id": "7275217",
+      "receipt_id": "pm_f5717de91fe4681f",
+      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-tucker-kraft-39pt5",
+      "content_hash": "f5717de91fe4681fce990adf30464f1d0cda24fd3361a6499b99c06e9975259d",
       "book": "Polymarket",
-      "player_id": "00-0033110",
-      "player_name": "Tyler Higbee",
-      "team": "LA",
-      "opponent": "GB",
+      "player_id": "00-0038996",
+      "player_name": "Tucker Kraft",
+      "team": "GB",
+      "opponent": "LA",
       "game_id": "2026_12_GB_LA",
       "position": "TE",
       "market": "receiving_yards",
-      "line": 19.5,
-      "fair_line": 20.5,
-      "over_odds": -233,
-      "under_odds": 178,
-      "observed_at": "2026-11-24T17:25:52.641272+00:00",
+      "line": 39.5,
+      "fair_line": 25.0,
+      "over_odds": -104,
+      "under_odds": -144,
+      "observed_at": "2026-11-24T17:30:41.380490+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 11.24,
-      "over_token_id": "67517072699380663439972658029191677950641980767750426550399396901560477335921",
-      "under_token_id": "43627653253424843388889656426934321690748623682115143089750033547265246034577",
-      "over_ask_price": 0.7,
-      "under_ask_price": 0.36,
-      "over_ask_depth_usd": 25.2,
-      "under_ask_depth_usd": 11.24,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": false,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.0268,
-        "break_even_adv": 0.0271,
-        "expected_return": 0.0387,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_d640e0610be19dde",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641272+00:00"
-    },
-    {
-      "quote_id": "pm_98e8b27ff11c314f",
-      "provider_quote_id": "7275237",
-      "receipt_id": "pm_98e8b27ff11c314f",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-rec-colby-parkinson-2pt5",
-      "content_hash": "98e8b27ff11c314f0d23070865fe61c2a90749c28db5b6440a2e3ab7a90b5a1a",
-      "book": "Polymarket",
-      "player_id": "00-0036244",
-      "player_name": "Colby Parkinson",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "TE",
-      "market": "receptions",
-      "line": 2.5,
-      "fair_line": 2.5,
-      "over_odds": -150,
-      "under_odds": 108,
-      "observed_at": "2026-11-24T17:25:52.641273+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 18.45,
-      "over_token_id": "37800850764791363099482185908384898109886136184992881911593976902781800413596",
-      "under_token_id": "82729848222707320205366533716791281424452792631036788882826322811340233587074",
-      "over_ask_price": 0.6,
-      "under_ask_price": 0.48,
-      "over_ask_depth_usd": 69.09,
-      "under_ask_depth_usd": 18.45,
+      "liquidity_usd": 28.76,
+      "over_token_id": "59302823541318803135704633192429037397720720748539939567235741755164889645162",
+      "under_token_id": "29585861091018156012711976299110648598899909582363302877318226976135552184388",
+      "over_ask_price": 0.51,
+      "under_ask_price": 0.59,
+      "over_ask_depth_usd": 36.21,
+      "under_ask_depth_usd": 28.76,
       "event_title": "Packers vs. Rams - Player Props",
       "end_date": "2026-11-26T01:00:00Z",
       "evaluation": {
         "is_qualified": true,
         "status": "OBSERVED",
         "best_side": "UNDER",
-        "prob_edge": -0.1301,
-        "break_even_adv": 0.0494,
-        "expected_return": 0.1027,
+        "prob_edge": -0.282,
+        "break_even_adv": 0.1818,
+        "expected_return": 0.3081,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -4717,7 +5374,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_7e41e3ba6a7ab557",
+      "verification_receipt_id": "pmr_fc850989ebbeace4",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -4731,7 +5388,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4744,8 +5401,81 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641273+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380490+00:00"
+    },
+    {
+      "quote_id": "pm_2ed82163a6f96d50",
+      "provider_quote_id": "7275219",
+      "receipt_id": "pm_2ed82163a6f96d50",
+      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-tucker-kraft-59pt5",
+      "content_hash": "2ed82163a6f96d50399a9292ab82f9ac7d90332f6700700590cc0d56a1d872ee",
+      "book": "Polymarket",
+      "player_id": "00-0038996",
+      "player_name": "Tucker Kraft",
+      "team": "GB",
+      "opponent": "LA",
+      "game_id": "2026_12_GB_LA",
+      "position": "TE",
+      "market": "receiving_yards",
+      "line": 59.5,
+      "fair_line": 25.0,
+      "over_odds": 245,
+      "under_odds": -567,
+      "observed_at": "2026-11-24T17:30:41.380491+00:00",
+      "source": "https://clob.polymarket.com",
+      "liquidity_usd": 113.27,
+      "over_token_id": "78374609017658240741852434118334833152992789291173287620280037144788477007957",
+      "under_token_id": "59275393295043901068268774721158799800156698099689376002613174383303870499659",
+      "over_ask_price": 0.29,
+      "under_ask_price": 0.85,
+      "over_ask_depth_usd": 316.24,
+      "under_ask_depth_usd": 113.27,
+      "event_title": "Packers vs. Rams - Player Props",
+      "end_date": "2026-11-26T01:00:00Z",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "OBSERVED",
+        "best_side": "UNDER",
+        "prob_edge": -0.24,
+        "break_even_adv": 0.0999,
+        "expected_return": 0.1175,
+        "actionable_stake": 0.0,
+        "catalyst": "none",
+        "injury_context": "",
+        "method": "normal-approximation (see viewer line simulator)"
+      },
+      "verification_engine": "verification.v1",
+      "verification_status": "OBSERVED",
+      "verification_receipt_id": "pmr_76c1b1a29fbc8dcc",
+      "verification_clauses": [
+        {
+          "clause_id": "V1_receipt",
+          "description": "receipt log match for (market, book, payload hash)",
+          "operator": "==",
+          "actual": "receipt_found",
+          "threshold": "receipt_found",
+          "passed": true
+        },
+        {
+          "clause_id": "V2_staleness",
+          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
+          "operator": "<=",
+          "actual": 0.006,
+          "threshold": 90.0,
+          "passed": true
+        },
+        {
+          "clause_id": "V3_conflict",
+          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
+          "operator": "<=",
+          "actual": null,
+          "threshold": 5.0,
+          "passed": false
+        }
+      ],
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380491+00:00"
     },
     {
       "quote_id": "pm_2000f7b41c54ccce",
@@ -4765,7 +5495,7 @@
       "fair_line": 2.5,
       "over_odds": 150,
       "under_odds": -233,
-      "observed_at": "2026-11-24T17:25:52.641274+00:00",
+      "observed_at": "2026-11-24T17:30:41.380492+00:00",
       "source": "https://clob.polymarket.com",
       "liquidity_usd": 40.0,
       "over_token_id": "31859910598802115754479323497694917342736917957162850788092942557704421388033",
@@ -4804,7 +5534,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -4817,380 +5547,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641274+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380492+00:00"
     },
     {
-      "quote_id": "pm_a1fc4ec0edf54381",
-      "provider_quote_id": "7275241",
-      "receipt_id": "pm_a1fc4ec0edf54381",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-rec-konata-mumpfield-3pt5",
-      "content_hash": "a1fc4ec0edf5438104e00fd6b97baca545e8c63c4e70b07a3b248e86eb75761f",
-      "book": "Polymarket",
-      "player_id": "00-0040590",
-      "player_name": "Konata Mumpfield",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "WR",
-      "market": "receptions",
-      "line": 3.5,
-      "fair_line": 1.5,
-      "over_odds": 138,
-      "under_odds": -186,
-      "observed_at": "2026-11-24T17:25:52.641275+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 37.12,
-      "over_token_id": "8401670568949177692320972461739786170754232662537643289114617622636897644393",
-      "under_token_id": "42807834804867787956830936092294686989695909207190042597261631491166683160954",
-      "over_ask_price": 0.42,
-      "under_ask_price": 0.65,
-      "over_ask_depth_usd": 55.44,
-      "under_ask_depth_usd": 37.12,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.3297,
-        "break_even_adv": 0.2594,
-        "expected_return": 0.3988,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_4e87f6f4761320ee",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641275+00:00"
-    },
-    {
-      "quote_id": "pm_a4f3b929ff99f615",
-      "provider_quote_id": "7278613",
-      "receipt_id": "pm_a4f3b929ff99f615",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-davis-allen-9pt5",
-      "content_hash": "a4f3b929ff99f6157938160b296cf9905102ae1c71551d5b47a738f9cc4140fe",
-      "book": "Polymarket",
-      "player_id": "00-0039074",
-      "player_name": "Davis Allen",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "TE",
-      "market": "receiving_yards",
-      "line": 9.5,
-      "fair_line": 14.0,
-      "over_odds": -138,
-      "under_odds": -100,
-      "observed_at": "2026-11-24T17:25:52.641276+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 19.98,
-      "over_token_id": "32413006562669049294791634958869136280122741957480788062010046765969158257289",
-      "under_token_id": "8422172940841835531062449223958684491788098853311689389110419761132277390390",
-      "over_ask_price": 0.58,
-      "under_ask_price": 0.5,
-      "over_ask_depth_usd": 78.88,
-      "under_ask_depth_usd": 19.98,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.2983,
-        "break_even_adv": 0.2985,
-        "expected_return": 0.5148,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_6d10ca0d1481ccb8",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641276+00:00"
-    },
-    {
-      "quote_id": "pm_89ce26139d66cdf1",
-      "provider_quote_id": "7278614",
-      "receipt_id": "pm_89ce26139d66cdf1",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-davis-allen-19pt5",
-      "content_hash": "89ce26139d66cdf165c6303ba9b24e996a1a9db213c7c9c25da9a66c19d6abfb",
-      "book": "Polymarket",
-      "player_id": "00-0039074",
-      "player_name": "Davis Allen",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "TE",
-      "market": "receiving_yards",
-      "line": 19.5,
-      "fair_line": 14.0,
-      "over_odds": 178,
-      "under_odds": -270,
-      "observed_at": "2026-11-24T17:25:52.641277+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 34.92,
-      "over_token_id": "72199407284704956918420339798479660196632230239978073084250523062163581661529",
-      "under_token_id": "93948667808048055995117083286715558879304728613541049623943184979690466335380",
-      "over_ask_price": 0.36,
-      "under_ask_price": 0.73,
-      "over_ask_depth_usd": 34.92,
-      "under_ask_depth_usd": 45.99,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "OVER",
-        "prob_edge": 0.0949,
-        "break_even_adv": 0.0952,
-        "expected_return": 0.2645,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_325db2e9cb8f1d9a",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641277+00:00"
-    },
-    {
-      "quote_id": "pm_c8e6935f2eea748b",
-      "provider_quote_id": "7297955",
-      "receipt_id": "pm_c8e6935f2eea748b",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-kyren-williams-19pt5",
-      "content_hash": "c8e6935f2eea748bab3da129e24c1e5514652637b5755c0524b1c98f5c476de4",
-      "book": "Polymarket",
-      "player_id": "00-0037840",
-      "player_name": "Kyren Williams",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "RB",
-      "market": "receiving_yards",
-      "line": 19.5,
-      "fair_line": 16.5,
-      "over_odds": -127,
-      "under_odds": -113,
-      "observed_at": "2026-11-24T17:25:52.641278+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 22.54,
-      "over_token_id": "27901197804628585560653329174358437097181543564027578217696201493205878408074",
-      "under_token_id": "7321498013276327610132691302347093022224944670627361135018785234823907777790",
-      "over_ask_price": 0.56,
-      "under_ask_price": 0.53,
-      "over_ask_depth_usd": 52.08,
-      "under_ask_depth_usd": 22.54,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": false,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.0347,
-        "break_even_adv": -0.0558,
-        "expected_return": -0.1051,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_5570c99c64e388b8",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641278+00:00"
-    },
-    {
-      "quote_id": "pm_e8cd357ff9711764",
-      "provider_quote_id": "7297956",
-      "receipt_id": "pm_e8cd357ff9711764",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-recyd-kyren-williams-29pt5",
-      "content_hash": "e8cd357ff971176467eed68222b16046cb378100f0ca8d22f430caae70f078cb",
-      "book": "Polymarket",
-      "player_id": "00-0037840",
-      "player_name": "Kyren Williams",
-      "team": "LA",
-      "opponent": "GB",
-      "game_id": "2026_12_GB_LA",
-      "position": "RB",
-      "market": "receiving_yards",
-      "line": 29.5,
-      "fair_line": 16.5,
-      "over_odds": 163,
-      "under_odds": -285,
-      "observed_at": "2026-11-24T17:25:52.641279+00:00",
-      "source": "https://clob.polymarket.com",
-      "liquidity_usd": 40.28,
-      "over_token_id": "4978705939167665609824142696148342380443561943543541815183305066199735625336",
-      "under_token_id": "101655784217811704241107365160723637594797865802473529043109183775663009423062",
-      "over_ask_price": 0.38,
-      "under_ask_price": 0.74,
-      "over_ask_depth_usd": 40.28,
-      "under_ask_depth_usd": 56.89,
-      "event_title": "Packers vs. Rams - Player Props",
-      "end_date": "2026-11-26T01:00:00Z",
-      "evaluation": {
-        "is_qualified": true,
-        "status": "OBSERVED",
-        "best_side": "UNDER",
-        "prob_edge": -0.2681,
-        "break_even_adv": 0.1479,
-        "expected_return": 0.1998,
-        "actionable_stake": 0.0,
-        "catalyst": "none",
-        "injury_context": "",
-        "method": "normal-approximation (see viewer line simulator)"
-      },
-      "verification_engine": "verification.v1",
-      "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_aedd9599b0ade2dd",
-      "verification_clauses": [
-        {
-          "clause_id": "V1_receipt",
-          "description": "receipt log match for (market, book, payload hash)",
-          "operator": "==",
-          "actual": "receipt_found",
-          "threshold": "receipt_found",
-          "passed": true
-        },
-        {
-          "clause_id": "V2_staleness",
-          "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
-          "operator": "<=",
-          "actual": 0.008,
-          "threshold": 90.0,
-          "passed": true
-        },
-        {
-          "clause_id": "V3_conflict",
-          "description": "sharp-book no-vig divergence (percentage points); None = uncheckable (fewer sharp quotes than min_sharp_books)",
-          "operator": "<=",
-          "actual": null,
-          "threshold": 5.0,
-          "passed": false
-        }
-      ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641279+00:00"
-    },
-    {
-      "quote_id": "pm_b52d85e6873869e9",
-      "provider_quote_id": "7297958",
-      "receipt_id": "pm_b52d85e6873869e9",
-      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-rec-kyren-williams-3pt5",
-      "content_hash": "b52d85e6873869e90d8171d6363df963d8e08e278a791b270ff8b425ef8953ac",
+      "quote_id": "pm_aea1fb18ba102ea3",
+      "provider_quote_id": "7297959",
+      "receipt_id": "pm_aea1fb18ba102ea3",
+      "source_url": "https://polymarket.com/market/nfl-gb-la-2026-11-26-rec-kyren-williams-4pt5",
+      "content_hash": "aea1fb18ba102ea3f9ed4a0e0f6fc25c62a050b51c36a903fcc9ea2d242608cc",
       "book": "Polymarket",
       "player_id": "00-0037840",
       "player_name": "Kyren Williams",
@@ -5199,28 +5564,28 @@
       "game_id": "2026_12_GB_LA",
       "position": "RB",
       "market": "receptions",
-      "line": 3.5,
+      "line": 4.5,
       "fair_line": 2.5,
-      "over_odds": 127,
-      "under_odds": -163,
-      "observed_at": "2026-11-24T17:25:52.641280+00:00",
+      "over_odds": 223,
+      "under_odds": -376,
+      "observed_at": "2026-11-24T17:30:41.380493+00:00",
       "source": "https://clob.polymarket.com",
-      "liquidity_usd": 26.4,
-      "over_token_id": "48593227429712384567208046837194205043304890475239342377401904272836773419424",
-      "under_token_id": "76050298965055156991832166066588327022098372043614578785530864446149278785286",
-      "over_ask_price": 0.44,
-      "under_ask_price": 0.62,
-      "over_ask_depth_usd": 26.4,
-      "under_ask_depth_usd": 32.61,
+      "liquidity_usd": 31.0,
+      "over_token_id": "5855940712415508095429162144277297800934720379423715373748894761145918130349",
+      "under_token_id": "76255827584348255766896889160358528870150307613846437300645021445242136004348",
+      "over_ask_price": 0.31,
+      "under_ask_price": 0.79,
+      "over_ask_depth_usd": 31.0,
+      "under_ask_depth_usd": 75.2,
       "event_title": "Packers vs. Rams - Player Props",
       "end_date": "2026-11-26T01:00:00Z",
       "evaluation": {
         "is_qualified": true,
         "status": "OBSERVED",
         "best_side": "UNDER",
-        "prob_edge": -0.154,
-        "break_even_adv": 0.0942,
-        "expected_return": 0.152,
+        "prob_edge": -0.1959,
+        "break_even_adv": 0.096,
+        "expected_return": 0.1215,
         "actionable_stake": 0.0,
         "catalyst": "none",
         "injury_context": "",
@@ -5228,7 +5593,7 @@
       },
       "verification_engine": "verification.v1",
       "verification_status": "OBSERVED",
-      "verification_receipt_id": "pmr_c0f5d1be9e3a8cb5",
+      "verification_receipt_id": "pmr_8edcc620507241b6",
       "verification_clauses": [
         {
           "clause_id": "V1_receipt",
@@ -5242,7 +5607,7 @@
           "clause_id": "V2_staleness",
           "description": "quote age vs time-to-kickoff-aware staleness limit (minutes)",
           "operator": "<=",
-          "actual": 0.008,
+          "actual": 0.006,
           "threshold": 90.0,
           "passed": true
         },
@@ -5255,15 +5620,15 @@
           "passed": false
         }
       ],
-      "verification_checked_at": "2026-11-24T17:25:52.628625+00:00",
-      "quoted_at": "2026-11-24T17:25:52.641280+00:00"
+      "verification_checked_at": "2026-11-24T17:30:41.367431+00:00",
+      "quoted_at": "2026-11-24T17:30:41.380493+00:00"
     }
   ],
-  "total_quotes": 72,
-  "polymarket_quotes_count": 72,
+  "total_quotes": 77,
+  "polymarket_quotes_count": 77,
   "verified_books_count": 0,
   "verified_quotes_count": 0,
-  "receipt_matched_quotes_count": 72,
+  "receipt_matched_quotes_count": 77,
   "slate": "2026-W12",
   "unverified_books": [
     "BetMGM",
@@ -5280,5 +5645,5 @@
     "Polymarket"
   ],
   "qualified_count": 0,
-  "polymarket_observed_at": "2026-11-24T17:25:52.641209+00:00"
+  "polymarket_observed_at": "2026-11-24T17:30:41.380417+00:00"
 }
