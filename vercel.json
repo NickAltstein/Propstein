@@ -2,6 +2,33 @@
   "version": 2,
   "outputDirectory": "viewer",
   "ignoreCommand": "bash scripts/vercel_ignore.sh",
+  "functions": {
+    "api/schedules/dispatch.mjs": {
+      "experimentalTriggers": [
+        {
+          "type": "schedule/v1beta"
+        }
+      ]
+    }
+  },
+  "schedules": {
+    "odds-freshness": {
+      "schedule": "7,22,37,52 * * * *",
+      "function": "api/schedules/dispatch"
+    },
+    "game-context-rollover": {
+      "schedule": "0 6 * * 2",
+      "function": "api/schedules/dispatch"
+    },
+    "game-context-daily": {
+      "schedule": "30 10 * * *",
+      "function": "api/schedules/dispatch"
+    },
+    "close-quality-capture": {
+      "schedule": "3,18,33,48 0-5,12-23 * * *",
+      "function": "api/schedules/dispatch"
+    }
+  },
   "git": {
     "deploymentEnabled": {
       "*": false,
