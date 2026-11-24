@@ -61,6 +61,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.DATA_BOT_TOKEN }}
+          persist-credentials: true
 
       - name: Check EST pre-kickoff window
         id: window
@@ -119,11 +122,11 @@ jobs:
           done
           python scripts/check_public_sync.py
 
-      - name: Commit and push refreshed slate (if changed)
+      - name: Open auto-merge PR for refreshed slate (if changed)
         if: steps.window.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add \
             data/game_context_captures.jsonl \
             data/game_context_provenance_report.json \
@@ -150,13 +153,26 @@ jobs:
             public/ledger.html public/ledger/index.html \
             current_picks.json top_picks.json slate_projections.json slate_projections.csv \
             src/top_picks.json src/current_picks.json src/slate_projections.json src/slate_projections.csv
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "No data changes — nothing to commit."
-            exit 0
-          fi
-          git commit -m "chore(data): autopilot slate refresh $(date -u +%F) [skip ci]"
-          git push
+          DAY="$(date -u +%F)"
+          bash scripts/open_automerge_data_pr.sh \
+            "bot/daily-update" \
+            "chore(data): autopilot slate refresh ${DAY}" \
+            "chore(data): autopilot slate refresh ${DAY}"
 
       - name: Fail if pricing context is missing
         if: steps.window.outputs.should_run == 'true' && inputs.nba_only != true
         run: PYTHONPATH=. python scripts/check_game_context_provenance.py
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
+          fi
+          MESSAGE="PropStein daily autopilot update FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
