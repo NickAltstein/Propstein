@@ -2,27 +2,52 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-24T17:25:36Z",
-      "last_success_quotes": 39,
+      "last_success_at": "2026-11-24T21:01:11Z",
+      "last_success_quotes": 42,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-24T17:25:36Z",
-      "last_attempt_at": "2026-11-24T17:25:36Z",
+      "last_error_at": "2026-11-24T21:01:11Z",
+      "last_attempt_at": "2026-11-24T21:01:11Z",
       "schedule": {
-        "observed_at": "2026-11-24T17:25:36Z",
+        "observed_at": "2026-11-24T21:01:11Z",
         "state": "none",
         "starts": []
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-24T17:30:41Z",
-      "last_success_quotes": 77,
+      "last_success_at": "2026-11-24T21:01:28Z",
+      "last_success_quotes": 88,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-24T17:30:41Z",
+      "last_attempt_at": "2026-11-24T21:01:28Z",
       "schedule": {
         "observed_at": null,
         "state": null,
         "starts": []
+      },
+      "slate_state": {
+        "observed_at": "2026-11-24T21:01:28Z",
+        "state_since": "2026-11-24T21:01:28Z",
+        "state": "OK",
+        "detail": "slate '2026_w12' has 544 priced row(s)",
+        "slate_key": "2026_w12",
+        "since": null,
+        "alarm_after": null,
+        "overdue": false,
+        "exclusions": [],
+        "priced_rows": 544,
+        "markets": null
+      },
+      "line_collisions_excluded": 0,
+      "fetch_counters": {
+        "observed_at": "2026-11-24T21:01:28Z",
+        "events": 10,
+        "matched": 88,
+        "skipped_low_liquidity": 89,
+        "skipped_off_slate": 6,
+        "skipped_unparsed": 0,
+        "skipped_no_book": 421,
+        "unparsed_market_ids": [],
+        "line_collisions_excluded": 0
       }
     }
   }
