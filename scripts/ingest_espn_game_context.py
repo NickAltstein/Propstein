@@ -1032,6 +1032,32 @@ def active_pricing_rows(rows: list[dict], now: datetime) -> list[dict]:
     ]
 
 
+KNOWN_EXCLUSION_REASONS: frozenset[str] = frozenset({
+    "spread_observed_at",
+    "total_observed_at",
+    "weather_observed_at",
+    "spread_line",
+    "total_line",
+    "weather_values",
+    "retractable_roof_unknown",
+})
+
+
+def _unknown_exclusion_reasons(excluded: list[dict]) -> list[dict]:
+    """Return any excluded entry whose missing_fields is empty/missing or has an unknown reason."""
+    invalid: list[dict] = []
+    for entry in excluded:
+        gid = str(entry.get("game_id") or "")
+        fields = entry.get("missing_fields")
+        if not isinstance(fields, (list, tuple)) or len(fields) == 0:
+            invalid.append({"game_id": gid, "reason": "empty_or_missing_reason"})
+            continue
+        bad = [str(f) for f in fields if not str(f).strip() or str(f).strip() not in KNOWN_EXCLUSION_REASONS]
+        if bad:
+            invalid.append({"game_id": gid, "unknown_reasons": bad})
+    return invalid
+
+
 def pricing_blockers(row: dict) -> list[str]:
     kickoff = kickoff_from_parts(row.get("gameday"), row.get("gametime"))
     missing: list[str] = []
@@ -1048,6 +1074,8 @@ def pricing_blockers(row: dict) -> list[str]:
         missing.append("total_line")
     if not weather_values_ok(row):
         missing.append("weather_values")
+    if str(row.get("weather_source") or "").strip() == "nws_hourly_forecast_retractable_unknown":
+        missing.append("retractable_roof_unknown")
     return missing
 
 
@@ -1139,12 +1167,14 @@ def evaluate_pricing_context(
                 "game_id": gid,
                 "status": "CONTEXT_MISSING",
                 "missing_fields": blockers,
+                "reason": f"CONTEXT_MISSING: {', '.join(blockers)}",
                 "ready_for_pricing": False,
             })
             per_game_readiness[gid] = {
                 "ready_for_pricing": False,
                 "status": "CONTEXT_MISSING",
                 "missing_fields": blockers,
+                "reason": f"CONTEXT_MISSING: {', '.join(blockers)}",
             }
         else:
             ready_rows += 1
@@ -1175,29 +1205,41 @@ def evaluate_pricing_context(
     allow_set = allowed_exclusions if allowed_exclusions is not None else set()
     unallowed_excluded = [e["game_id"] for e in excluded if e["game_id"] not in allow_set]
     cap_exceeded = len(excluded) > max_excluded_games
+    unknown_reasons = _unknown_exclusion_reasons(excluded)
 
     if not schedule_rows:
         ready = False
     elif not pricing:
         ready = not failed_fetches
-    elif failed_fetches or (block_on_stale and stale) or ready_rows == 0:
+    elif failed_fetches or (block_on_stale and stale) or ready_rows == 0 or unknown_reasons:
         ready = False
     elif cap_exceeded or unallowed_excluded:
         ready = False
     else:
         ready = True
 
+    if not ready:
+        slate_status = "BLOCKED"
+    elif excluded:
+        slate_status = "PARTIAL"
+    else:
+        slate_status = "FULL"
+
     return {
         "generated_at": now.astimezone(timezone.utc).isoformat(),
         "ruleset": RULESET,
         "season": season,
         "week": week,
+        "slate_status": slate_status,
         "games_in_pricing_window": len(pricing),
         "games_ready": ready_rows,
+        "games_priced": ready_rows if ready else 0,
+        "games_excluded": len(excluded),
         "games_ingested": games_ingested if games_ingested is not None else 0,
         "missing_timestamps": missing,
         "excluded": excluded,
         "unallowed_excluded": unallowed_excluded,
+        "unknown_exclusion_reasons": unknown_reasons,
         "max_excluded_games": max_excluded_games,
         "cap_exceeded": cap_exceeded,
         "per_game_readiness": per_game_readiness,
@@ -1207,29 +1249,64 @@ def evaluate_pricing_context(
     }
 
 
+def _row_referenced_game_ids(row: dict) -> list[str]:
+    """Return every game_id referenced by a single-game prop or multi-game combo/parlay."""
+    gids: list[str] = []
+    primary = str(row.get("game_id") or "").strip()
+    if primary:
+        gids.append(primary)
+    for raw_gid in (row.get("game_ids") or []):
+        g = str(raw_gid or "").strip()
+        if g and g not in gids:
+            gids.append(g)
+    for leg in (row.get("legs") or []):
+        if isinstance(leg, dict):
+            g = str(leg.get("game_id") or "").strip()
+            if g and g not in gids:
+                gids.append(g)
+    return gids
+
+
 def apply_context_exclusion_to_slate_rows(
     rows: list[dict],
     report: dict,
 ) -> list[dict]:
-    """Ensure CONTEXT_MISSING games are unpriced with action/model fields zeroed/null."""
+    """Ensure CONTEXT_MISSING games (and any prop/combo referencing them) are unpriced.
+
+    An empty, missing, or unknown exclusion reason fails the entire slate closed.
+    """
+    excluded_list = list(report.get("excluded") or [])
     excluded_map = {
-        str(e["game_id"]): e for e in (report.get("excluded") or []) if e.get("game_id")
+        str(e["game_id"]): e for e in excluded_list if e.get("game_id")
     }
-    whole_slate_blocked = not report.get("ready_for_pricing", False)
+    unknown_reasons = _unknown_exclusion_reasons(excluded_list)
+    whole_slate_blocked = (not report.get("ready_for_pricing", False)) or bool(unknown_reasons)
     out: list[dict] = []
     for raw in rows:
         row = dict(raw)
-        gid = str(row.get("game_id") or "")
-        if whole_slate_blocked or gid in excluded_map:
-            info = excluded_map.get(gid) or {}
-            fields = info.get("missing_fields") or []
+        ref_gids = _row_referenced_game_ids(row)
+        matched_excluded = [g for g in ref_gids if g in excluded_map]
+        if whole_slate_blocked or matched_excluded:
+            if unknown_reasons:
+                fields: list[str] = []
+                reason = "CONTEXT_MISSING: unknown_exclusion_reason"
+            elif matched_excluded:
+                fields = []
+                for mg in matched_excluded:
+                    for f in (excluded_map[mg].get("missing_fields") or []):
+                        if f not in fields:
+                            fields.append(f)
+                reason = (
+                    f"CONTEXT_MISSING: {', '.join(fields)}"
+                    if fields
+                    else "CONTEXT_MISSING: slate_blocked"
+                )
+            else:
+                fields = []
+                reason = "CONTEXT_MISSING: slate_blocked"
             row["context_status"] = "CONTEXT_MISSING"
             row["context_missing_fields"] = list(fields)
-            row["reason"] = (
-                f"CONTEXT_MISSING: {', '.join(fields)}"
-                if fields
-                else "CONTEXT_MISSING: slate_blocked"
-            )
+            row["reason"] = reason
             row["model_prob"] = None
             row["fair_line"] = None
             row["fair_line_yards"] = None
