@@ -24,7 +24,7 @@ on:
 
 # Keep NBA publishing independent from the NFL autopilot and news watcher.
 concurrency:
-  group: nba-daily-data
+  group: nba-daily-market-slate
   cancel-in-progress: false
 
 permissions:
