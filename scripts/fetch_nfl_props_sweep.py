@@ -97,9 +97,18 @@ def active_slate_window(now: datetime | None = None) -> bool:
     now = now or datetime.now(timezone.utc)
     try:
         index = json.loads(SLATE_INDEX.read_text(encoding="utf-8"))
-        nfl = index["sports"]["nfl"]
-        slate = nfl["slates"][nfl["default_slate"]]
-        games = json.loads((VIEWER / slate["games"]).read_text(encoding="utf-8"))
+        nfl = index.get("sports", {}).get("nfl", {})
+        default_key = nfl.get("default_slate")
+        if not default_key:
+            return False
+        slates = nfl.get("slates", {})
+        if default_key not in slates:
+            return False
+        slate = slates[default_key]
+        games_file = slate.get("games")
+        if not games_file or not (VIEWER / games_file).is_file():
+            return False
+        games = json.loads((VIEWER / games_file).read_text(encoding="utf-8"))
     except Exception:
         return False
     today_et = now.astimezone(ZoneInfo("America/New_York")).date()

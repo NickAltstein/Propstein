@@ -74,3 +74,22 @@ def test_manifest_mismatch_fails_even_when_timestamp_is_fresh(tmp_path):
 def test_no_upcoming_games_skips_alarm(tmp_path):
     viewer = sample_viewer(tmp_path, updated_at="2026-01-01T12:00:00Z", game_day="2026-10-01")
     assert "skipped" in check(viewer, now=NOW)
+
+
+def test_missing_or_null_default_slate_fails_with_clear_error(tmp_path):
+    viewer = sample_viewer(tmp_path)
+    (viewer / "feeds/slate-index.json").write_text(json.dumps({
+        "sports": {"nfl": {"default_slate": None, "slates": {}}}
+    }))
+    with pytest.raises(ValueError, match="no default slate set in slate-index.json"):
+        check(viewer, now=NOW)
+
+
+def test_default_slate_not_in_slates_fails_with_clear_error(tmp_path):
+    viewer = sample_viewer(tmp_path)
+    (viewer / "feeds/slate-index.json").write_text(json.dumps({
+        "sports": {"nfl": {"default_slate": "2026_w12", "slates": {}}}
+    }))
+    with pytest.raises(ValueError, match="default slate '2026_w12' not found"):
+        check(viewer, now=NOW)
+
