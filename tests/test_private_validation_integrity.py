@@ -447,3 +447,124 @@ def test_public_router_cannot_access_private_validation_and_disabled_mode_fails_
     ).summary()
     assert trace_slow["capture_to_answer_ms"] == 11_500
     assert trace_slow["within_ten_seconds"] is False
+
+
+def test_main_app_conditionally_mounts_private_validation_router(monkeypatch: pytest.MonkeyPatch) -> None:
+    """api/main.py must NOT mount /api/private-validation/* unless PROPSTEIN_PRIVATE_VALIDATION=1."""
+    import importlib
+    from fastapi.testclient import TestClient
+    import api.main as api_main
+    from api.private_validation_router import reset_private_store
+
+    try:
+        # 1. Env unset -> router absent from OpenAPI paths; GET 404, POST rejected by root StaticFiles (404/405)
+        monkeypatch.delenv("PROPSTEIN_PRIVATE_VALIDATION", raising=False)
+        importlib.reload(api_main)
+        paths_off = api_main.app.openapi()["paths"]
+        assert "/api/private-validation/observations" not in paths_off
+        assert "/api/private-validation/compare" not in paths_off
+        client_off = TestClient(api_main.app)
+        assert client_off.get("/api/private-validation/observations").status_code == 404
+        assert client_off.get("/api/private-validation/compare").status_code == 404
+        assert client_off.post("/api/private-validation/observations", json={}).status_code in (404, 405)
+        assert client_off.post("/api/private-validation/compare", json={}).status_code in (404, 405)
+
+        # 2. Env set to 1 -> router mounted (401 without token, 200 with valid token)
+        monkeypatch.setenv("PROPSTEIN_PRIVATE_VALIDATION", "1")
+        monkeypatch.setenv("PRIVATE_VALIDATION_TOKEN", "pv-mount-test-token")
+        importlib.reload(api_main)
+        paths_on = api_main.app.openapi()["paths"]
+        assert "/api/private-validation/observations" in paths_on
+        assert "/api/private-validation/compare" in paths_on
+        reset_private_store()
+        client_on = TestClient(api_main.app)
+        assert client_on.post("/api/private-validation/observations", json=_obs("draftkings", 150).as_dict()).status_code == 401
+        r_ok = client_on.post(
+            "/api/private-validation/observations",
+            headers={"Authorization": "Bearer pv-mount-test-token"},
+            json=_obs("draftkings", 150).as_dict(),
+        )
+        assert r_ok.status_code == 200
+        assert r_ok.json()["accepted"] is True
+    finally:
+        monkeypatch.delenv("PROPSTEIN_PRIVATE_VALIDATION", raising=False)
+        importlib.reload(api_main)
+
+
+def test_private_session_helper_pass_and_nonzero_failures(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Helper exits 0 on COMPARISON_COMPLETE <= 10s, and non-zero on suppressed or > 10s."""
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from api.private_validation_router import reset_private_store, router as pv_router
+    from scripts.private_session_helper import run_session
+
+    monkeypatch.setenv("PROPSTEIN_PRIVATE_VALIDATION", "1")
+    monkeypatch.setenv("PRIVATE_VALIDATION_TOKEN", "pv-helper-token")
+    reset_private_store()
+    app = FastAPI()
+    app.include_router(pv_router)
+    client = TestClient(app)
+
+    def _client_post(url: str, payload: dict, token: str) -> tuple[int, dict]:
+        path = "/" + url.split("://", 1)[1].split("/", 1)[1]
+        resp = client.post(path, json=payload, headers={"Authorization": f"Bearer {token}"})
+        return resp.status_code, resp.json()
+
+    # 1. Happy path -> exit 0, log written, COMPARISON_COMPLETE
+    out_ok = tmp_path / "session_ok.json"
+    code_ok, log_ok = run_session(
+        player="Stephen Curry",
+        rung=4,
+        dk_odds=210,
+        fd_odds=195,
+        slip_odds=195,
+        game_id="nba-20261124-GSW-LAL",
+        player_id="201939",
+        slip_book="fanduel",
+        token="pv-helper-token",
+        out_path=out_ok,
+        post_json=_client_post,
+    )
+    assert code_ok == 0
+    assert log_ok["passed"] is True
+    assert log_ok["compare"]["response"]["state"] == "COMPARISON_COMPLETE"
+    assert out_ok.exists()
+
+    # 2. Forced suppressed (dk_status=UNAVAILABLE) -> exit non-zero
+    out_sup = tmp_path / "session_suppressed.json"
+    code_sup, log_sup = run_session(
+        player="Stephen Curry",
+        rung=4,
+        dk_odds=210,
+        fd_odds=195,
+        slip_odds=195,
+        game_id="nba-20261124-GSW-LAL",
+        player_id="201939",
+        token="pv-helper-token",
+        out_path=out_sup,
+        dk_status="UNAVAILABLE",
+        post_json=_client_post,
+    )
+    assert code_sup != 0
+    assert log_sup["passed"] is False
+    assert log_sup["compare"]["response"]["state"] == "COMPARISON_SUPPRESSED"
+
+    # 3. Forced capture_to_answer_ms > 10000 -> exit non-zero
+    ticks = iter([1_000, 2_000, 3_000, 4_000, 12_500, 13_000])
+    out_slow = tmp_path / "session_slow.json"
+    code_slow, log_slow = run_session(
+        player="Stephen Curry",
+        rung=4,
+        dk_odds=210,
+        fd_odds=195,
+        slip_odds=195,
+        game_id="nba-20261124-GSW-LAL",
+        player_id="201939",
+        token="pv-helper-token",
+        out_path=out_slow,
+        post_json=_client_post,
+        clock_ms=lambda: next(ticks),
+    )
+    assert code_slow != 0
+    assert log_slow["passed"] is False
+    assert any("capture_to_answer_ms_exceeded" in r for r in log_slow["failure_reasons"])
