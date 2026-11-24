@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PropStein Slip Check</title>
+  <link rel="stylesheet" href="/design-system.css?v=2026_v230">
+  <link rel="stylesheet" href="/r/receipt.css?v=2026_v282">
+</head>
+<body>
+  <main class="r-card" id="checkRoot">
+    <p class="r-eyebrow">PROPSTEIN SLIP CHECK</p>
+    <h1 class="r-title">Would you still tail?</h1>
+    <p class="r-sub">Paste one NFL anytime TD leg. PropStein shows an unverified preview of your price against current observed quotes. Nothing is saved or verified. Research only.</p>
+    <form class="c-form" id="slipForm" novalidate>
+      <label for="slipInput">Player · anytime TD · signed odds</label>
+      <textarea class="c-input" id="slipInput" name="slip" maxlength="120" autocomplete="off" spellcheck="false" placeholder="Ja&#39;Marr Chase anytime TD +150"></textarea>
+      <button type="submit" class="c-btn" id="slipSubmit">Check slip</button>
+      <p class="c-help" data-slip-example="1">Example: Ja&#39;Marr Chase anytime TD +150. One leg only (no parlays or SGPs). Add the team if a name is shared, e.g. “Mike Williams PIT anytime TD +300”. Screenshot upload is not available yet; paste the text for now.</p>
+    </form>
+    <div id="slipResult" aria-live="polite"></div>
+    <a class="r-link" href="/">← Back to PropStein Board</a>
+  </main>
+  <script src="/js/quant-math.js?v=2026_v215" defer></script>
+  <script src="/r/tailcheck.js?v=2026_v282" defer></script>
+  <script src="/r/ticket-core.js?v=2026_v282" defer></script>
+  <script src="/check/check.js?v=2026_v282" defer></script>
+</body>
+</html>

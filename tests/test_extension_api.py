@@ -16,7 +16,9 @@ Covers the security contract from docs/LIVE_SNIPER_AUDIT.md:
 
 from __future__ import annotations
 
+import json
 import time
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -191,6 +193,34 @@ def test_receipt_verify_route_resolves_committed_hash_and_fails_closed_on_unknow
     # Malformed hash fails closed with 404
     r_bad = client.get("/api/v1/receipts/not-hex!!")
     assert r_bad.status_code == 404
+
+
+def test_receipt_verify_resolves_full_committed_content_hash(client):
+    # Share links now carry the full committed content_hash, not a client hash.
+    rows = json.loads((Path(__file__).resolve().parent.parent / "viewer" / "snapshots_2026_w7.json").read_text())
+    full = next(r["content_hash"] for r in rows if r["content_hash"].startswith("9f123b87"))
+    r_ok = client.get(f"/api/v1/receipts/{full}")
+    assert r_ok.status_code == 200
+    body = r_ok.json()
+    assert body["snapshotHash"] == full
+    assert body["fairLine"] == 46.5
+
+    # A client-side FNV-style 8-hex hash of card fields is not a committed hash.
+    assert client.get("/api/v1/receipts/0badc0de").status_code == 404
+
+
+def test_receipt_verify_fails_closed_on_ambiguous_prefix(client, monkeypatch, tmp_path):
+    rows = [
+        {"content_hash": "abcdef01" + "0" * 56, "player_name": "A", "market": "receptions"},
+        {"content_hash": "abcdef02" + "0" * 56, "player_name": "B", "market": "receptions"},
+    ]
+    (tmp_path / "snapshots_test.json").write_text(json.dumps(rows))
+    monkeypatch.setattr(ext, "_RECEIPT_SNAPSHOT_DIR", tmp_path)
+    r_amb = client.get("/api/v1/receipts/abcdef")
+    assert r_amb.status_code == 404
+    assert r_amb.json()["detail"]["status"] == "NOT_FOUND"
+    # A unique prefix still verifies.
+    assert client.get("/api/v1/receipts/abcdef01").status_code == 200
 
 
 def test_kill_switch_fails_everything_closed(client, monkeypatch, dev_auth):

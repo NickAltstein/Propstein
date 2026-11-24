@@ -1,12 +1,12 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v279-receipt-share';
+const CACHE_NAME = 'propstein-v282-ticket';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
   '/style.css?v=2026_v264',
   '/feed-status.css?v=2026_v260',
-  '/app.js?v=2026_v279',
+  '/app.js?v=2026_v280',
   '/design-system.css?v=2026_v230',
   '/terminal-ui.css?v=2026_v276',
   '/js/market-status.js?v=2026_v5',
@@ -22,6 +22,12 @@ const STATIC_ASSETS = [
   '/ufc.css?v=2026_v200',
   '/js/ufc-fighter.js?v=2026_v199',
   '/js/front-page.js?v=2026_v254',
+  '/r/receipt.css?v=2026_v282',
+  '/r/receipt.js?v=2026_v282',
+  '/r/tailcheck.js?v=2026_v282',
+  '/check/check.js?v=2026_v282',
+  '/r/ticket-core.js?v=2026_v282',
+  '/t/ticket.js?v=2026_v282',
   '/league-logos/nba.png',
   '/league-logos/nfl.png',
   '/league-logos/ufc.svg',

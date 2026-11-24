@@ -781,13 +781,17 @@ def record_extension_telemetry(payload: MatchTelemetryBatch):
 # Routes — Read-only verifiable receipt lookup (/r/<hash>, /api/v1/receipts/<hash>)
 # ---------------------------------------------------------------------------
 
+_RECEIPT_SNAPSHOT_DIR = Path(__file__).resolve().parent.parent / "viewer"
+
+
 def _lookup_committed_receipt(short_hash: str) -> dict | None:
     """Resolve a 6..64 hex short hash against committed snapshot/manifest files."""
     needle = (short_hash or "").strip().lower()
     if len(needle) < 6 or len(needle) > 64 or any(c not in "0123456789abcdef" for c in needle):
         return None
 
-    viewer_dir = Path(__file__).resolve().parent.parent / "viewer"
+    viewer_dir = _RECEIPT_SNAPSHOT_DIR
+    hits: dict[str, tuple[dict, str]] = {}
     for snap_file in sorted(viewer_dir.glob("snapshots_*.json")):
         try:
             rows = json.loads(snap_file.read_text(encoding="utf-8"))
@@ -801,21 +805,29 @@ def _lookup_committed_receipt(short_hash: str) -> dict | None:
             ch = str(row.get("content_hash") or "").lower()
             sid = str(row.get("snapshot_id") or "").replace("-", "").lower()
             if (ch and ch.startswith(needle)) or (sid and sid.startswith(needle)):
-                return {
-                    "verified": True,
-                    "status": "VERIFIED",
-                    "shortHash": needle[:8],
-                    "snapshotHash": ch or str(row.get("snapshot_id")),
-                    "timestampUtc": row.get("created_at") or row.get("timestamp"),
-                    "player": row.get("player_name") or row.get("player_display_name"),
-                    "team": row.get("team"),
-                    "opponent": row.get("opponent"),
-                    "market": row.get("market"),
-                    "slate": row.get("slate"),
-                    "source": snap_file.name,
-                    "mode": "READ_ONLY_VERIFICATION",
-                }
-    return None
+                hits.setdefault(ch or sid, (row, snap_file.name))
+    # Fail closed unless exactly one distinct committed snapshot matches.
+    if len(hits) != 1:
+        return None
+    row, source = next(iter(hits.values()))
+    ch = str(row.get("content_hash") or "").lower()
+    projection = row.get("projection") if isinstance(row.get("projection"), dict) else {}
+    fair_line = projection.get("fair_line")
+    return {
+        "verified": True,
+        "status": "VERIFIED",
+        "shortHash": needle[:12],
+        "snapshotHash": ch or str(row.get("snapshot_id")),
+        "timestampUtc": row.get("created_at") or row.get("timestamp"),
+        "player": row.get("player_name") or row.get("player_display_name"),
+        "team": row.get("team"),
+        "opponent": row.get("opponent"),
+        "market": row.get("market"),
+        "fairLine": fair_line if isinstance(fair_line, (int, float)) else None,
+        "slate": row.get("slate"),
+        "source": source,
+        "mode": "READ_ONLY_VERIFICATION",
+    }
 
 
 @router.get("/api/v1/receipts/{short_hash}")

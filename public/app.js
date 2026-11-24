@@ -2668,6 +2668,7 @@
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
     state.priceHistory = {};
+    state.committedReceipts = buildCommittedReceiptIndex(snapshots);
     if (Array.isArray(snapshots)) {
       snapshots.forEach(s => {
         if (s && s.quote && s.quote.line !== null && s.quote.line !== undefined) {
@@ -7289,31 +7290,70 @@
     return n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`;
   }
 
-  function shortCardReceiptHash(parts, explicitHash = '') {
-    const clean = String(explicitHash || '').trim().toLowerCase().replace(/[^0-9a-f]/g, '');
-    if (clean.length >= 8) return clean.slice(0, 8);
-    const input = parts.map((p) => String(p ?? '')).join('|');
-    let hash = 0x811c9dc5;
-    for (let i = 0; i < input.length; i += 1) {
-      hash ^= input.charCodeAt(i);
-      hash = Math.imul(hash, 0x01000193) >>> 0;
-    }
-    return hash.toString(16).padStart(8, '0');
+  // Receipt identity: a share link must point at a committed snapshot
+  // content_hash, never a client-side hash of card fields (those 404 on /r/).
+  // Index the active slate's committed snapshots by player_id::market.
+  const COMMITTED_HASH_RE = /^[0-9a-f]{64}$/;
+  const SNAPSHOT_TYPE_RANK = { pre_kickoff: 0, material_revision: 1, first_published: 2 };
+
+  function buildCommittedReceiptIndex(snapshots) {
+    const index = new Map();
+    if (!Array.isArray(snapshots)) return index;
+    snapshots.forEach((s) => {
+      if (!s || typeof s !== 'object') return;
+      const hash = String(s.content_hash || '').trim().toLowerCase();
+      if (!COMMITTED_HASH_RE.test(hash) || !s.player_id || !s.market) return;
+      const key = `${s.player_id}::${s.market}`;
+      if (!index.has(key)) index.set(key, []);
+      index.get(key).push({
+        hash,
+        snapshotId: s.snapshot_id || null,
+        snapshotType: s.snapshot_type || '',
+        createdAt: String(s.created_at || ''),
+        fairLine: Number(s.projection && s.projection.fair_line),
+      });
+    });
+    return index;
   }
 
-  function buildCardXShareUrl({ player, market, fair, book, hash }) {
+  /** Committed receipt for this exact card, or null. When the card shows a
+   *  numeric fair line, the snapshot must carry the same fair line, so the
+   *  receipt backs the number being shared. No match means no share link. */
+  function committedReceiptFor(row, market, fairValue) {
+    const index = state.committedReceipts;
+    if (!(index instanceof Map) || !row || !row.player_id || !market) return null;
+    let candidates = index.get(`${row.player_id}::${market}`) || [];
+    const fair = Number(fairValue);
+    if (fairValue !== undefined && fairValue !== null && fairValue !== '') {
+      if (!Number.isFinite(fair)) return null;
+      candidates = candidates.filter((c) => Number.isFinite(c.fairLine) && Math.abs(c.fairLine - fair) < 1e-9);
+    }
+    if (!candidates.length) return null;
+    const best = candidates.slice().sort((a, b) => {
+      const ra = SNAPSHOT_TYPE_RANK[a.snapshotType] ?? 9;
+      const rb = SNAPSHOT_TYPE_RANK[b.snapshotType] ?? 9;
+      if (ra !== rb) return ra - rb;
+      return b.createdAt.localeCompare(a.createdAt);
+    })[0];
+    return { hash: best.hash, shortHash: best.hash.slice(0, 12), snapshotId: best.snapshotId };
+  }
+
+  function buildCardXShareUrl({ player, market, fair, book, receipt }) {
     const text = [
       `${player} · ${market}`,
       `FAIR ${fair} vs BOOK ${book || '—'}`,
-      `#${hash}`,
-      `Verify: https://propstein.com/r/${hash}`,
+      `#${receipt.shortHash}`,
+      `Verify: https://propstein.com/r/${receipt.hash}`,
     ].join(' | ');
     return `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
   }
 
+  /** Share link only for cards backed by a committed snapshot hash. */
   function renderShareReceiptButton(spec) {
+    const receipt = spec && spec.receipt;
+    if (!receipt || !COMMITTED_HASH_RE.test(String(receipt.hash || ''))) return '';
     const url = buildCardXShareUrl(spec);
-    return `<a class="ps-share-x-btn" data-share-receipt="1" data-share-player="${esc(spec.player)}" data-share-market="${esc(spec.market)}" data-share-fair="${esc(spec.fair)}" data-share-book="${esc(spec.book || '—')}" data-share-matchup="${esc(spec.matchup || '')}" data-share-hash="${esc(spec.hash)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Share ${esc(spec.player)} receipt to X">Share ↗</a>`;
+    return `<a class="ps-share-x-btn" data-share-receipt="1" data-share-player="${esc(spec.player)}" data-share-market="${esc(spec.market)}" data-share-fair="${esc(spec.fair)}" data-share-book="${esc(spec.book || '—')}" data-share-matchup="${esc(spec.matchup || '')}" data-share-hash="${esc(receipt.hash)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Share ${esc(spec.player)} receipt to X">Share ↗</a>`;
   }
 
   function downloadCardReceiptPng({ player, market, fair, book, matchup, hash }) {
@@ -7353,13 +7393,14 @@
       ctx.fillText(String(book || '—'), 620, 444);
       ctx.fillStyle = '#6b7077';
       ctx.font = '600 20px monospace';
-      ctx.fillText(`RECEIPT #${hash}`, 92, 576);
+      ctx.fillText(`RECEIPT #${String(hash).slice(0, 12)}`, 92, 560);
       ctx.fillStyle = '#9da3ab';
-      ctx.fillText(`propstein.com/r/${hash}`, 760, 576);
+      ctx.font = '600 15px monospace';
+      ctx.fillText(`propstein.com/r/${hash}`, 92, 596);
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `propstein-receipt-${hash}.png`;
+      link.download = `propstein-receipt-${String(hash).slice(0, 12)}.png`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -7443,7 +7484,7 @@
           fair: fairAny,
           book: '—',
           matchup: `${pos} · ${matchup}`,
-          hash: shortCardReceiptHash([row.player_id, name, 'anytime_td', fairAny, state.slateKey], row.content_hash),
+          receipt: committedReceiptFor(row, 'anytime_td', Number.isFinite(Number(row.fair_odds_anytime)) ? Number(row.fair_odds_anytime) : NaN),
         })}
       </div>
     </article>`;
@@ -7531,7 +7572,7 @@
           fair,
           book: '—',
           matchup: `${pos} · ${matchup}`,
-          hash: shortCardReceiptHash([row.player_id, name, market, fair, state.slateKey], row.content_hash),
+          receipt: committedReceiptFor(row, market, Number.isFinite(Number(row[meta.fairKey])) ? Number(row[meta.fairKey]) : NaN),
         })}
       </div>
     </article>`;
@@ -7689,7 +7730,7 @@
             fair: fairDisplay,
             book: evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line)) ? `${Number(evaluation.line).toFixed(1)} ${offerPriceText}` : '—',
             matchup: `${row.team || ''} vs ${row.opponent_team || ''}`.trim(),
-            hash: shortCardReceiptHash([row.player_id, row.player_display_name, state.filters.market, fairDisplay, state.slateKey], row.content_hash),
+            receipt: dist.isTd ? null : committedReceiptFor(row, state.filters.market, fairVal),
           })}
         </div>
       </article>`;

@@ -72,7 +72,48 @@ const FIXTURE_SLATE = [
     td_gate_status: 'RESEARCH_ONLY_UNVERIFIED',
     actionable: false,
   },
+  {
+    // Identity matches a real committed row in viewer/snapshots_2026_w7.json
+    // (Mike Evans · receiving_yards · fair_line 46.5 · content_hash 9f123b87…).
+    player_id: '00-0031408',
+    player_display_name: 'Mike Evans',
+    team: 'SF',
+    opponent_team: 'ATL',
+    game_id: '2026_07_SF_ATL',
+    position: 'WR',
+    status: 'ACT',
+    proj_rec: 3.6,
+    fair_line_rec: 3.5,
+    proj_yards: 53.2,
+    fair_line_yards: 46.5,
+    p10_yards: 18.0,
+    p90_yards: 92.0,
+    td_mean: 0.21,
+    p_anytime_td: 0.19,
+    p_2plus_td: 0.02,
+    p_first_td: 0.04,
+    td_confidence_tier: 'LOW',
+    fair_odds_anytime: 426,
+    fair_odds_2plus: 4900,
+    fair_odds_first: 2400,
+    td_role_surge_z: 0.1,
+    td_vacated_rz_opps: 0.0,
+    role_surge: false,
+    td_gate_status: 'RESEARCH_ONLY_UNVERIFIED',
+    actionable: false,
+  },
 ];
+
+const COMMITTED_W7_SNAPSHOTS = fs.readFileSync(path.resolve('viewer/snapshots_2026_w7.json'));
+const COMMITTED_HASHES = new Set(
+  fs.readdirSync(VIEWER_DIR)
+    .filter((f) => /^snapshots_.*\.json$/.test(f))
+    .flatMap((f) => {
+      const rows = JSON.parse(fs.readFileSync(path.join(VIEWER_DIR, f), 'utf8'));
+      return Array.isArray(rows) ? rows.map((r) => String(r.content_hash || '').toLowerCase()) : [];
+    })
+    .filter(Boolean),
+);
 
 function findChrome() {
   const candidates = [
@@ -104,6 +145,10 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
     return;
   }
 
+  // While the board renders, the live slate's snapshots file serves the real
+  // committed W7 snapshot bytes. Turned off before /r/ checks so receipt
+  // verification resolves only against unmodified committed files.
+  let serveBoardSnapshots = true;
   const server = http.createServer((req, res) => {
     const urlPath = (req.url || '/').split('?')[0];
     if (urlPath.startsWith('/slate_2026_w') && urlPath.endsWith('.json')) {
@@ -111,7 +156,12 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
       res.end(JSON.stringify(FIXTURE_SLATE));
       return;
     }
-    const resolvedPath = (urlPath.startsWith('/r/') && urlPath !== '/r/receipt.js') ? '/r/index.html' : (urlPath === '/' ? 'index.html' : urlPath);
+    if (serveBoardSnapshots && urlPath === '/snapshots_2026_w11.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(COMMITTED_W7_SNAPSHOTS);
+      return;
+    }
+    const resolvedPath = (urlPath.startsWith('/r/') && !/\.(js|css)$/.test(urlPath)) ? '/r/index.html' : (urlPath === '/' ? 'index.html' : urlPath);
     const filePath = path.join(VIEWER_DIR, resolvedPath);
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       res.writeHead(404);
@@ -206,25 +256,72 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
     const surgeCount = await page.locator('[data-scan-card="1"]').count();
     assert.equal(surgeCount, 1);
 
-    // One-tap Share to X button carries /r/<hash> and never leaks Kelly/EV when actionable is false
-    const shareHref = await page.locator('[data-scan-card="1"] [data-share-receipt="1"]').first().getAttribute('href');
-    assert.ok(shareHref, 'Expected one-tap Share to X link on scan-first card');
-    assert.match(shareHref, /^https:\/\/x\.com\/intent\/post\?text=/);
-    const decodedShare = decodeURIComponent(shareHref.split('text=')[1] || '');
-    assert.match(decodedShare, /CeeDee Lamb/);
-    assert.match(decodedShare, /https:\/\/propstein\.com\/r\/[0-9a-f]{8}/);
-    assert.doesNotMatch(decodedShare, /\bkelly\b|[+-]\d+(\.\d+)?%\s*ev/i);
+    // Receipt identity: only cards backed by a committed snapshot hash get a share link.
+    await page.locator('[data-signal-chip="surge"]').click();
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('[data-scan-card="1"]').count(), 3);
 
-    // Verifiable /r/<hash> route resolves committed hash and fails closed on unknown hash
-    await page.goto(`http://127.0.0.1:${port}/r/9f123b87`, { waitUntil: 'networkidle' });
+    const shareInfo = await page.evaluate(() => [...document.querySelectorAll('[data-scan-card="1"]')].map((card) => {
+      const link = card.querySelector('[data-share-receipt="1"]');
+      return {
+        player: (card.querySelector('.ps-scan-player') || {}).textContent || '',
+        href: link ? link.getAttribute('href') : null,
+        hash: link ? link.getAttribute('data-share-hash') : null,
+      };
+    }));
+    const evans = shareInfo.find((c) => /Mike Evans/.test(c.player));
+    const lamb = shareInfo.find((c) => /CeeDee Lamb/.test(c.player));
+    const moore = shareInfo.find((c) => /DJ Moore/.test(c.player));
+
+    // Card WITH a committed snapshot hash: link carries that exact content_hash.
+    assert.ok(evans && evans.href, 'Expected Share link on card backed by a committed snapshot');
+    assert.match(evans.href, /^https:\/\/x\.com\/intent\/post\?text=/);
+    assert.match(evans.hash, /^[0-9a-f]{64}$/);
+    assert.ok(COMMITTED_HASHES.has(evans.hash), 'Share hash must be a committed snapshot content_hash');
+    assert.ok(evans.hash.startsWith('9f123b87'));
+    const decodedShare = decodeURIComponent(evans.href.split('text=')[1] || '');
+    assert.match(decodedShare, /Mike Evans/);
+    const sharedUrl = (decodedShare.match(/https:\/\/propstein\.com\/r\/([0-9a-f]+)/) || [])[1];
+    assert.equal(sharedUrl, evans.hash);
+    // actionable=false: share text never carries edge or Kelly.
+    assert.doesNotMatch(decodedShare, /\bkelly\b|\bedge\b|[+-]\d+(\.\d+)?%\s*ev/i);
+
+    // Cards WITHOUT a committed hash: no share link at all.
+    // DJ Moore has no committed snapshot; CeeDee Lamb's committed fair (46.0) != card fair (104.0).
+    assert.ok(lamb && moore);
+    assert.equal(lamb.href, null);
+    assert.equal(moore.href, null);
+
+    // TD scan-first cards: no committed anytime_td snapshots exist, so no share link.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(100);
+    await page.locator('[data-market="anytime_td"]').first().click();
+    await page.waitForSelector('[data-td-card="1"]', { timeout: 5000 });
+    assert.equal(await page.locator('[data-td-card="1"] [data-share-receipt="1"]').count(), 0);
+    assert.ok(await page.locator('[data-td-card="1"]').count() >= 1);
+
+    // The posted link from the real card resolves against unmodified committed files.
+    serveBoardSnapshots = false;
+    await page.goto(`http://127.0.0.1:${port}/r/${evans.hash}`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-receipt-status="VERIFIED"]', { timeout: 5000 });
     const verifiedTxt = await page.locator('#receiptRoot').innerText();
-    assert.match(verifiedTxt, /9f123b87/);
+    assert.match(verifiedTxt, /Mike Evans/);
+    assert.ok(verifiedTxt.includes(evans.hash), 'Receipt page shows the full committed hash');
+    assert.match(verifiedTxt, /46\.5/);
+    assert.match(verifiedTxt, /snapshots_2026_w7\.json/);
+    const verifiedWidth = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2);
+    assert.equal(verifiedWidth, true);
 
+    // Short committed prefix still resolves.
+    await page.goto(`http://127.0.0.1:${port}/r/9f123b87`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('[data-receipt-status="VERIFIED"]', { timeout: 5000 });
+
+    // Unknown hash still fails closed.
     await page.goto(`http://127.0.0.1:${port}/r/deadbeef`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-receipt-status="NOT_FOUND"]', { timeout: 5000 });
     const notFoundTxt = await page.locator('#receiptRoot').innerText();
     assert.match(notFoundTxt, /Receipt not found/i);
+    assert.deepEqual(pageErrors, []);
   } finally {
     await browser.close();
     if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
