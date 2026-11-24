@@ -1538,6 +1538,14 @@ html body.terminal-ui .ps-scan-card:hover {
 .ps-scan-value-empty {
   color: var(--ink-faint, #6b7077);
 }
+/* An alt line is never the book line beside fair: smaller and muted, never quote-blue. */
+.ps-scan-value-alt {
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--ink-dim, #9da3ab);
+}
 .ps-scan-sub {
   font-family: "IBM Plex Mono", var(--terminal-mono, ui-monospace, monospace);
   font-size: 11px;

@@ -15,7 +15,8 @@ test('stale homepage shows fair-line research when observed lines are unavailabl
   assert.equal(title, 'Model fair lines');
   assert.match(status, /No qualifying prices|Snapshot only/);
   assert.equal((cards.match(/class="home-edge-card home-research-card"/g) || []).length, 8);
-  assert.match(cards, /MODEL FAIR · NO LIVE PRICE/);
+  assert.match(cards, /MODEL FAIR · NO QUOTE/);
+  assert.doesNotMatch(cards, /No live price/);
   assert.match(cards, /no current edge or stake is available/);
   assert.doesNotMatch(cards, /Top 5 plays|verified edge/i);
   assert.equal(registry.get('#homeEdgeFallback').hidden, true);
