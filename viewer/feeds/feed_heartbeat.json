@@ -2,27 +2,23 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-24T17:15:32Z",
-      "last_success_quotes": 38,
+      "last_success_at": "2026-11-24T17:25:36Z",
+      "last_success_quotes": 39,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-24T07:02:48Z",
-      "last_attempt_at": "2026-11-24T17:15:32Z",
+      "last_error_at": "2026-11-24T17:25:36Z",
+      "last_attempt_at": "2026-11-24T17:25:36Z",
       "schedule": {
-        "observed_at": "2026-11-24T17:15:32Z",
-        "state": "pending",
-        "starts": [
-          "2026-11-25T00:00:00Z",
-          "2026-11-25T01:00:00Z",
-          "2026-11-25T03:00:00Z"
-        ]
+        "observed_at": "2026-11-24T17:25:36Z",
+        "state": "none",
+        "starts": []
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-24T07:02:59Z",
-      "last_success_quotes": 49,
+      "last_success_at": "2026-11-24T17:25:52Z",
+      "last_success_quotes": 72,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-24T07:02:59Z",
+      "last_attempt_at": "2026-11-24T17:25:52Z",
       "schedule": {
         "observed_at": null,
         "state": null,
