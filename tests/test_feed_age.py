@@ -226,3 +226,38 @@ def test_note_fetch_records_slate_state_and_collisions(tmp_path):
     row = json.loads(path.read_text())["sports"]["nfl"]
     assert row["slate_state"]["state"] == "NO_CURRENT_SLATE"
     assert row["line_collisions_excluded"] == 2
+
+
+def test_unparsed_markets_raise_a_parse_alarm_without_changing_the_level(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=True, quotes=40, path=path, now=NOW - timedelta(minutes=5),
+               schedule_state="pending", starts=[stamp(NOW + timedelta(hours=3))],
+               counters={"skipped_unparsed": 2, "skipped_no_book": 5,
+                         "unparsed_market_ids": ["m1", "m2"]})
+    report = check(tmp_path, None, NOW, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "ok"
+    assert nfl["fetch_counters"]["skipped_no_book"] == 5
+    assert len(report["alerts"]) == 1
+    assert "PARSE ALARM" in report["alerts"][0] and "skipped 2" in report["alerts"][0]
+    assert "m1, m2" in report["alerts"][0]
+
+
+def test_no_book_alone_is_reported_not_alarmed(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=True, quotes=40, path=path, now=NOW - timedelta(minutes=5),
+               schedule_state="pending", starts=[stamp(NOW + timedelta(hours=3))],
+               counters={"skipped_unparsed": 0, "skipped_no_book": 9})
+    report = check(tmp_path, None, NOW, NFL)
+    assert report["alerts"] == []
+    assert report["sports"]["nfl"]["fetch_counters"]["skipped_no_book"] == 9
+
+
+def test_parse_alarm_clears_on_the_next_clean_or_skipped_run(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=True, quotes=40, path=path, now=NOW - timedelta(minutes=20),
+               counters={"skipped_unparsed": 1, "unparsed_market_ids": ["m1"]})
+    note_fetch("nfl", ok=False, quotes=0, error="between weeks", path=path,
+               now=NOW - timedelta(minutes=5), counters={})
+    row = json.loads(path.read_text())["sports"]["nfl"]
+    assert "fetch_counters" not in row
