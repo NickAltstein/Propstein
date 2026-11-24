@@ -106,9 +106,10 @@ def test_auto_deploys_enabled_reads_vercel_json(tmp_path, rule, expected):
     assert gate.auto_deploys_enabled(str(p)) is expected
 
 
-def test_repo_vercel_json_still_deploys_main_automatically():
-    # Automatic deploys are turned off in a follow-up, after the hook test.
-    assert gate.auto_deploys_enabled(str(ROOT / "vercel.json")) is True
+def test_repo_vercel_json_leaves_production_deploys_to_the_gate():
+    # Automatic git deploys are off: every production deploy goes through
+    # the deploy gate's hook, so the gate is no longer report-only.
+    assert gate.auto_deploys_enabled(str(ROOT / "vercel.json")) is False
 
 
 # ── hook, verification, alarm ───────────────────────────────────────────

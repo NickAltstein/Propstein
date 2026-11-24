@@ -1,26 +1,30 @@
-// vercel.json git.deploymentEnabled: only main may create deployments.
+// vercel.json git.deploymentEnabled: Vercel creates no deployments from git.
 //
-// Vercel matches these keys with minimatch, where "*" does not cross "/".
-// The old "*": false rule therefore left every branch with a slash
-// (feat/..., fix/..., data/..., claude/...) creating a preview deployment:
-// 28 of 81 deployments in one day, all cancelled by scripts/vercel_ignore.sh
-// but still counted against the Hobby limit of 100 per day.
+// Every push used to create a deployment: previews for branches with a "/"
+// (a "*" rule never matched them) and a production deployment for every
+// data-bot merge to main, most cancelled by scripts/vercel_ignore.sh but
+// still counted against the Hobby limit of 100 per day. Production deploys
+// now go only through the deploy gate (.github/workflows/deploy_gate.yml),
+// which calls a deploy hook when served files change.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const rules = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')).git.deploymentEnabled;
+const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
 
-test('the catch-all rule uses "**" so it matches branch names with slashes', () => {
-  assert.equal(rules['**'], false);
-  assert.ok(!('*' in rules), '"*" does not match feat/x or data/x; use "**"');
+test('automatic git deployments are off for every branch', () => {
+  assert.equal(config.git.deploymentEnabled, false);
 });
 
-test('main is the only branch allowed to deploy', () => {
-  // Vercel: a branch matching several rules deploys if any rule is true.
-  assert.equal(rules.main, true);
-  const enabled = Object.entries(rules).filter(([, on]) => on === true).map(([k]) => k);
-  assert.deepEqual(enabled, ['main']);
+test('the deploy gate is what deploys production', () => {
+  const gate = fs.readFileSync(path.join(ROOT, '.github/workflows/deploy_gate.yml'), 'utf8');
+  assert.match(gate, /branches: \[main\]/);
+  assert.match(gate, /secrets\.VERCEL_DEPLOY_HOOK_URL/);
+});
+
+test('the deprecated github.enabled key is not used', () => {
+  // Vercel's deploy-hook docs: hooks do not fire with github.enabled = false.
+  assert.ok(!('github' in config), 'use git.deploymentEnabled, never github.enabled');
 });
