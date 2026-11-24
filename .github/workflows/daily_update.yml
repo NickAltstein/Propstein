@@ -108,6 +108,17 @@ jobs:
             echo "No NBA games scheduled for $NBA_DATE Eastern."
           fi
 
+      - name: Sync viewer presentation HTML to public/ and verify copy guard
+        if: steps.window.outputs.should_run == 'true'
+        run: |
+          mkdir -p public/ledger
+          for rel in audit.html index.html ledger.html ledger/index.html verify.html; do
+            if [ -f "viewer/$rel" ]; then
+              cp "viewer/$rel" "public/$rel"
+            fi
+          done
+          python scripts/check_public_sync.py
+
       - name: Commit and push refreshed slate (if changed)
         if: steps.window.outputs.should_run == 'true'
         run: |
@@ -135,6 +146,8 @@ jobs:
             'viewer/ufc_*.json' \
             'viewer/index.html' viewer/audit.html viewer/verify.html \
             viewer/ledger.html viewer/ledger/index.html \
+            public/index.html public/audit.html public/verify.html \
+            public/ledger.html public/ledger/index.html \
             current_picks.json top_picks.json slate_projections.json slate_projections.csv \
             src/top_picks.json src/current_picks.json src/slate_projections.json src/slate_projections.csv
           if git diff --quiet && git diff --staged --quiet; then

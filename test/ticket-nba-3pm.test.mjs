@@ -47,12 +47,58 @@ test('NBA 3PM ticket: real empty state, fixture comparison, side by side with NF
   const server = http.createServer((req, res) => {
     const urlPath = (req.url || '/').split('?')[0];
     const json = (status, body) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
-    if (fx.on && urlPath === '/feeds/slate-index.json') {
-      const idx = JSON.parse(fs.readFileSync(path.join(VIEWER_DIR, 'feeds/slate-index.json'), 'utf8'));
-      Object.values(idx.sports.nba.slates).forEach((s) => { s.odds = null; });
-      idx.sports.nba.default_slate = 'fx-nba';
-      idx.sports.nba.slates['fx-nba'] = { season: 2026, date: '2026-11-24', slate: 'fx_nba_slate.json', games: 'nba_games_2026-11-23.json', odds: 'fx_nba_odds.json', snapshots: null, historical: false, marketOnly: true };
-      return json(200, idx);
+    if (urlPath === '/feeds/slate-index.json') {
+      const pinnedIndex = {
+        schema_version: 'slate-index.v1',
+        generated_at: '2026-11-23T18:00:00Z',
+        sports: {
+          nfl: {
+            default_slate: '2026_w11',
+            slates: {
+              '2026_w11': {
+                season: 2026,
+                week: 11,
+                slate: 'slate_2026_w11.json',
+                games: 'games_2026_w11.json',
+                snapshots: 'snapshots_2026_w11.json',
+                historical: false,
+              },
+            },
+          },
+          nba: fx.on
+            ? {
+                default_slate: 'fx-nba',
+                slates: {
+                  'fx-nba': {
+                    season: 2026,
+                    date: '2026-11-24',
+                    slate: 'fx_nba_slate.json',
+                    games: 'nba_games_2026-11-23.json',
+                    odds: 'fx_nba_odds.json',
+                    snapshots: null,
+                    historical: false,
+                    marketOnly: true,
+                  },
+                },
+              }
+            : {
+                default_slate: '2026-11-23',
+                slates: {
+                  '2026-11-23': {
+                    season: 2026,
+                    date: '2026-11-23',
+                    slate: 'nba_slate_2026-11-23.json',
+                    games: 'nba_games_2026-11-23.json',
+                    odds: 'nba_odds_2026-11-23.json',
+                    snapshots: null,
+                    historical: false,
+                    marketOnly: true,
+                  },
+                },
+              },
+        },
+      };
+      return json(200, pinnedIndex);
     }
     if (fx.on && urlPath === '/fx_nba_slate.json') return json(200, []);
     if (fx.on && urlPath === '/fx_nba_odds.json') return fx.status === 200 ? json(200, fx.feed) : json(fx.status, { error: 'down' });
