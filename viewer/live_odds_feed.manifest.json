@@ -1,20 +1,20 @@
 {
-  "run_id": "run_fbbf63827cc4",
-  "commit_sha": "7065e06310fa649e64d6e6fc8c272054d032dfc3",
-  "data_cutoff_timestamp": "2026-11-24T07:02:59.530003Z",
+  "run_id": "run_35263ad5c7f5",
+  "commit_sha": "ba62c388089567e72b3d4827e3595871f581d4bd",
+  "data_cutoff_timestamp": "2026-11-24T16:54:11.474154Z",
   "model_version": "ingestion-only",
   "contracts_version": "quant.v1",
   "generator": "validate_and_publish:PolymarketMergedFeed",
   "schema_version": "propstein_contract_v1",
   "schema_class": "PolymarketMergedFeed",
   "source_feed": "polymarket_clob",
-  "timestamp": "2026-11-24T07:02:59.527837+00:00",
+  "timestamp": "2026-11-24T16:54:11.472280+00:00",
   "status": "PASS_ATOMIC_PUBLISHED",
   "target_file": "viewer/live_odds_feed.json",
-  "rows_seen": 49,
-  "rows_valid": 49,
+  "rows_seen": 59,
+  "rows_valid": 59,
   "rows_rejected": 0,
   "quarantine_path": null,
   "config_hash": "dfd1b9e06c70b476445de1287296cacd79bc099ac7d5e7129870cd64f374a6f7",
-  "sha256": "ddca857b3b21abac0afa9f49a21f14e132f668323423c5a2c68fde9a07d61dc4"
+  "sha256": "3edb7d42852775c94f4779ad876ed6bb1443c2c8a1fe50ddc9e4ff356d570c15"
 }
