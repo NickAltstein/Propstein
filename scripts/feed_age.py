@@ -20,6 +20,12 @@ NFL also reports a named slate state (scripts/slate_state.py):
                     exclusion reasons in the status file;
   NO_SLATE_ROWS     live slate with nothing to price; critical at once.
 
+A slate that stays SLATE_BLOCKED longer than blocked_slate_alarm_hours
+raises a separate BLOCKED SLATE alarm (the feed level is unchanged). Its
+start time is the poller's heartbeat state_since; if the poller has not
+confirmed the block, slate-index.json's generated_at is used as a lower
+bound, so a block alarms even when the poller is down.
+
 The NFL poller also records its last fetch counters. skipped_no_book (a
 parsed market with no CLOB book) is reported only; skipped_unparsed > 0 (an
 in-scope market whose outcome tokens could not be read) raises a parse alarm
@@ -63,6 +69,7 @@ DEFAULT_CONFIG = {
     "sports": ["nba", "nfl"],
     "nfl_ingest_utc_hour": slate_state.DEFAULT_INGEST_UTC_HOUR,
     "no_current_slate_buffer_hours": slate_state.DEFAULT_NO_CURRENT_SLATE_BUFFER_HOURS,
+    "blocked_slate_alarm_hours": 12.0,
 }
 NBA_ODDS_RE = re.compile(r"nba_odds_(\d{4}-\d{2}-\d{2})\.json$")
 EMPTY_ERROR = "empty/zero-event response"
@@ -147,8 +154,15 @@ def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = Non
             "starts": list(starts or []),
         }
     if slate:
+        # state_since: when this state (for this slate) was first recorded.
+        # Kept across notes while the state holds; reset when it changes.
+        prev = sport_row.get("slate_state") or {}
+        same = (prev.get("state") == slate.get("state")
+                and prev.get("slate_key") == slate.get("slate_key")
+                and prev.get("state_since"))
         sport_row["slate_state"] = {
             "observed_at": stamp,
+            "state_since": prev["state_since"] if same else stamp,
             **{k: slate.get(k) for k in ("state", "detail", "slate_key", "since", "alarm_after",
                                          "overdue", "exclusions", "priced_rows", "markets")},
         }
@@ -351,6 +365,17 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
         out["slate_state"] = {k: state[k] for k in ("state", "detail", "slate_key", "since",
                                                     "alarm_after", "overdue", "exclusions",
                                                     "priced_rows")}
+        if named == slate_state.SLATE_BLOCKED:
+            since, source = blocked_since(viewer, row, state)
+            limit = float(cfg["blocked_slate_alarm_hours"])
+            hours = None if since is None else (now - since).total_seconds() / 3600
+            out["slate_state"].update({
+                "blocked_since": None if since is None else since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "blocked_since_source": source,
+                "blocked_hours": None if hours is None else round(hours, 1),
+                "blocked_limit_hours": limit,
+                "blocked_overdue": hours is not None and hours > limit,
+            })
         if "line_collisions_excluded" in row:
             out["line_collisions_excluded"] = row["line_collisions_excluded"]
     if row.get("fetch_counters"):
@@ -365,6 +390,35 @@ def alert_message(row: dict) -> str:
     tag = f" [{state}]" if state and state not in (slate_state.OK, slate_state.UNKNOWN) else ""
     return (f"PropStein feed age {row['level'].upper()}: {row['sport'].upper()}{tag} "
             f"data age {age}; last error: {err}")
+
+
+def blocked_since(viewer: Path, row: dict, state: dict) -> tuple[datetime | None, str]:
+    """When the current SLATE_BLOCKED stretch began, and where that came from."""
+    hb = row.get("slate_state") or {}
+    if (hb.get("state") == slate_state.SLATE_BLOCKED and hb.get("slate_key") == state.get("slate_key")
+            and hb.get("state_since")):
+        try:
+            return parse_time(hb["state_since"]), "poller heartbeat"
+        except ValueError:
+            pass
+    try:
+        index = json.loads((viewer / "feeds" / "slate-index.json").read_text(encoding="utf-8"))
+        return parse_time(index["generated_at"]), "slate-index generated_at (poller has not confirmed the block)"
+    except (OSError, ValueError, KeyError, TypeError):
+        return None, "unknown"
+
+
+def blocked_alarm(row: dict) -> str | None:
+    """Alert line when a slate has been SLATE_BLOCKED longer than the limit."""
+    st = row.get("slate_state") or {}
+    if st.get("state") != slate_state.SLATE_BLOCKED or not st.get("blocked_overdue"):
+        return None
+    reasons = "; ".join(f"{e.get('matchup') or e.get('game_id')}: {e.get('reason')}"
+                        for e in (st.get("exclusions") or [])) or "(no reasons recorded)"
+    return (f"PropStein BLOCKED SLATE: {row['sport'].upper()} slate {st.get('slate_key')!r} has been "
+            f"SLATE_BLOCKED for {st.get('blocked_hours')}h (since {st.get('blocked_since')}, "
+            f"from {st.get('blocked_since_source')}; limit {st.get('blocked_limit_hours'):g}h); "
+            f"exclusions: {reasons}")
 
 
 def parse_alarm(row: dict) -> str | None:
@@ -387,6 +441,7 @@ def check(viewer: Path, heartbeat: dict | None = None, now: datetime | None = No
     sports = [evaluate_sport(sport, viewer, heartbeat, now, cfg) for sport in cfg["sports"]]
     alerts = [alert_message(row) for row in sports if row["level"] in ("degraded", "critical")]
     alerts += [line for line in (parse_alarm(row) for row in sports) if line]
+    alerts += [line for line in (blocked_alarm(row) for row in sports) if line]
     return {
         "schema_version": "feed-status.v1",
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),

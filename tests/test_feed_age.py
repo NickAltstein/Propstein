@@ -261,3 +261,85 @@ def test_parse_alarm_clears_on_the_next_clean_or_skipped_run(tmp_path):
                now=NOW - timedelta(minutes=5), counters={})
     row = json.loads(path.read_text())["sports"]["nfl"]
     assert "fetch_counters" not in row
+
+
+GATED_ROW = {"game_id": "2026_11_A_B", "matchup": "A @ B", "context_status": "CONTEXT_MISSING",
+             "position": "CONTEXT_MISSING", "excl_reason": "CONTEXT_MISSING: spread_close"}
+
+
+def _blocked_viewer(tmp_path, generated_at="2026-11-16T11:00:00Z"):
+    _nfl_viewer(tmp_path, "2026_w11",
+                {"2026_w11": {"games": "games_2026_w11.json", "slate": "slate_2026_w11.json"}},
+                {"games_2026_w11.json": [{"gameday": "2026-11-17"}], "slate_2026_w11.json": [GATED_ROW]})
+    index = json.loads((tmp_path / "feeds" / "slate-index.json").read_text())
+    index["generated_at"] = generated_at
+    (tmp_path / "feeds" / "slate-index.json").write_text(json.dumps(index))
+
+
+BLOCKED = {"state": "SLATE_BLOCKED", "detail": "gated", "slate_key": "2026_w11",
+           "exclusions": [{"matchup": "A @ B", "reason": "CONTEXT_MISSING: spread_close"}]}
+
+
+def test_state_since_holds_while_the_state_holds_and_resets_when_it_changes(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    t0 = NOW - timedelta(hours=5)
+    note_fetch("nfl", ok=False, quotes=0, error="b", path=path, now=t0, slate=BLOCKED)
+    note_fetch("nfl", ok=False, quotes=0, error="b", path=path, now=NOW, slate=BLOCKED)
+    row = json.loads(path.read_text())["sports"]["nfl"]["slate_state"]
+    assert row["state_since"] == stamp(t0) and row["observed_at"] == stamp(NOW)
+    note_fetch("nfl", ok=True, quotes=9, path=path, now=NOW + timedelta(minutes=15),
+               slate={"state": "OK", "slate_key": "2026_w11"})
+    note_fetch("nfl", ok=False, quotes=0, error="b", path=path, now=NOW + timedelta(minutes=30), slate=BLOCKED)
+    row = json.loads(path.read_text())["sports"]["nfl"]["slate_state"]
+    assert row["state_since"] == stamp(NOW + timedelta(minutes=30))
+
+
+def test_state_since_resets_for_a_new_slate_with_the_same_state(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(days=7), slate=BLOCKED)
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW, slate=dict(BLOCKED, slate_key="2026_w12"))
+    assert json.loads(path.read_text())["sports"]["nfl"]["slate_state"]["state_since"] == stamp(NOW)
+
+
+def test_blocked_slate_pages_only_after_the_limit(tmp_path):
+    _blocked_viewer(tmp_path)
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=11), slate=BLOCKED)
+    report = check(tmp_path, None, NOW, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "suppressed" and report["alerts"] == []
+    assert nfl["slate_state"]["blocked_hours"] == 11.0
+    assert nfl["slate_state"]["blocked_since_source"] == "poller heartbeat"
+
+    late = check(tmp_path, None, NOW + timedelta(hours=2), NFL)
+    assert late["sports"]["nfl"]["level"] == "suppressed", "the feed level stays unchanged"
+    assert len(late["alerts"]) == 1
+    line = late["alerts"][0]
+    assert "BLOCKED SLATE" in line and "'2026_w11'" in line and "13.0h" in line
+    assert "A @ B: CONTEXT_MISSING: spread_close" in line
+
+
+def test_blocked_slate_limit_comes_from_config(tmp_path):
+    _blocked_viewer(tmp_path)
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(hours=5), slate=BLOCKED)
+    assert check(tmp_path, None, NOW, dict(NFL, blocked_slate_alarm_hours=4))["alerts"]
+
+
+def test_blocked_slate_still_pages_when_the_poller_never_confirmed_it(tmp_path):
+    # Poller down: no heartbeat slate state. slate-index generated_at is the lower bound.
+    _blocked_viewer(tmp_path, generated_at=stamp(NOW - timedelta(hours=20)))
+    report = check(tmp_path, {"sports": {}}, NOW, NFL)
+    st = report["sports"]["nfl"]["slate_state"]
+    assert st["blocked_overdue"] is True and st["blocked_since_source"].startswith("slate-index")
+    assert any("BLOCKED SLATE" in a for a in report["alerts"])
+
+
+def test_blocked_slate_ignores_a_heartbeat_for_a_different_slate(tmp_path):
+    _blocked_viewer(tmp_path, generated_at=stamp(NOW - timedelta(hours=1)))
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, path=path, now=NOW - timedelta(days=3),
+               slate=dict(BLOCKED, slate_key="2026_w10"))
+    report = check(tmp_path, None, NOW, NFL)
+    assert report["sports"]["nfl"]["slate_state"]["blocked_hours"] == 1.0
+    assert report["alerts"] == []
