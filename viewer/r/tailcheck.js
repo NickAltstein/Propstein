@@ -21,7 +21,9 @@
   const FALLBACK_SLATES = [{ sport: 'nfl', key: '2026_w7', snapshots: 'snapshots_2026_w7.json', odds: null, slate: 'slate_2026_w7.json', historical: true }];
   const DEFAULT_ODDS_STALE_SECONDS = 21600; // same default as viewer/app.js feedThresholds()
   const TICKET_BOOKS = ['DraftKings', 'FanDuel'];
-  const MARKET_LABEL = { receiving_yards: 'Receiving Yards', receptions: 'Receptions', anytime_td: 'Anytime TD' };
+  const MARKET_LABEL = { receiving_yards: 'Receiving Yards', receptions: 'Receptions', anytime_td: 'Anytime TD', threes: '3PM' };
+  // NBA 3PM ladder rungs map to the existing 'threes' Over line: N+ == Over (N - 0.5). Exact line only.
+  const THREES_RUNGS = { 3: 2.5, 4: 3.5 };
 
   // ---------------------------------------------------------------- utils
   function esc(v) {
@@ -253,6 +255,10 @@
 
   function selectionText(sel) {
     if (sel.market === 'anytime_td') return 'Anytime TD · Yes';
+    if (sel.market === 'threes' && sel.side === 'OVER') {
+      const rung = Object.keys(THREES_RUNGS).find((k) => THREES_RUNGS[k] === sel.threshold);
+      if (rung) return `3PM ${rung}+ (Over ${fmtLine(sel.threshold)})`;
+    }
     const side = sel.side === 'OVER' ? 'Over' : sel.side === 'UNDER' ? 'Under' : '';
     return `${MARKET_LABEL[sel.market] || sel.market} · ${side} ${fmtLine(sel.threshold)}`;
   }
@@ -362,7 +368,11 @@
     if (text.length > 120) return { ok: false, reason: 'Paste one leg only. Multi-leg slips are not supported.', read };
     if (/[,;|]|\bparlay\b|\bsgp\b|\n/i.test(text)) return { ok: false, reason: 'Multi-leg slips are not supported. Paste one leg.', read };
     const m = TD_RE.exec(text);
-    if (!m) return { ok: false, reason: `Only NFL anytime TD is supported here. Example: “${SLIP_EXAMPLE}”.`, read };
+    if (!m) {
+      const nba = parseThreesSlip(text, read);
+      if (nba) return nba;
+      return { ok: false, reason: `Only NFL anytime TD and NBA 3PM (3+ or 4+) are supported. Examples: “${SLIP_EXAMPLE}”, “${SLIP_EXAMPLE_3PM}”.`, read };
+    }
     let playerPart = m[1].trim();
     read.market = 'Anytime TD';
     let team = null;
@@ -381,7 +391,47 @@
     const o = parseOddsToken(restTokens[0]);
     if (!o.ok) return { ok: false, reason: 'Odds need an explicit sign, such as +150 or -120 (or “even”).', read };
     read.odds = fmtOdds(o.odds);
-    return { ok: true, player: playerPart, team, odds: o.odds, read };
+    return { ok: true, sport: 'nfl', market: 'anytime_td', player: playerPart, team, odds: o.odds, read };
+  }
+
+  // NBA 3PM: "Jalen Brunson 3PM 3+ +150" or "... 3PM over 2.5 +150". Only 3+ / 4+.
+  const SLIP_EXAMPLE_3PM = 'Jalen Brunson 3PM 3+ +150';
+  const THREES_RE = /^(.*?)\s+(?:3pm|3pt|3pts|threes|3-pointers made|3 pointers made|three pointers made|three-pointers made|3-pointers|three pointers)\s+(.*)$/i;
+
+  function parseThreesSlip(text, read) {
+    const m = THREES_RE.exec(text);
+    if (!m) return null;
+    read.market = 'NBA 3PM';
+    let playerPart = m[1].trim();
+    let team = null;
+    const pt = playerPart.split(' ');
+    if (pt.length > 1 && /^[A-Z]{2,4}$/.test(pt[pt.length - 1])) {
+      team = pt.pop();
+      playerPart = pt.join(' ');
+    }
+    if (team) read.team = team;
+    if (!normName(playerPart)) return { ok: false, reason: 'Could not read a player name.', read };
+    read.player = playerPart;
+    const tokens = m[2].trim().split(' ');
+    const oddsTok = tokens.length > 1 ? tokens.pop() : null;
+    const rungText = tokens.join(' ').toLowerCase();
+    let rung = null;
+    let rm = /^(\d+)\+$/.exec(rungText);
+    if (rm) rung = Number(rm[1]);
+    rm = /^(?:over|o)\s?(\d+\.5)$/.exec(rungText);
+    if (rm) rung = Number(rm[1]) + 0.5;
+    if (/^(?:under|u)\s?\d/.test(rungText)) return { ok: false, reason: 'Only 3+ and 4+ (Over) are supported for NBA 3PM.', read };
+    if (rung === null) {
+      if (!oddsTok && /^[+-]?\d{3,5}$|^even$/i.test(m[2].trim())) return { ok: false, reason: 'Missing the rung. Add 3+ or 4+ before the odds.', read };
+      return { ok: false, reason: 'Could not read the rung. Use 3+ or 4+ (or Over 2.5 / Over 3.5).', read };
+    }
+    read.rung = `${rung}+`;
+    if (!THREES_RUNGS[rung]) return { ok: false, reason: `Only 3+ and 4+ are supported for NBA 3PM (read ${rung}+).`, read };
+    if (!oddsTok) return { ok: false, reason: 'Missing odds. Add signed American odds such as +150 or -120.', read };
+    const o = parseOddsToken(oddsTok);
+    if (!o.ok) return { ok: false, reason: 'Odds need an explicit sign, such as +150 or -120 (or “even”).', read };
+    read.odds = fmtOdds(o.odds);
+    return { ok: true, sport: 'nba', market: 'nba_threes', rung, player: playerPart, team, odds: o.odds, read };
   }
 
   /**
@@ -389,6 +439,7 @@
    * Exactly one player row must match (name, and team when given).
    */
   async function resolveSlipPlayer(parsed) {
+    if (parsed.sport === 'nba') return resolveNbaPlayer(parsed);
     const { slates, defaults } = await loadSlateIndex();
     const key = defaults.nfl;
     const slate = slates.find((s) => s.sport === 'nfl' && s.key === key && !s.historical);
@@ -407,6 +458,58 @@
     }
     const r = [...ids.values()][0];
     return { ok: true, row: r, slate };
+  }
+
+  /**
+   * NBA players for the current NBA slate: slate rows plus players observed in
+   * that slate's own odds feed (the market-only board uses the same source).
+   * Exactly one player+game must match.
+   */
+  async function nbaPlayersForSlate(slate) {
+    const out = [];
+    const rows = slate.slate ? await fetchJsonOrNull(`/${slate.slate}`) : null;
+    (Array.isArray(rows) ? rows : []).forEach((r) => {
+      if (r && r.player_id && r.game_id) out.push({ playerId: String(r.player_id), gameId: String(r.game_id), name: r.player_display_name || r.player_name || '', team: r.team || '', opponent: r.opponent_team || r.opponent || '' });
+    });
+    const feed = slate.odds ? await fetchJsonOrNull(`/${slate.odds}`) : null;
+    const quotes = Array.isArray(feed) ? feed : (feed && Array.isArray(feed.quotes) ? feed.quotes : []);
+    quotes.forEach((q) => {
+      if (q && q.player_id && q.game_id && q._fixture !== true) out.push({ playerId: String(q.player_id), gameId: String(q.game_id), name: q.player_name || '', team: q.team || '', opponent: q.opponent || '' });
+    });
+    return out;
+  }
+
+  async function resolveNbaPlayer(parsed) {
+    const { slates, defaults } = await loadSlateIndex();
+    const key = defaults.nba;
+    const slate = slates.find((s) => s.sport === 'nba' && s.key === key && !s.historical);
+    if (!slate) return { ok: false, reason: 'No current NBA slate is published.' };
+    const want = normName(parsed.player);
+    let matches = (await nbaPlayersForSlate(slate)).filter((p) => normName(p.name) === want);
+    if (parsed.team) matches = matches.filter((p) => String(p.team).toUpperCase() === parsed.team);
+    const ids = new Map();
+    matches.forEach((p) => { if (!ids.has(`${p.playerId}|${p.gameId}`)) ids.set(`${p.playerId}|${p.gameId}`, p); });
+    if (ids.size === 0) return { ok: false, reason: `“${parsed.player}” is not on the current NBA slate (${key}).` };
+    if (ids.size > 1) {
+      const options = [...ids.values()].map((p) => `${p.name} (${p.team} vs ${p.opponent})`);
+      return { ok: false, ambiguous: true, reason: `That matches more than one player or game: ${options.join('; ')}. Add the team, e.g. “${parsed.player} ${[...ids.values()][0].team} 3PM ${parsed.rung}+ ${fmtOdds(parsed.odds)}”.` };
+    }
+    const p = [...ids.values()][0];
+    return { ok: true, row: { player_id: p.playerId, game_id: p.gameId, player_display_name: p.name, team: p.team, opponent_team: p.opponent }, slate };
+  }
+
+  async function nbaOddsFiles() {
+    const { slates } = await loadSlateIndex();
+    return slates.filter((s) => s.sport === 'nba' && !s.historical && s.odds).map((s) => s.odds);
+  }
+
+  async function findNbaPlayer(playerId, gameId) {
+    const { slates } = await loadSlateIndex();
+    for (const s of slates.filter((x) => x.sport === 'nba' && !x.historical)) {
+      const hit = (await nbaPlayersForSlate(s)).find((p) => p.playerId === playerId && p.gameId === gameId);
+      if (hit) return hit;
+    }
+    return null;
   }
 
   /** Model fair for an exact anytime TD selection from a committed slate row, if present. */
@@ -433,7 +536,9 @@
 
   window.PropsteinTail = {
     TICKET_BOOKS,
+    THREES_RUNGS,
     SLIP_EXAMPLE,
+    SLIP_EXAMPLE_3PM,
     esc,
     fmtOdds,
     fmtTs,
@@ -454,5 +559,7 @@
     tdFairFromRow,
     nflOddsFiles,
     findSlateRow,
+    nbaOddsFiles,
+    findNbaPlayer,
   };
 })();
