@@ -51,15 +51,24 @@ jobs:
           fi
           PYTHONPATH=. python scripts/check_game_context_provenance.py
 
-      - name: Check for stale data-bot PRs (>6h)
+      - name: Check for stale data-bot PRs (1h frequent / 6h daily)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
           import json
+          import re
           import subprocess
           import sys
           from datetime import datetime, timezone
+
+          FREQUENT_WORKFLOWS = {
+              "odds-freshness",
+              "odds-freshness-degraded",
+              "close-quality-capture",
+              "news-watcher",
+              "feed-age-watch",
+          }
 
           raw = subprocess.check_output(
               ["gh", "pr", "list", "--label", "data-bot", "--state", "open",
@@ -72,14 +81,17 @@ jobs:
           for pr in prs:
               created = datetime.fromisoformat(pr["createdAt"].replace("Z", "+00:00"))
               age_h = (now - created).total_seconds() / 3600.0
-              if age_h > 6.0:
-                  stale.append((pr["number"], pr["title"], pr["url"], round(age_h, 1)))
+              m = re.match(r"^data\(([^)]+)\):", pr.get("title") or "")
+              wf = m.group(1) if m else ""
+              limit_h = 1.0 if wf in FREQUENT_WORKFLOWS else 6.0
+              if age_h > limit_h:
+                  stale.append((pr["number"], pr["title"], pr["url"], round(age_h, 2), limit_h))
           if stale:
-              print("STALE data-bot PRs open > 6 hours (not auto-closed; human review required):", file=sys.stderr)
-              for num, title, url, age_h in stale:
-                  print(f"  - #{num} ({age_h}h): {title} — {url}", file=sys.stderr)
+              print("STALE data-bot PRs past threshold (not auto-closed; human review required):", file=sys.stderr)
+              for num, title, url, age_h, limit_h in stale:
+                  print(f"  - #{num} ({age_h}h > {limit_h}h): {title} — {url}", file=sys.stderr)
               sys.exit(1)
-          print(f"No stale data-bot PRs ({len(prs)} open <= 6h).")
+          print(f"No stale data-bot PRs ({len(prs)} open within threshold).")
           PY
 
       - name: Notify on failure (webhook)
