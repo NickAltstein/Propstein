@@ -264,6 +264,9 @@ def test_network_failure_leaves_feed_untouched(tmp_path, monkeypatch):
         raise OSError("network down")
 
     monkeypatch.setattr(pm, "fetch_events", boom)
+    monkeypatch.setattr(pm, "classify_slate_state", lambda *a, **k: _status("OK"))
+    notes = []
+    monkeypatch.setattr(pm, "_note_nfl", lambda **k: notes.append(k))  # never the repo heartbeat
     monkeypatch.setattr(sys, "argv", ["fetch_polymarket_props.py"])
     before = feed_path.read_bytes()
     assert pm.main() == 0
@@ -355,3 +358,88 @@ def test_receipted_contract_amendment_rejects_every_verified_claim():
     # VERIFIED via evaluation status stays forbidden in both states.
     reject(dict(ok, quotes=[dict(pm_quote, evaluation={"status": "VERIFIED"})]),
            "independent verification")
+
+
+def _q(market_id, over_ask, player="00-1", line=74.5, depth=50.0):
+    return {"quote_id": f"pm_{market_id}", "provider_quote_id": market_id, "player_id": player,
+            "player_name": "A Player", "market": "receiving_yards", "line": line,
+            "over_ask_price": over_ask, "under_ask_price": round(1 - over_ask + 0.02, 2),
+            "over_ask_depth_usd": depth, "under_ask_depth_usd": depth}
+
+
+def test_duplicate_line_from_two_markets_is_excluded_not_best_priced(capsys):
+    quotes = [_q("m1", 0.55), _q("m2", 0.48), _q("m3", 0.5, player="00-2")]
+    kept, collisions = pm.exclude_line_collisions(quotes)
+    # Neither ask survives: picking the better one would inflate the edge.
+    assert [q["provider_quote_id"] for q in kept] == ["m3"]
+    assert len(collisions) == 1
+    c = collisions[0]
+    assert c["market_ids"] == ["m1", "m2"] and c["action"] == "excluded_ambiguous"
+    assert set(c["asks"]) == {"m1", "m2"}
+    assert "LINE COLLISION" in capsys.readouterr().err
+
+
+def test_same_market_seen_twice_is_not_a_collision():
+    kept, collisions = pm.exclude_line_collisions([_q("m1", 0.55), _q("m1", 0.55)])
+    assert len(kept) == 1 and collisions == []
+
+
+def test_collision_log_is_appended_and_bounded(tmp_path, monkeypatch):
+    log = tmp_path / "collisions.json"
+    monkeypatch.setattr(pm, "COLLISION_LOG_PATH", log)
+    monkeypatch.setattr(pm, "COLLISION_LOG_MAX_ENTRIES", 3)
+    for i in range(5):
+        pm.append_collisions([{"market_ids": [f"a{i}", f"b{i}"]}])
+    entries = json.loads(log.read_text())
+    assert [e["market_ids"][0] for e in entries] == ["a2", "a3", "a4"]
+
+
+def test_merge_feed_refuses_to_choose_between_duplicate_lines(tmp_path, monkeypatch):
+    feed_path = tmp_path / "live_odds_feed.json"
+    feed_path.write_text('{"quotes": []}')
+    monkeypatch.setattr(pm, "FEED_PATH", feed_path)
+    with pytest.raises(ValueError, match="duplicate Polymarket line"):
+        pm.merge_feed([_q("m1", 0.55), _q("m2", 0.48)], dry_run=True)
+
+
+def _status(state, overdue=False, exclusions=()):
+    return {"state": state, "detail": "why", "overdue": overdue, "exclusions": list(exclusions),
+            "slate_key": None, "since": None, "alarm_after": None, "priced_rows": 0, "markets": None}
+
+
+@pytest.mark.parametrize("state,overdue,code", [
+    ("NO_CURRENT_SLATE", False, 0),
+    ("NO_CURRENT_SLATE", True, 1),
+    ("SLATE_BLOCKED", False, 0),
+])
+def test_main_reports_expected_states_without_fetching(monkeypatch, capsys, state, overdue, code):
+    notes = []
+    monkeypatch.setattr(pm, "classify_slate_state", lambda *a, **k: _status(
+        state, overdue, [{"matchup": "A @ B", "game_id": "g", "reason": "CONTEXT_MISSING: x"}]))
+    monkeypatch.setattr(pm, "fetch_events", lambda **k: pytest.fail("must not fetch"))
+    monkeypatch.setattr(pm, "_note_nfl", lambda **k: notes.append(k))
+    monkeypatch.setattr(sys, "argv", ["fetch_polymarket_props.py"])
+    assert pm.main() == code
+    out = capsys.readouterr()
+    assert f"slate state {state}: why" in out.out
+    assert notes and notes[0]["slate"]["state"] == state
+    if state == "SLATE_BLOCKED":
+        assert "excluded A @ B: CONTEXT_MISSING: x" in out.out
+    if overdue:
+        assert "SLATE ALARM" in out.err
+
+
+def test_main_fails_loudly_on_a_live_slate_with_no_rows(monkeypatch, capsys):
+    notes = []
+    monkeypatch.setattr(pm, "classify_slate_state", lambda *a, **k: _status("NO_SLATE_ROWS"))
+    monkeypatch.setattr(pm.slate_state, "classify",
+                        lambda *a, markets=None, **k: dict(_status("NO_SLATE_ROWS"), markets=markets,
+                                                           detail=f"0 rows while {markets} markets"))
+    monkeypatch.setattr(pm, "fetch_events", lambda **k: [{"markets": []}] * 7)
+    monkeypatch.setattr(pm, "fetch_token_books", lambda ids: {})
+    monkeypatch.setattr(pm, "_note_nfl", lambda **k: notes.append(k))
+    monkeypatch.setattr(sys, "argv", ["fetch_polymarket_props.py"])
+    assert pm.main() == 1
+    err = capsys.readouterr().err
+    assert "SLATE ALARM NO_SLATE_ROWS: 0 rows while 7 markets" in err
+    assert notes[-1]["slate"]["markets"] == 7

@@ -146,3 +146,83 @@ def test_scheduled_jobs_do_not_call_the_odds_api():
         assert "fetch_nba_odds.py" not in text, path.name
         assert "fetch_nfl_props_sweep.py" not in text, path.name
         assert "ODDS_API_KEY" not in text, path.name
+
+
+def _nfl_viewer(tmp_path, default, slates, files):
+    (tmp_path / "feeds").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "feeds" / "slate-index.json").write_text(json.dumps({
+        "generated_at": "2026-11-17T05:10:00Z",
+        "sports": {"nfl": {"default_slate": default, "slates": slates}}}))
+    for name, payload in files.items():
+        (tmp_path / name).write_text(json.dumps(payload))
+
+
+def _between_weeks(tmp_path):
+    # W10's last game is Monday 2026-11-16 -> gap opens Tue 00:00 ET (05:00 UTC).
+    _nfl_viewer(tmp_path, None,
+                {"2026_w10": {"games": "games_2026_w10.json", "slate": "slate_2026_w10.json",
+                              "historical": True}},
+                {"games_2026_w10.json": [{"gameday": "2026-11-16"}]})
+
+
+def test_nfl_between_weeks_is_reported_and_suppressed_until_ingest_plus_buffer(tmp_path):
+    _between_weeks(tmp_path)
+    tue_morning = datetime(2026, 11, 17, 9, 0, tzinfo=timezone.utc)
+    report = check(tmp_path, {"sports": {}}, tue_morning, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "suppressed"
+    assert nfl["slate_state"]["state"] == "NO_CURRENT_SLATE"
+    assert nfl["slate_state"]["since"] == "2026-11-17T05:00:00Z"
+    assert nfl["slate_state"]["alarm_after"] == "2026-11-17T17:00:00Z"
+    assert report["alerts"] == []
+
+
+def test_nfl_between_weeks_pages_once_overdue(tmp_path):
+    _between_weeks(tmp_path)
+    late = datetime(2026, 11, 17, 17, 30, tzinfo=timezone.utc)
+    report = check(tmp_path, {"sports": {}}, late, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "critical" and nfl["slate_state"]["overdue"] is True
+    assert "[NO_CURRENT_SLATE]" in report["alerts"][0] and "overdue" in report["alerts"][0]
+
+
+def test_nfl_buffer_comes_from_config(tmp_path):
+    _between_weeks(tmp_path)
+    late = datetime(2026, 11, 17, 17, 30, tzinfo=timezone.utc)
+    report = check(tmp_path, {"sports": {}}, late, dict(NFL, no_current_slate_buffer_hours=12))
+    assert report["sports"]["nfl"]["level"] == "suppressed"
+
+
+def test_nfl_live_slate_with_no_rows_pages_immediately(tmp_path):
+    _nfl_viewer(tmp_path, "2026_w11",
+                {"2026_w11": {"games": "games_2026_w11.json", "slate": "slate_2026_w11.json"}},
+                {"games_2026_w11.json": [{"gameday": "2026-11-20"}], "slate_2026_w11.json": []})
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=True, quotes=40, path=path, now=NOW - timedelta(minutes=10))
+    report = check(tmp_path, None, NOW, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "critical" and nfl["slate_state"]["state"] == "NO_SLATE_ROWS"
+    assert "[NO_SLATE_ROWS]" in report["alerts"][0]
+
+
+def test_nfl_context_gated_slate_reports_reasons_without_paging(tmp_path):
+    gated = {"game_id": "2026_11_A_B", "matchup": "A @ B", "context_status": "CONTEXT_MISSING",
+             "position": "CONTEXT_MISSING", "excl_reason": "CONTEXT_MISSING: spread_close"}
+    _nfl_viewer(tmp_path, "2026_w11",
+                {"2026_w11": {"games": "games_2026_w11.json", "slate": "slate_2026_w11.json"}},
+                {"games_2026_w11.json": [{"gameday": "2026-11-17"}], "slate_2026_w11.json": [gated]})
+    report = check(tmp_path, {"sports": {}}, NOW, NFL)
+    nfl = report["sports"]["nfl"]
+    assert nfl["level"] == "suppressed" and report["alerts"] == []
+    assert nfl["slate_state"]["state"] == "SLATE_BLOCKED"
+    assert nfl["slate_state"]["exclusions"][0]["reason"] == "CONTEXT_MISSING: spread_close"
+
+
+def test_note_fetch_records_slate_state_and_collisions(tmp_path):
+    path = tmp_path / "feeds" / "feed_heartbeat.json"
+    note_fetch("nfl", ok=False, quotes=0, error="NO_CURRENT_SLATE: between weeks", path=path, now=NOW,
+               slate={"state": "NO_CURRENT_SLATE", "detail": "between weeks", "overdue": False},
+               collisions=2)
+    row = json.loads(path.read_text())["sports"]["nfl"]
+    assert row["slate_state"]["state"] == "NO_CURRENT_SLATE"
+    assert row["line_collisions_excluded"] == 2

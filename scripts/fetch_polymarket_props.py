@@ -20,6 +20,12 @@ Honesty contract (fail-closed, no fabrication):
   * Any network/parse failure exits 0 WITHOUT touching the feed file.
   * Local snapshot hashes are provenance, not provider verification. These
     quotes remain unverified until an independent receipt check exists.
+  * Every run names the slate state (scripts/slate_state.py) and records it
+    in the feed heartbeat. NO_CURRENT_SLATE and SLATE_BLOCKED exit 0 with
+    the reason; NO_SLATE_ROWS and an overdue NO_CURRENT_SLATE exit 1.
+  * A (player, market, line) offered by two Polymarket markets is excluded
+    as ambiguous, never resolved by picking the better ask, and logged with
+    both market ids to data/polymarket_line_collisions.json.
 
 NFL board prices are these Polymarket quotes. The scheduled jobs do not
 call a paid odds provider.
@@ -62,6 +68,15 @@ STAT_MAP = {
     "receiving yards": "receiving_yards",
     "receptions": "receptions",
 }
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+# Named slate states shared with feed_age, the props sweep and the freshness
+# check (scripts/slate_state.py owns the definitions).
+from scripts import slate_state  # noqa: E402
+
+COLLISION_LOG_PATH = DATA_DIR / "polymarket_line_collisions.json"
+COLLISION_LOG_MAX_ENTRIES = 1000
 
 Q_RE = re.compile(
     r"^(?P<player>[^:]+?):\s*(?P<stat>Receiving Yards|Receptions)\s+O/U\s+(?P<line>\d+(?:\.\d+)?)$",
@@ -365,6 +380,15 @@ def index_slate(rows: list[dict]) -> dict[str, dict]:
     return {_norm_name(r.get("player_display_name") or ""): r for r in rows}
 
 
+def classify_slate_state(events: list[dict] | None = None, now: datetime | None = None) -> dict:
+    """Named state of the default NFL slate (see scripts/slate_state.py).
+
+    ``events`` is the Polymarket prop-event list already fetched this run;
+    its length is reported as the live market count."""
+    return slate_state.classify(SLATE_INDEX.parent.parent, now=now,
+                                markets=None if events is None else len(events))
+
+
 # ── receipt machinery (the independent receipt check the feed lacked) ──────
 
 def canonical_quote_payload(market: dict, over_book: dict, under_book: dict) -> dict:
@@ -541,8 +565,10 @@ def verify_quotes(quotes: list[dict], books_by_token: dict | None = None,
     return quotes, matched
 
 
-def collect_quotes(min_liquidity: float = 10.0) -> list[dict]:
+def collect_quotes(min_liquidity: float = 10.0, stats: dict | None = None) -> list[dict]:
+    stats = stats if stats is not None else {}
     events = fetch_events()
+    stats["events"] = len(events)
     slate_idx = index_slate(load_slate())
     quotes: list[dict] = []
     matched, skipped_liq, skipped_nomatch, skipped_parse = 0, 0, 0, 0
@@ -588,9 +614,71 @@ def collect_quotes(min_liquidity: float = 10.0) -> list[dict]:
             }
             quotes.append(q)
             matched += 1
+    quotes, collisions = exclude_line_collisions(quotes)
+    stats["collisions"] = collisions
+    stats["matched"] = len(quotes)
     print(f"[polymarket] prop events: {len(events)} | matched: {matched} | "
-          f"low-liq skipped: {skipped_liq} | off-slate: {skipped_nomatch} | unparsed: {skipped_parse}")
+          f"low-liq skipped: {skipped_liq} | off-slate: {skipped_nomatch} | unparsed: {skipped_parse} | "
+          f"line collisions excluded: {len(collisions)}")
     return quotes
+
+
+def exclude_line_collisions(quotes: list[dict], now: datetime | None = None) -> tuple[list[dict], list[dict]]:
+    """Drop every quote whose (player, market, line) is offered by more than
+    one Polymarket market.
+
+    Two markets for the same line are ambiguous: they may not settle the same
+    way, and keeping the better of the two asks would inflate the apparent
+    edge on every collision (a systematic bias in an alert system). The line
+    is excluded and each collision is returned with every market id so it can
+    be logged and counted. The same market seen twice is not a collision; the
+    first copy is kept."""
+    groups: dict[tuple, list[dict]] = {}
+    for q in quotes:
+        groups.setdefault((q["player_id"], q["market"], q["line"]), []).append(q)
+    observed = (now or datetime.now(timezone.utc)).isoformat()
+    kept: list[dict] = []
+    collisions: list[dict] = []
+    for (player_id, market, line), group in groups.items():
+        by_market: dict[str, dict] = {}
+        for q in group:
+            by_market.setdefault(str(q.get("provider_quote_id") or q.get("quote_id")), q)
+        if len(by_market) == 1:
+            kept.append(next(iter(by_market.values())))
+            continue
+        collisions.append({
+            "observed_at": observed,
+            "player_id": player_id,
+            "player_name": group[0].get("player_name") or "",
+            "market": market,
+            "line": line,
+            "market_ids": sorted(by_market),
+            "action": "excluded_ambiguous",
+            "asks": {mid: {"over": q.get("over_ask_price"), "under": q.get("under_ask_price"),
+                           "over_depth_usd": q.get("over_ask_depth_usd"),
+                           "under_depth_usd": q.get("under_ask_depth_usd")}
+                     for mid, q in sorted(by_market.items())},
+        })
+    for c in collisions:
+        print(f"[polymarket] LINE COLLISION excluded: {c['player_name'] or c['player_id']} "
+              f"{c['market']} {c['line']:g} offered by markets {', '.join(c['market_ids'])}",
+              file=sys.stderr)
+    return kept, collisions
+
+
+def append_collisions(entries: list[dict], write: bool = True) -> None:
+    """Bounded log of every duplicate-line collision, for frequency tracking."""
+    if not entries or not write:
+        return
+    try:
+        log = json.loads(COLLISION_LOG_PATH.read_text(encoding="utf-8"))
+        log = log if isinstance(log, list) else []
+    except Exception:
+        log = []
+    log.extend(entries)
+    COLLISION_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    COLLISION_LOG_PATH.write_text(json.dumps(log[-COLLISION_LOG_MAX_ENTRIES:], indent=2) + "\n",
+                                  encoding="utf-8")
 
 
 #: Non-Polymarket rows (sportsbook sweep, manual entries) older than this are
@@ -612,7 +700,7 @@ def retain_other_book_quote(q: dict, now: datetime) -> bool:
     return now - observed <= OTHER_BOOK_MAX_AGE
 
 
-def merge_feed(quotes: list[dict], dry_run: bool = False) -> bool:
+def merge_feed(quotes: list[dict], dry_run: bool = False, collisions: int = 0) -> bool:
     if not quotes:
         print("[polymarket] nothing to merge (no liquid matched quotes) — feed untouched")
         return False
@@ -627,7 +715,9 @@ def merge_feed(quotes: list[dict], dry_run: bool = False) -> bool:
     for i, q in enumerate(quotes):
         key = (q["player_id"], q["market"], q["line"])
         if key in seen:
-            continue
+            # exclude_line_collisions() runs first; reaching here means a
+            # caller skipped it. Refuse to choose between two quotes.
+            raise ValueError(f"duplicate Polymarket line {key} reached merge_feed")
         seen.add(key)
         # unique observed_at per quote (provenance test contract) — the
         # stamps remain the true fetch window, microseconds apart.
@@ -658,6 +748,7 @@ def merge_feed(quotes: list[dict], dry_run: bool = False) -> bool:
     feed["polymarket_observed_at"] = base.isoformat()
     feed["feed_status"] = "LIVE_POLYMARKET_CLOB_RECEIPTED" if receipt_matched else "LIVE_POLYMARKET_CLOB_UNVERIFIED"
     feed["receipt_matched_quotes_count"] = len(receipt_matched)
+    feed["line_collisions_excluded_count"] = int(collisions)
     feed["verified_books_count"] = 0
     feed["verified_quotes_count"] = 0
     rows = load_slate()
@@ -779,12 +870,48 @@ def main() -> int:
     if args.selftest:
         return selftest()
 
+    # Name the slate state before fetching. Between weeks and a fully
+    # gated slate are expected states: report them and stop. Neither is a
+    # quiet exit-0 success any more, and neither pages unless it overstays.
+    status = classify_slate_state()
+    print(f"[polymarket] slate state {slate_state.summary(status)}")
+    if status["state"] == slate_state.NO_CURRENT_SLATE:
+        if not args.dry_run:
+            _note_nfl(ok=False, quotes=0, error=slate_state.summary(status), slate=status)
+        if status["overdue"]:
+            print(f"[polymarket] SLATE ALARM {slate_state.summary(status)}", file=sys.stderr)
+            return 1
+        print("[polymarket] no current NFL slate (expected between weeks) — fetch skipped, feed untouched")
+        return 0
+    if status["state"] == slate_state.SLATE_BLOCKED:
+        for ex in status["exclusions"]:
+            print(f"[polymarket]   excluded {ex['matchup'] or ex['game_id']}: {ex['reason']}")
+        if not args.dry_run:
+            _note_nfl(ok=False, quotes=0, error=slate_state.summary(status), slate=status)
+        print("[polymarket] slate blocked by the context gate — fetch skipped, feed untouched")
+        return 0
+
+    stats: dict = {}
     try:
-        quotes = collect_quotes(min_liquidity=args.min_liquidity)
+        quotes = collect_quotes(min_liquidity=args.min_liquidity, stats=stats)
     except (URLError, TimeoutError, OSError, ValueError) as exc:
         print(f"[polymarket] network/parse failure ({exc}) — feed untouched (fail-closed)")
-        _note_nfl(ok=False, quotes=0, error=str(exc))
+        _note_nfl(ok=False, quotes=0, error=str(exc), slate=status)
         return 0
+
+    if status["state"] == slate_state.NO_SLATE_ROWS:
+        # A live slate with nothing to price is a pipeline bug. Report it with
+        # the market count and fail the job so the workflow alerts now.
+        status = slate_state.classify(SLATE_INDEX.parent.parent, markets=stats.get("events"))
+        if status["state"] == slate_state.NO_SLATE_ROWS:
+            print(f"[polymarket] SLATE ALARM {slate_state.summary(status)}", file=sys.stderr)
+            if not args.dry_run:
+                _note_nfl(ok=False, quotes=0, error=slate_state.summary(status), slate=status)
+            return 1
+
+    collisions = stats.get("collisions") or []
+    if not args.dry_run:
+        append_collisions(collisions)
     # Receipt machinery: log pass-1 receipts, then run the independent
     # verification pass (second CLOB pull) through the frozen engine. Both
     # are fail-closed — on any failure the quotes ship unstamped and the
@@ -802,18 +929,20 @@ def main() -> int:
     except Exception as exc:
         print(f"[polymarket] verify pass failure ({exc}) — quotes ship unstamped (fail-closed)")
     try:
-        published = merge_feed(quotes, dry_run=args.dry_run)
+        published = merge_feed(quotes, dry_run=args.dry_run, collisions=len(collisions))
     except Exception as exc:  # never corrupt the feed on a bad merge
         print(f"[polymarket] merge failure ({exc}) — feed untouched (fail-closed)")
-        _note_nfl(ok=False, quotes=0, error=str(exc))
+        _note_nfl(ok=False, quotes=0, error=str(exc), slate=status)
         return 0
     if not args.dry_run:
         if len(quotes) < 1:
-            _note_nfl(ok=False, quotes=0, error="empty/zero-event response: 0 Polymarket quotes")
+            _note_nfl(ok=False, quotes=0, error="empty/zero-event response: 0 Polymarket quotes",
+                      slate=status, collisions=len(collisions))
         elif published:
-            _note_nfl(ok=True, quotes=len(quotes))
+            _note_nfl(ok=True, quotes=len(quotes), slate=status, collisions=len(collisions))
         else:
-            _note_nfl(ok=False, quotes=len(quotes), error="Polymarket merge was not published")
+            _note_nfl(ok=False, quotes=len(quotes), error="Polymarket merge was not published",
+                      slate=status, collisions=len(collisions))
     return 0
 
 

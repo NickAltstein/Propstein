@@ -4,6 +4,14 @@
   "upcoming_window_hours": 24,
   "in_progress_hours": 4,
   "schedule_observation_max_hours": 30,
-  "nfl_off_weekdays": [1, 2],
-  "sports": ["nba", "nfl"]
+  "nfl_off_weekdays": [
+    1,
+    2
+  ],
+  "sports": [
+    "nba",
+    "nfl"
+  ],
+  "nfl_ingest_utc_hour": 11,
+  "no_current_slate_buffer_hours": 6
 }

@@ -13,6 +13,13 @@ Thresholds live in config/feed_age.json:
   critical at critical_after_hours;
   no alert when no slate is pending (NBA off-days, NFL Tue/Wed).
 
+NFL also reports a named slate state (scripts/slate_state.py):
+  NO_CURRENT_SLATE  between weeks; suppressed until the next ingest run plus
+                    no_current_slate_buffer_hours, then critical;
+  SLATE_BLOCKED     context gate excluded every game; suppressed, with the
+                    exclusion reasons in the status file;
+  NO_SLATE_ROWS     live slate with nothing to price; critical at once.
+
 Paging uses env secrets and never a URL in the repo:
   ALARM_WEBHOOK_URL    optional POST of {"content", "text"} (Discord or Slack)
   FEED_AGE_UPTIME_URL  optional GET each check. Point an external monitor at
@@ -33,6 +40,10 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from scripts import slate_state  # noqa: E402
+
 VIEWER = ROOT / "viewer"
 ET = ZoneInfo("America/New_York")
 HEARTBEAT_NAME = "feeds/feed_heartbeat.json"
@@ -44,6 +55,8 @@ DEFAULT_CONFIG = {
     "schedule_observation_max_hours": 30.0,
     "nfl_off_weekdays": [1, 2],
     "sports": ["nba", "nfl"],
+    "nfl_ingest_utc_hour": slate_state.DEFAULT_INGEST_UTC_HOUR,
+    "no_current_slate_buffer_hours": slate_state.DEFAULT_NO_CURRENT_SLATE_BUFFER_HOURS,
 }
 NBA_ODDS_RE = re.compile(r"nba_odds_(\d{4}-\d{2}-\d{2})\.json$")
 EMPTY_ERROR = "empty/zero-event response"
@@ -101,7 +114,8 @@ def save_json(path: Path, payload: dict) -> None:
 
 def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = None,
                schedule_state: str | None = None, starts: list[str] | None = None,
-               path: Path | None = None, now: datetime | None = None) -> dict:
+               path: Path | None = None, now: datetime | None = None,
+               slate: dict | None = None, collisions: int | None = None) -> dict:
     """Record one fetch. Zero quotes are a failure even when ok=True."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     quotes = int(quotes or 0)
@@ -125,6 +139,14 @@ def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = Non
             "state": schedule_state,
             "starts": list(starts or []),
         }
+    if slate:
+        sport_row["slate_state"] = {
+            "observed_at": stamp,
+            **{k: slate.get(k) for k in ("state", "detail", "slate_key", "since", "alarm_after",
+                                         "overdue", "exclusions", "priced_rows", "markets")},
+        }
+    if collisions is not None:
+        sport_row["line_collisions_excluded"] = int(collisions)
     save_json(hb_path, heartbeat)
     return heartbeat
 
@@ -282,7 +304,18 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
     starts = _game_starts(viewer, sport) + _heartbeat_starts(row)
     disposition = slate_disposition(sport, now, starts, row.get("schedule") or {}, cfg)
     age = None if success is None else (now - success).total_seconds() / 3600
-    if disposition != "pending":
+    state = None
+    if sport == "nfl":
+        state = slate_state.classify(viewer, now=now,
+                                     ingest_utc_hour=int(cfg["nfl_ingest_utc_hour"]),
+                                     buffer_hours=float(cfg["no_current_slate_buffer_hours"]))
+    named = state["state"] if state else None
+    if named == slate_state.NO_SLATE_ROWS or (named == slate_state.NO_CURRENT_SLATE and state["overdue"]):
+        level = "critical"
+        last_error = slate_state.summary(state)
+    elif named in (slate_state.NO_CURRENT_SLATE, slate_state.SLATE_BLOCKED):
+        level = "suppressed"
+    elif disposition != "pending":
         level = "suppressed"
     elif age is None or age >= float(cfg["critical_after_hours"]):
         level = "critical"
@@ -291,7 +324,7 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
     else:
         level = "ok"
     stale_since = None if success is None else success.strftime("%Y-%m-%dT%H:%M:%SZ")
-    return {
+    out = {
         "sport": sport,
         "level": level,
         "fail_closed": level == "critical",
@@ -302,12 +335,21 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
         "quotes": quotes,
         "slate": disposition,
     }
+    if state:
+        out["slate_state"] = {k: state[k] for k in ("state", "detail", "slate_key", "since",
+                                                    "alarm_after", "overdue", "exclusions",
+                                                    "priced_rows")}
+        if "line_collisions_excluded" in row:
+            out["line_collisions_excluded"] = row["line_collisions_excluded"]
+    return out
 
 
 def alert_message(row: dict) -> str:
     age = "unknown" if row["age_hours"] is None else f"{row['age_hours']:.1f} hours"
     err = row["last_error"] or "(none recorded)"
-    return (f"PropStein feed age {row['level'].upper()}: {row['sport'].upper()} "
+    state = (row.get("slate_state") or {}).get("state")
+    tag = f" [{state}]" if state and state not in (slate_state.OK, slate_state.UNKNOWN) else ""
+    return (f"PropStein feed age {row['level'].upper()}: {row['sport'].upper()}{tag} "
             f"data age {age}; last error: {err}")
 
 

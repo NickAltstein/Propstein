@@ -42,6 +42,14 @@ SYN_ROW = {"quote_id": "syn_a", "book": "Synthetic Book A",
            "source": "Synthetic Book A Manual Entry (UNVERIFIED - harness fixture)"}
 
 
+OK_SLATE = {"state": "OK", "detail": "slate 'test' has 1 priced row(s)", "exclusions": []}
+
+
+@pytest.fixture(autouse=True)
+def _ok_slate(monkeypatch):
+    monkeypatch.setattr(sw, "slate_status", lambda: dict(OK_SLATE))
+
+
 def write_sample_feed(tmp_path):
     feed_path = tmp_path / "live_odds_feed.json"
     feed_path.write_text(json.dumps({
@@ -244,3 +252,25 @@ def test_selftest_entrypoint_passes():
          "--selftest"],
         capture_output=True, text=True, timeout=120, cwd=str(ROOT))
     assert "ALL PASS" in out.stdout, out.stdout + out.stderr
+
+
+@pytest.mark.parametrize("state", ["NO_CURRENT_SLATE", "SLATE_BLOCKED", "NO_SLATE_ROWS"])
+def test_named_slate_states_are_reported_and_spend_no_credits(tmp_path, monkeypatch, capsys, state):
+    monkeypatch.setenv("ODDS_API_KEY", "test-key")
+    no_api(monkeypatch)
+    monkeypatch.setattr(sw, "active_slate_window", lambda: True)
+    monkeypatch.setattr(sw, "slate_status", lambda: {
+        "state": state, "detail": "why",
+        "exclusions": [{"matchup": "A @ B", "reason": "CONTEXT_MISSING: x"}]
+        if state == "SLATE_BLOCKED" else []})
+    feed_path = write_sample_feed(tmp_path)
+    before = feed_path.read_bytes()
+    assert sw.run("auto", 100, slate_idx=slate_idx(), feed_path=feed_path) == 0
+    assert feed_path.read_bytes() == before
+    out = capsys.readouterr()
+    assert f"slate state {state}: why" in out.out
+    assert f"sweep skipped: slate state {state}" in out.out
+    if state == "NO_SLATE_ROWS":
+        assert "SLATE ALARM" in out.err
+    if state == "SLATE_BLOCKED":
+        assert "excluded A @ B: CONTEXT_MISSING: x" in out.out
