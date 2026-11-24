@@ -9,6 +9,12 @@ on:
     # its two attempts, so a failed NBA day is reported the same day.
     - cron: '30 18 * * *'
   workflow_dispatch:
+    inputs:
+      force_fail_alert_test:
+        description: 'Deliberately fail the check to verify ALARM_WEBHOOK_URL alert delivery'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,20 +43,24 @@ jobs:
           python scripts/check_data_health.py --summary "$GITHUB_STEP_SUMMARY" | tee health.md
 
       - name: Check NFL game-context pricing provenance
-        run: PYTHONPATH=. python scripts/check_game_context_provenance.py
+        run: |
+          if [ "${{ inputs.force_fail_alert_test }}" = "true" ]; then
+            echo "Deliberate alert-path test failure (force_fail_alert_test=true)."
+            exit 1
+          fi
+          PYTHONPATH=. python scripts/check_game_context_provenance.py
 
-      - name: Notify on failure (webhook, optional)
+      - name: Notify on failure (webhook)
         if: failure()
         env:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
-            echo "ALARM_WEBHOOK_URL secret not configured; alarm visible only in Actions history and owner email."
-            exit 0
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured — failure alert could not be sent."
+            exit 1
           fi
           FAILS=$(grep -o '`[a-z_]*` | ❌' health.md 2>/dev/null | cut -d'`' -f2 | paste -sd, - || true)
           MESSAGE="PropStein data health FAILED: ${FAILS:-see run}. ${RUN_URL}"
           python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json \
-            || echo "WARN: webhook POST failed; alarm still recorded in Actions history."
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
