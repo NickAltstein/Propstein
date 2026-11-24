@@ -5,31 +5,20 @@
       "last_success_at": "2026-11-24T02:51:39Z",
       "last_success_quotes": 135,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-23T22:29:29Z",
-      "last_attempt_at": "2026-11-24T02:51:39Z",
+      "last_error_at": "2026-11-24T05:04:30Z",
+      "last_attempt_at": "2026-11-24T05:04:30Z",
       "schedule": {
-        "observed_at": "2026-11-24T02:51:39Z",
-        "state": "pending",
-        "starts": [
-          "2026-11-24T00:00:00Z",
-          "2026-11-24T00:00:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T00:30:00Z",
-          "2026-11-24T01:00:00Z",
-          "2026-11-24T01:00:00Z",
-          "2026-11-24T01:30:00Z",
-          "2026-11-24T03:00:00Z",
-          "2026-11-24T03:00:00Z"
-        ]
+        "observed_at": "2026-11-24T05:04:30Z",
+        "state": "none",
+        "starts": []
       }
     },
     "nfl": {
       "last_success_at": "2026-11-23T22:29:41Z",
       "last_success_quotes": 8,
-      "last_error": "No module named 'pydantic'",
-      "last_error_at": "2026-11-23T04:02:42Z",
-      "last_attempt_at": "2026-11-23T22:29:41Z",
+      "last_error": "empty/zero-event response: 0 Polymarket quotes",
+      "last_error_at": "2026-11-24T05:04:41Z",
+      "last_attempt_at": "2026-11-24T05:04:41Z",
       "schedule": {
         "observed_at": null,
         "state": null,

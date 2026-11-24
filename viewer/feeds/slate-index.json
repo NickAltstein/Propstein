@@ -1,10 +1,10 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-24T02:51:39Z",
+  "generated_at": "2026-11-24T05:04:24Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
-      "default_slate": "2026_w11",
+      "default_slate": null,
       "slates": {
         "2026_w1": {
           "season": 2026,
@@ -41,18 +41,18 @@
         "2026_w11": {
           "season": 2026,
           "week": 11,
-          "shortLabel": "W11 Live",
-          "state": "Upcoming slate \u00b7 Nov 19-23",
+          "shortLabel": "W11 Audit",
+          "state": "Model refresh blocked: untimestamped game context",
           "slate": "slate_2026_w11.json",
           "games": "games_2026_w11.json",
-          "picks": "current_picks_2026_w11.json",
+          "picks": null,
           "livePicks": null,
-          "injuries": "injuries_2026_w11.json",
-          "odds": "live_odds_feed.json",
+          "injuries": null,
+          "odds": null,
           "snapshots": "snapshots_2026_w11.json",
-          "historical": false,
-          "modelContextStatus": "AVAILABLE",
-          "actionLocked": false
+          "historical": true,
+          "modelContextStatus": "BLOCKED_UNTIMESTAMPED",
+          "actionLocked": true
         },
         "2026_w7": {
           "season": 2026,
@@ -105,7 +105,7 @@
       }
     },
     "nba": {
-      "default_slate": "2026-11-23",
+      "default_slate": null,
       "slates": {
         "2026-10-22": {
           "season": 2026,
@@ -410,15 +410,15 @@
         "2026-11-23": {
           "season": 2026,
           "date": "2026-11-23",
-          "shortLabel": "Nov 23 Slate",
-          "state": "Slate \u00b7 2026-11-23",
+          "shortLabel": "Nov 23 Audit",
+          "state": "Historical audit \u00b7 2026-11-23",
           "slate": "nba_slate_2026-11-23.json",
           "games": "nba_games_2026-11-23.json",
           "picks": null,
           "injuries": "nba_injuries_2026-11-23.json",
           "odds": "nba_odds_2026-11-23.json",
           "snapshots": null,
-          "historical": false,
+          "historical": true,
           "timezone": "America/New_York",
           "marketOnly": true
         }
@@ -466,7 +466,7 @@
         "2026-12-05": {
           "date": "2026-12-05",
           "event_name": "UFC Fight Night: Adesanya vs Magomedov",
-          "fights": 13,
+          "fights": 14,
           "card": "ufc_card_2026-12-05.json",
           "status": "ufc_status_2026-12-05.json",
           "snapshots": "ufc_snapshots_2026-12-05.json",
