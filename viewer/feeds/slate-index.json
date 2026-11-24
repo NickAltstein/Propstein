@@ -1,10 +1,10 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-11-24T05:04:24Z",
+  "generated_at": "2026-11-24T07:02:39Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
-      "default_slate": null,
+      "default_slate": "2026_w12",
       "slates": {
         "2026_w1": {
           "season": 2026,
@@ -42,15 +42,31 @@
           "season": 2026,
           "week": 11,
           "shortLabel": "W11 Audit",
-          "state": "Model refresh blocked: untimestamped game context",
+          "state": "Historical audit \u00b7 Nov 19-23",
           "slate": "slate_2026_w11.json",
           "games": "games_2026_w11.json",
-          "picks": null,
+          "picks": "current_picks_2026_w11.json",
           "livePicks": null,
           "injuries": null,
           "odds": null,
           "snapshots": "snapshots_2026_w11.json",
           "historical": true,
+          "modelContextStatus": "AVAILABLE",
+          "actionLocked": false
+        },
+        "2026_w12": {
+          "season": 2026,
+          "week": 12,
+          "shortLabel": "W12 Research",
+          "state": "Model refresh blocked: untimestamped game context",
+          "slate": "slate_2026_w12.json",
+          "games": "games_2026_w12.json",
+          "picks": null,
+          "livePicks": null,
+          "injuries": "injuries_2026_w12.json",
+          "odds": null,
+          "snapshots": "snapshots_2026_w12.json",
+          "historical": false,
           "modelContextStatus": "BLOCKED_UNTIMESTAMPED",
           "actionLocked": true
         },
