@@ -31,7 +31,16 @@ export function parseMatchupFromHeaderOrUrl(root: Document, league?: string): Pa
     if (el?.textContent?.trim()) candidates.push(el.textContent.trim());
   }
   const href = (root as unknown as { location?: { pathname?: string } }).location?.pathname;
-  if (href) candidates.push(href.replace(/[-_/]+/g, " "));
+  if (href) {
+    // Event paths encode "@" (e.g. /event/la-clippers-%40-hou-rockets/35062797).
+    let path = href;
+    try {
+      path = decodeURIComponent(href);
+    } catch {
+      // Malformed escape: keep the raw path; the regex below simply won't match.
+    }
+    candidates.push(path.replace(/[-_/]+/g, " "));
+  }
 
   for (const text of candidates) {
     const match = text.match(/([A-Za-z0-9 .]+?)\s+(?:@|at|vs\.?)\s+([A-Za-z0-9 .]+)/i);

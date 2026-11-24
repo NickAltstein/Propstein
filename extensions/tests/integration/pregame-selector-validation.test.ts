@@ -231,3 +231,97 @@ test("Edge cases: hashed CSS class, Unicode minus (−110), ½ fraction, NBSP/ze
   assert.equal(fdNorm.observed.line, 24.5);
   assert.equal(fdNorm.americanOdds, -115);
 });
+
+// ---------------------------------------------------------------------------
+// DraftKings v1.2 ladder ("N+") layout, reduced from a manual capture.
+// ---------------------------------------------------------------------------
+const DK_LADDER_URL = "https://sportsbook.draftkings.com/event/la-clippers-%40-hou-rockets/35062797?category=odds&subcategory=points";
+
+function loadLadder(url?: string, extraHtml = ""): Document {
+  const html = fs.readFileSync(path.join(FIXTURES_DIR, "draftkings-ladder-points.html"), "utf8");
+  const doc = parseHTML(`<!doctype html><html><body>${extraHtml}${html}</body></html>`).document;
+  if (url) Object.defineProperty(doc, "location", { value: new URL(url), configurable: true });
+  return doc;
+}
+
+test("DraftKings ladder capture: N+ rungs map to Over N-0.5 and pass the gate with URL market + matchup", async () => {
+  const adapter = new DraftKingsAdapter({ now: CLOCK });
+  const result = await adapter.detectVisibleMarkets(loadLadder(DK_LADDER_URL));
+  assert.equal(result.status, "OK");
+  assert.equal(result.markets.length, 3);
+  assert.ok(result.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+
+  const gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 3);
+  const norm = gated.matched.map((m) => normalizeObservedMarket(m));
+  assert.deepEqual(norm.map((n) => n.observed.line), [19.5, 20.5, 24.5]);
+  assert.deepEqual(norm.map((n) => n.americanOdds), [-110, -108, 145]);
+  for (const n of norm) {
+    assert.equal(n.marketTypeCode, "nba_points");
+    assert.equal(n.selectionKey, "OVER");
+    assert.equal(n.playerNameKey, "alperen sengun");
+    assert.equal(n.observed.awayTeam, "LAC");
+    assert.equal(n.observed.homeTeam, "HOU");
+    assert.equal(n.observed.adapterVersion, "dk-pregame-observed-v1.2");
+    assert.equal(n.observed.provenance, "visible-page");
+  }
+});
+
+test("DraftKings ladder fails closed without market identity or matchup", async () => {
+  const adapter = new DraftKingsAdapter({ now: CLOCK });
+
+  // Captured row alone: no title element, no URL → market unknown → all UNMATCHED.
+  let result = await adapter.detectVisibleMarkets(loadLadder());
+  assert.equal(result.markets.length, 3);
+  let gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 0);
+  assert.equal(gated.unmatched.length, 3);
+
+  // Event header h1 names the game, not the market: still unknown.
+  result = await adapter.detectVisibleMarkets(loadLadder(undefined, "<h1>LA Clippers @ HOU Rockets</h1>"));
+  gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 0);
+
+  // Market from URL but no decodable matchup → below the gate.
+  result = await adapter.detectVisibleMarkets(loadLadder("https://sportsbook.draftkings.com/event/35062797?subcategory=points"));
+  gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 0);
+  assert.ok(result.markets.every((m) => m.detectionConfidence < MIN_PREGAME_PARSE_CONFIDENCE));
+
+  // Unrecognized subcategory → unknown market.
+  result = await adapter.detectVisibleMarkets(loadLadder(DK_LADDER_URL.replace("subcategory=points", "subcategory=popular")));
+  gated = enforceParseConfidence(result.markets, MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(gated.matched.length, 0);
+});
+
+test("DraftKings ladder edge cases: bad rungs/odds skipped, missing player skipped, betslip excluded", async () => {
+  const adapter = new DraftKingsAdapter({ now: CLOCK });
+  const base = fs.readFileSync(path.join(FIXTURES_DIR, "draftkings-ladder-points.html"), "utf8");
+  const mutate = (html: string) => {
+    const doc = parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+    Object.defineProperty(doc, "location", { value: new URL(DK_LADDER_URL), configurable: true });
+    return doc;
+  };
+
+  // A non-rung label ("Over 19.5" text, "20") and empty odds are skipped, not guessed.
+  let res = await adapter.detectVisibleMarkets(mutate(base
+    .replace('<span class="cb-selection-picker__selection-label">20+</span>', '<span class="cb-selection-picker__selection-label">20</span>')
+    .replace('<span class="cb-selection-picker__selection-odds">-108</span>', '<span class="cb-selection-picker__selection-odds"></span>')));
+  assert.equal(res.markets.length, 1);
+  assert.equal(res.markets[0]!.line, 24.5);
+  assert.equal(res.markets[0]!.americanOdds, 145);
+
+  // Unicode minus is normalized by the shared odds parser.
+  res = await adapter.detectVisibleMarkets(mutate(base.replace(">-110<", ">−110<")));
+  assert.equal(res.markets.find((m) => m.line === 19.5)?.americanOdds, -110);
+
+  // Missing player name → row dropped → degraded, nothing emitted.
+  res = await adapter.detectVisibleMarkets(mutate(base.replace(">Alperen Sengun<", "><")));
+  assert.equal(res.status, "ADAPTER_DEGRADED");
+  assert.equal(res.markets.length, 0);
+
+  // Ladder rows inside a betslip container are never read.
+  res = await adapter.detectVisibleMarkets(mutate(`<div data-testid="betslip-container">${base}</div>`));
+  assert.equal(res.status, "ADAPTER_DEGRADED");
+  assert.equal(res.markets.length, 0);
+});

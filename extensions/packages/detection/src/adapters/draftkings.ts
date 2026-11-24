@@ -20,7 +20,7 @@ import {
 } from "./adapter.ts";
 import { diffMarkets, type DifferHooks } from "../dom-extractor.ts";
 
-export const DRAFTKINGS_ADAPTER_VERSION = "dk-pregame-observed-v1.1";
+export const DRAFTKINGS_ADAPTER_VERSION = "dk-pregame-observed-v1.2";
 
 /** Versioned read-only pregame selector set. */
 export const DRAFTKINGS_SELECTORS = {
@@ -32,7 +32,39 @@ export const DRAFTKINGS_SELECTORS = {
   line: "[data-testid='prop-line'], .sportsbook-outcome-cell__line",
   selection: "[data-testid='prop-selection'], .sportsbook-outcome-cell__label",
   oddsButton: "button[data-testid*='outcome-button'], div[data-testid*='odds'], .sportsbook-odds",
+  // v1.2 ladder ("N+") layout, from a manual capture of /event/<matchup>/<id>?subcategory=points
+  ladderRow: "[data-testid='market-template']",
+  ladderPlayer: "p.cb-market__label--truncate-strings, a[data-testid='player-page-link']",
+  ladderPicker: "[data-testid='cb-selection-picker']",
+  ladderButton: "button[data-testid^='cb-selection-picker__selection-']",
+  ladderLabel: ".cb-selection-picker__selection-label",
+  ladderOdds: ".cb-selection-picker__selection-odds",
 } as const;
+
+/** "20+" → 19.5 (Over). Anything else is not a ladder rung. */
+function parseLadderRung(raw: string | null | undefined): number | undefined {
+  const m = /^(\d{1,3})\+$/.exec((raw ?? "").replace(/[\s\u200B-\u200D\uFEFF]/g, ""));
+  if (!m) return undefined;
+  const n = Number(m[1]);
+  return n >= 1 ? n - 0.5 : undefined;
+}
+
+/** Location of the document, when the runtime exposes one. */
+function documentLocation(root: Document): { pathname?: string; search?: string } | undefined {
+  const loc = (root as unknown as { location?: { pathname?: string; search?: string } }).location;
+  return loc && typeof loc === "object" ? loc : undefined;
+}
+
+/** Market label from the URL's own subcategory (e.g. ?subcategory=points). */
+function marketFromUrl(root: Document): string {
+  const search = documentLocation(root)?.search;
+  if (!search) return "";
+  try {
+    return (new URLSearchParams(search).get("subcategory") ?? "").replace(/[-_]+/g, " ").trim();
+  } catch {
+    return "";
+  }
+}
 
 const HOST_ALLOWLIST = /^https:\/\/sportsbook\.draftkings\.com$/;
 const SUPPORTED_PATHS = /^\/(leagues\/(football\/nfl|nfl|basketball\/nba|nba)|event\/|in-game|live-betting)/;
@@ -80,6 +112,9 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
 
   async detectVisibleMarkets(root: Document): Promise<AdapterDetectionResult> {
     const group = root.querySelector(DRAFTKINGS_SELECTORS.marketGroup);
+    if (!group && root.querySelector(DRAFTKINGS_SELECTORS.ladderRow)) {
+      return this.detectLadderMarkets(root);
+    }
     if (!group) {
       return this.degraded("pregame prop market container not found — DK layout may have changed or this page has no props");
     }
@@ -159,6 +194,77 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
         marketLabel: marketTitle,
         selection,
         ...(line !== undefined ? { line } : {}),
+        americanOdds,
+        marketStatus,
+        observedAt: this.now().toISOString(),
+        adapterVersion: this.adapterVersion,
+        detectionConfidence: confidence,
+        provenance: "visible-page",
+      });
+    }
+    return results;
+  }
+
+  /** v1.2 ladder layout: one row per player, one button per "N+" rung. */
+  private detectLadderMarkets(root: Document): AdapterDetectionResult {
+    const markets: ObservedMarket[] = [];
+    for (const row of Array.from(root.querySelectorAll(DRAFTKINGS_SELECTORS.ladderRow))) {
+      markets.push(...this.parseLadderRow(root, row));
+    }
+    if (markets.length === 0) {
+      return this.degraded("ladder rows found but none parsed end-to-end — failing closed");
+    }
+    return {
+      markets,
+      status: "OK",
+      confidence: Math.min(...markets.map((m) => m.detectionConfidence)),
+      notes: ["OBSERVED · RESEARCH pregame ladder read-only parse (alerting disabled)"],
+    };
+  }
+
+  private parseLadderRow(root: Document, row: Element): ObservedMarket[] {
+    if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
+    const playerEl = row.querySelector(DRAFTKINGS_SELECTORS.ladderPlayer);
+    const playerName = playerEl?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    if (!playerName) return [];
+    const picker = row.querySelector(DRAFTKINGS_SELECTORS.ladderPicker);
+    if (!picker) return [];
+
+    // Market identity: an explicit title element, else the page URL's own
+    // subcategory. The event header (h1) names the game, not the market.
+    const titleText = row.querySelector(DRAFTKINGS_SELECTORS.marketTitle)?.textContent?.trim() ?? "";
+    const marketTitle = titleText || marketFromUrl(root);
+    const classification = classifyMarketLabel(marketTitle);
+    const { league, sport } = inferLeagueAndSport(root, row, marketTitle);
+    const matchup = parseMatchupFromHeaderOrUrl(root, league);
+    const eventId = row.getAttribute("data-event-id") ?? undefined;
+    const rawStatus = (row.getAttribute("data-market-status") ?? "OPEN").toUpperCase();
+    const marketStatus = rawStatus === "SUSPENDED" ? "SUSPENDED" : rawStatus === "CLOSED" ? "CLOSED" : "OPEN";
+
+    const results: ObservedMarket[] = [];
+    for (const button of Array.from(picker.querySelectorAll(DRAFTKINGS_SELECTORS.ladderButton))) {
+      const line = parseLadderRung(button.querySelector(DRAFTKINGS_SELECTORS.ladderLabel)?.textContent);
+      const americanOdds = parseAmericanOddsText(button.querySelector(DRAFTKINGS_SELECTORS.ladderOdds)?.textContent ?? "");
+      if (line === undefined || americanOdds === undefined) continue;
+
+      // Same confidence ladder as the table path; nothing is promoted for parsing cleanly.
+      let confidence = 0.95;
+      if (classification.code === "unknown") confidence = 0.55;
+      else if (!eventId && !(matchup.homeTeam && matchup.awayTeam)) confidence = 0.82;
+      else if (!eventId) confidence = 0.93;
+
+      results.push({
+        source: "draftkings",
+        ...(eventId ? { eventId } : {}),
+        ...(matchup.homeTeam ? { homeTeam: matchup.homeTeam } : {}),
+        ...(matchup.awayTeam ? { awayTeam: matchup.awayTeam } : {}),
+        sport,
+        league,
+        playerName,
+        marketType: marketTitle,
+        marketLabel: marketTitle,
+        selection: "OVER",
+        line,
         americanOdds,
         marketStatus,
         observedAt: this.now().toISOString(),
