@@ -77,6 +77,8 @@ from scripts import slate_state  # noqa: E402
 
 COLLISION_LOG_PATH = DATA_DIR / "polymarket_line_collisions.json"
 COLLISION_LOG_MAX_ENTRIES = 1000
+#: Market ids kept per run for unparsed markets (diagnosis, not a full log).
+UNPARSED_IDS_KEPT = 10
 
 Q_RE = re.compile(
     r"^(?P<player>[^:]+?):\s*(?P<stat>Receiving Yards|Receptions)\s+O/U\s+(?P<line>\d+(?:\.\d+)?)$",
@@ -571,7 +573,13 @@ def collect_quotes(min_liquidity: float = 10.0, stats: dict | None = None) -> li
     stats["events"] = len(events)
     slate_idx = index_slate(load_slate())
     quotes: list[dict] = []
-    matched, skipped_liq, skipped_nomatch, skipped_parse = 0, 0, 0, 0
+    matched, skipped_liq, skipped_nomatch = 0, 0, 0
+    # Two different failures, counted apart: a market whose outcome tokens
+    # cannot be read (a parser/shape problem on our side or Polymarket's —
+    # alarmed on any occurrence) versus a parsed market whose CLOB book did
+    # not come back (no resting book; expected now and then).
+    unparsed_ids: list[str] = []
+    no_book_ids: list[str] = []
     candidates = []
     requested_tokens = []
     seen_tokens = set()
@@ -582,7 +590,7 @@ def collect_quotes(min_liquidity: float = 10.0, stats: dict | None = None) -> li
                 continue  # stat out of v1 scope (TD, passing, rushing...)
             outcome_ids = outcome_token_ids(market)
             if outcome_ids is None:
-                skipped_parse += 1
+                unparsed_ids.append(str(market.get("id") or "?"))
                 continue
             player, stat, _line = parsed
             row = slate_idx.get(_norm_name(player))
@@ -597,7 +605,7 @@ def collect_quotes(min_liquidity: float = 10.0, stats: dict | None = None) -> li
     books_by_token = fetch_token_books(requested_tokens)
     for market, event, row, stat, outcome_ids in candidates:
         if not all(token_id in books_by_token for token_id in outcome_ids):
-            skipped_parse += 1
+            no_book_ids.append(str(market.get("id") or "?"))
             continue
         books = (books_by_token[outcome_ids[0]], books_by_token[outcome_ids[1]])
         if min(book["ask_depth_usd"] for book in books) < min_liquidity:
@@ -617,9 +625,23 @@ def collect_quotes(min_liquidity: float = 10.0, stats: dict | None = None) -> li
     quotes, collisions = exclude_line_collisions(quotes)
     stats["collisions"] = collisions
     stats["matched"] = len(quotes)
+    stats["counters"] = {
+        "events": len(events),
+        "matched": matched,
+        "skipped_low_liquidity": skipped_liq,
+        "skipped_off_slate": skipped_nomatch,
+        "skipped_unparsed": len(unparsed_ids),
+        "skipped_no_book": len(no_book_ids),
+        "unparsed_market_ids": unparsed_ids[:UNPARSED_IDS_KEPT],
+        "line_collisions_excluded": len(collisions),
+    }
     print(f"[polymarket] prop events: {len(events)} | matched: {matched} | "
-          f"low-liq skipped: {skipped_liq} | off-slate: {skipped_nomatch} | unparsed: {skipped_parse} | "
+          f"low-liq skipped: {skipped_liq} | off-slate: {skipped_nomatch} | "
+          f"unparsed: {len(unparsed_ids)} | no book: {len(no_book_ids)} | "
           f"line collisions excluded: {len(collisions)}")
+    if unparsed_ids:
+        print(f"[polymarket] PARSE ALARM: {len(unparsed_ids)} in-scope market(s) with unreadable "
+              f"outcome tokens: {', '.join(unparsed_ids[:UNPARSED_IDS_KEPT])}", file=sys.stderr)
     return quotes
 
 
@@ -906,7 +928,8 @@ def main() -> int:
         if status["state"] == slate_state.NO_SLATE_ROWS:
             print(f"[polymarket] SLATE ALARM {slate_state.summary(status)}", file=sys.stderr)
             if not args.dry_run:
-                _note_nfl(ok=False, quotes=0, error=slate_state.summary(status), slate=status)
+                _note_nfl(ok=False, quotes=0, error=slate_state.summary(status), slate=status,
+                          counters=stats.get("counters"))
             return 1
 
     collisions = stats.get("collisions") or []
@@ -932,21 +955,27 @@ def main() -> int:
         published = merge_feed(quotes, dry_run=args.dry_run, collisions=len(collisions))
     except Exception as exc:  # never corrupt the feed on a bad merge
         print(f"[polymarket] merge failure ({exc}) — feed untouched (fail-closed)")
-        _note_nfl(ok=False, quotes=0, error=str(exc), slate=status)
+        _note_nfl(ok=False, quotes=0, error=str(exc), slate=status, counters=stats.get("counters"))
         return 0
     if not args.dry_run:
         if len(quotes) < 1:
             _note_nfl(ok=False, quotes=0, error="empty/zero-event response: 0 Polymarket quotes",
-                      slate=status, collisions=len(collisions))
+                      slate=status, collisions=len(collisions),
+                      counters=stats.get("counters"))
         elif published:
-            _note_nfl(ok=True, quotes=len(quotes), slate=status, collisions=len(collisions))
+            _note_nfl(ok=True, quotes=len(quotes), slate=status, collisions=len(collisions),
+                      counters=stats.get("counters"))
         else:
             _note_nfl(ok=False, quotes=len(quotes), error="Polymarket merge was not published",
-                      slate=status, collisions=len(collisions))
+                      slate=status, collisions=len(collisions),
+                      counters=stats.get("counters"))
     return 0
 
 
 def _note_nfl(**kwargs) -> None:
+    # Runs that never reached collect_quotes() clear the last fetch counters
+    # so an old parse alarm does not outlive the fetch that raised it.
+    kwargs["counters"] = kwargs.get("counters") or {}
     try:
         if str(ROOT) not in sys.path:
             sys.path.insert(0, str(ROOT))

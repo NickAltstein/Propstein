@@ -20,6 +20,12 @@ NFL also reports a named slate state (scripts/slate_state.py):
                     exclusion reasons in the status file;
   NO_SLATE_ROWS     live slate with nothing to price; critical at once.
 
+The NFL poller also records its last fetch counters. skipped_no_book (a
+parsed market with no CLOB book) is reported only; skipped_unparsed > 0 (an
+in-scope market whose outcome tokens could not be read) raises a parse alarm
+on every check until a fetch comes back clean. It does not change the feed
+level: the parsed quotes are still good.
+
 Paging uses env secrets and never a URL in the repo:
   ALARM_WEBHOOK_URL    optional POST of {"content", "text"} (Discord or Slack)
   FEED_AGE_UPTIME_URL  optional GET each check. Point an external monitor at
@@ -115,7 +121,8 @@ def save_json(path: Path, payload: dict) -> None:
 def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = None,
                schedule_state: str | None = None, starts: list[str] | None = None,
                path: Path | None = None, now: datetime | None = None,
-               slate: dict | None = None, collisions: int | None = None) -> dict:
+               slate: dict | None = None, collisions: int | None = None,
+               counters: dict | None = None) -> dict:
     """Record one fetch. Zero quotes are a failure even when ok=True."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     quotes = int(quotes or 0)
@@ -147,6 +154,11 @@ def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = Non
         }
     if collisions is not None:
         sport_row["line_collisions_excluded"] = int(collisions)
+    if counters is not None:
+        if counters:
+            sport_row["fetch_counters"] = {"observed_at": stamp, **counters}
+        else:
+            sport_row.pop("fetch_counters", None)
     save_json(hb_path, heartbeat)
     return heartbeat
 
@@ -341,6 +353,8 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
                                                     "priced_rows")}
         if "line_collisions_excluded" in row:
             out["line_collisions_excluded"] = row["line_collisions_excluded"]
+    if row.get("fetch_counters"):
+        out["fetch_counters"] = row["fetch_counters"]
     return out
 
 
@@ -353,6 +367,18 @@ def alert_message(row: dict) -> str:
             f"data age {age}; last error: {err}")
 
 
+def parse_alarm(row: dict) -> str | None:
+    """Alert line when the last fetch could not read an in-scope market."""
+    counters = row.get("fetch_counters") or {}
+    unparsed = int(counters.get("skipped_unparsed") or 0)
+    if unparsed < 1:
+        return None
+    ids = ", ".join(counters.get("unparsed_market_ids") or []) or "(ids not recorded)"
+    return (f"PropStein PARSE ALARM: {row['sport'].upper()} last fetch "
+            f"({counters.get('observed_at') or 'time unknown'}) skipped {unparsed} in-scope "
+            f"market(s) with unreadable outcome tokens; market ids: {ids}")
+
+
 def check(viewer: Path, heartbeat: dict | None = None, now: datetime | None = None,
           cfg: dict | None = None) -> dict:
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
@@ -360,6 +386,7 @@ def check(viewer: Path, heartbeat: dict | None = None, now: datetime | None = No
     heartbeat = heartbeat if heartbeat is not None else load_heartbeat(viewer / HEARTBEAT_NAME)
     sports = [evaluate_sport(sport, viewer, heartbeat, now, cfg) for sport in cfg["sports"]]
     alerts = [alert_message(row) for row in sports if row["level"] in ("degraded", "critical")]
+    alerts += [line for line in (parse_alarm(row) for row in sports) if line]
     return {
         "schema_version": "feed-status.v1",
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
