@@ -6,22 +6,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-  SCHEDULE_WORKFLOWS, MAX_LATENESS_MS, DispatchError, dispatchWorkflow, runSchedule,
+  SCHEDULE_WORKFLOWS, MAX_LATENESS_MS, SLOT_SLACK_MS, DispatchError, dispatchWorkflow, runSchedule, sendAlarm,
 } from '../api/schedules/_core.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-const quiet = { log() {}, warn() {} };
+const quiet = { log() {}, warn() {}, error() {} };
 const NOW = new Date('2026-11-24T19:07:30Z');
 
-function fakeFetch(status = 204, body = '') {
+// Fake GitHub + webhook. `runs` answers the run lookup; `dispatch` is the
+// status of the workflow_dispatch POST; `hook` is the webhook's status.
+function fakeFetch(dispatch = 204, body = '', { runs = [], lookup = 200, hook = 204 } = {}) {
   const calls = [];
   const impl = async (url, init) => {
     calls.push({ url, init });
-    return { status, text: async () => body };
+    if (url.startsWith('https://hooks.example/')) return { status: hook, text: async () => '' };
+    if (url.includes('/runs?')) {
+      return { status: lookup, json: async () => ({ workflow_runs: runs }), text: async () => body };
+    }
+    return { status: dispatch, text: async () => body };
   };
-  return { calls, impl };
+  const of = (kind) => calls.filter((c) => (kind === 'hook' ? c.url.startsWith('https://hooks.example/')
+    : kind === 'lookup' ? c.url.includes('/runs?') : c.url.endsWith('/dispatches')));
+  return { calls, impl, of };
 }
+const ENV = { GITHUB_DISPATCH_TOKEN: 'tok', ALARM_WEBHOOK_URL: 'https://hooks.example/abc' };
 
 function meta(name, scheduledAt = '2026-11-24T19:07:00Z') {
   return { name, scheduledAt: new Date(scheduledAt), executionId: 'exec-1', scheduleId: 's', namespace: 'default' };
@@ -30,23 +39,103 @@ function meta(name, scheduledAt = '2026-11-24T19:07:00Z') {
 test('each schedule dispatches its workflow on main with a scoped token', async () => {
   const f = fakeFetch();
   const result = await runSchedule(meta('odds-freshness'), {
-    env: { GITHUB_DISPATCH_TOKEN: 'tok' }, now: NOW, fetchImpl: f.impl, log: quiet,
+    env: ENV, now: NOW, fetchImpl: f.impl, log: quiet,
   });
   assert.equal(result.status, 'dispatched');
-  assert.equal(f.calls.length, 1);
-  assert.equal(f.calls[0].url,
+  const [post] = f.of('dispatch');
+  assert.equal(f.of('dispatch').length, 1);
+  assert.equal(post.url,
     'https://api.github.com/repos/NickAltstein/Propstein/actions/workflows/odds_freshness.yml/dispatches');
-  assert.equal(f.calls[0].init.method, 'POST');
-  assert.equal(f.calls[0].init.headers.Authorization, 'Bearer tok');
-  assert.deepEqual(JSON.parse(f.calls[0].init.body), { ref: 'main' });
+  assert.equal(post.init.method, 'POST');
+  assert.equal(post.init.headers.Authorization, 'Bearer tok');
+  assert.deepEqual(JSON.parse(post.init.body), { ref: 'main' });
+  assert.equal(f.of('hook').length, 0, 'a successful dispatch pages nobody');
 });
 
-test('a missing token fails the run instead of succeeding quietly', async () => {
+test('a missing token fails the run and pages the alarm webhook', async () => {
   const f = fakeFetch();
   await assert.rejects(
-    runSchedule(meta('odds-freshness'), { env: {}, now: NOW, fetchImpl: f.impl, log: quiet }),
+    runSchedule(meta('odds-freshness'), {
+      env: { ALARM_WEBHOOK_URL: ENV.ALARM_WEBHOOK_URL }, now: NOW, fetchImpl: f.impl, log: quiet,
+    }),
     /GITHUB_DISPATCH_TOKEN is not set/);
-  assert.equal(f.calls.length, 0);
+  assert.equal(f.of('dispatch').length, 0);
+  const [hook] = f.of('hook');
+  const payload = JSON.parse(hook.init.body);
+  assert.match(payload.content, /SCHEDULE DISPATCH FAILED: odds-freshness -> odds_freshness\.yml/);
+  assert.equal(payload.text, payload.content);
+});
+
+for (const status of [401, 403, 404, 422, 500]) {
+  test(`a GitHub ${status} on dispatch pages the webhook without the token or URL`, async () => {
+    const f = fakeFetch(status, '{"message":"Bad credentials"}');
+    await assert.rejects(runSchedule(meta('close-quality-capture'), {
+      env: { ...ENV, GITHUB_DISPATCH_TOKEN: 'secret-token' }, now: NOW, fetchImpl: f.impl, log: quiet,
+    }), new RegExp(`HTTP ${status}`));
+    const [hook] = f.of('hook');
+    assert.ok(hook, 'webhook was not called');
+    assert.ok(!hook.init.body.includes('secret-token'));
+    assert.ok(!hook.init.body.includes('hooks.example'));
+  });
+}
+
+test('an expired token fails at the run lookup and still pages', async () => {
+  const f = fakeFetch(204, '{"message":"Bad credentials"}', { lookup: 401 });
+  await assert.rejects(runSchedule(meta('odds-freshness'), {
+    env: ENV, now: NOW, fetchImpl: f.impl, log: quiet,
+  }), /run lookup for odds_freshness\.yml failed: HTTP 401/);
+  assert.equal(f.of('dispatch').length, 0);
+  assert.equal(f.of('hook').length, 1);
+});
+
+test('a broken webhook never masks the dispatch failure', async () => {
+  const f = fakeFetch(403, '', { hook: 500 });
+  await assert.rejects(runSchedule(meta('odds-freshness'), {
+    env: ENV, now: NOW, fetchImpl: f.impl, log: quiet,
+  }), /HTTP 403/);
+  const errors = [];
+  assert.equal(await sendAlarm('x', { env: {}, fetchImpl: f.impl, log: { error: (m) => errors.push(m) } }), false);
+  assert.match(errors[0], /ALARM_WEBHOOK_URL is not set/);
+});
+
+test('a slot already covered by a queued, running or successful run is not dispatched again', async () => {
+  for (const run of [
+    { id: 1, status: 'queued', event: 'schedule' },
+    { id: 2, status: 'in_progress', event: 'schedule' },
+    { id: 3, status: 'completed', conclusion: 'success', event: 'schedule' },
+  ]) {
+    const f = fakeFetch(204, '', { runs: [run] });
+    const result = await runSchedule(meta('game-context-daily', '2026-11-24T10:30:00Z'), {
+      env: ENV, now: new Date('2026-11-24T10:44:00Z'), fetchImpl: f.impl, log: quiet,
+    });
+    assert.equal(result.status, 'skipped_covered', run.status);
+    assert.equal(result.run_id, run.id);
+    assert.equal(f.of('dispatch').length, 0);
+  }
+});
+
+test('a failed or cancelled run in the slot does not cover it', async () => {
+  const f = fakeFetch(204, '', { runs: [
+    { id: 4, status: 'completed', conclusion: 'failure' },
+    { id: 5, status: 'completed', conclusion: 'cancelled' },
+  ] });
+  const result = await runSchedule(meta('game-context-daily', '2026-11-24T10:30:00Z'), {
+    env: ENV, now: new Date('2026-11-24T10:44:00Z'), fetchImpl: f.impl, log: quiet,
+  });
+  assert.equal(result.status, 'dispatched');
+});
+
+test('the run lookup is anchored to the slot time, not to delivery time', async () => {
+  // Hobby jitter delivers the 10:30 slot at 10:44; a GitHub cron run created
+  // at 10:31 must still be found, and the previous slot's runs must not.
+  const f = fakeFetch();
+  await runSchedule(meta('game-context-daily', '2026-11-24T10:30:00Z'), {
+    env: ENV, now: new Date('2026-11-24T10:44:00Z'), fetchImpl: f.impl, log: quiet,
+  });
+  const lookup = new URL(f.of('lookup')[0].url);
+  const since = new Date(new Date('2026-11-24T10:30:00Z').getTime() - SLOT_SLACK_MS);
+  assert.equal(lookup.searchParams.get('created'), `>=${since.toISOString().replace('.000Z', 'Z')}`);
+  assert.ok(SLOT_SLACK_MS < 15 * 60 * 1000, 'slack must stay well under the shortest cadence');
 });
 
 test('a GitHub rejection fails the run and never echoes the token', async () => {
@@ -54,11 +143,12 @@ test('a GitHub rejection fails the run and never echoes the token', async () => 
   await assert.rejects(
     dispatchWorkflow('odds_freshness.yml', { token: 'secret-token', fetchImpl: f.impl }),
     (err) => err instanceof DispatchError && /HTTP 403/.test(err.message) && !err.message.includes('secret-token'));
+  assert.equal(f.of('dispatch').length, 1);
 });
 
 test('an unknown schedule name fails loudly', async () => {
   await assert.rejects(
-    runSchedule(meta('mystery'), { env: { GITHUB_DISPATCH_TOKEN: 't' }, now: NOW, fetchImpl: fakeFetch().impl, log: quiet }),
+    runSchedule(meta('mystery'), { env: ENV, now: NOW, fetchImpl: fakeFetch().impl, log: quiet }),
     /unknown schedule/);
 });
 
@@ -66,14 +156,14 @@ test('occurrences delivered late after an outage are skipped, not replayed', asy
   const f = fakeFetch();
   const late = new Date(NOW.getTime() - MAX_LATENESS_MS - 60_000).toISOString();
   const result = await runSchedule(meta('close-quality-capture', late), {
-    env: { GITHUB_DISPATCH_TOKEN: 't' }, now: NOW, fetchImpl: f.impl, log: quiet,
+    env: ENV, now: NOW, fetchImpl: f.impl, log: quiet,
   });
   assert.equal(result.status, 'skipped_stale');
   assert.equal(f.calls.length, 0);
   // Within the jitter window still dispatches.
   const onTime = new Date(NOW.getTime() - 14 * 60_000).toISOString();
   const ok = await runSchedule(meta('close-quality-capture', onTime), {
-    env: { GITHUB_DISPATCH_TOKEN: 't' }, now: NOW, fetchImpl: f.impl, log: quiet,
+    env: ENV, now: NOW, fetchImpl: f.impl, log: quiet,
   });
   assert.equal(ok.status, 'dispatched');
 });
