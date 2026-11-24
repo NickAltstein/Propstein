@@ -36,6 +36,9 @@ jobs:
           set -o pipefail
           python scripts/check_data_health.py --summary "$GITHUB_STEP_SUMMARY" | tee health.md
 
+      - name: Check NFL game-context pricing provenance
+        run: PYTHONPATH=. python scripts/check_game_context_provenance.py
+
       - name: Notify on failure (webhook, optional)
         if: failure()
         env:
