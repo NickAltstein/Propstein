@@ -127,9 +127,6 @@ jobs:
           GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
           git add \
-            data/game_context_captures.jsonl \
-            data/game_context_provenance_report.json \
-            data/raw_espn_captures \
             viewer/feeds \
             'viewer/games_*_w*.json' \
             'viewer/slate_*_w*.json' \

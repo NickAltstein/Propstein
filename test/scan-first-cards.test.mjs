@@ -156,7 +156,7 @@ test('Scan-first player cards render clean hierarchy, collapsed Details, and zer
       res.end(JSON.stringify(FIXTURE_SLATE));
       return;
     }
-    if (serveBoardSnapshots && urlPath === '/snapshots_2026_w11.json') {
+    if (serveBoardSnapshots && urlPath.startsWith('/snapshots_2026_w') && urlPath.endsWith('.json')) {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(COMMITTED_W7_SNAPSHOTS);
       return;
