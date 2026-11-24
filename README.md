@@ -113,11 +113,11 @@ pytest -q
 # -> Tests canonical JSON hashing, float-precision boundary gates, and CLV SQL joins
 
 # 2. Dry-Run the Idempotent Edge Alert Dispatcher
-python3 scripts/dispatch_edge_alerts.py --dry-run --min-edge 5.0
+python3 scripts/dispatch_edge_alerts.py --dry-run --min-ev 5.0
 # -> Evaluates live payload, checks .cache/sent_edge_alerts.json SHA-256 state, outputs qualified edges
 
-# 3. Execute End-to-End Production Readiness Checks (286 assertions)
-npm run verify:prod
+# 3. Execute End-to-End Production Readiness Checks
+npm run check:production
 # -> Validates CSP headers, executionGate.ts precision bounds, and mode-sync state machines
 ```
 
