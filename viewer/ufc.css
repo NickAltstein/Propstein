@@ -20,7 +20,7 @@
 }
 body.ufc-active #homeEdgePreview, body.ufc-active .toast { display: none !important; }
 
-.ufc-honesty { grid-column: 1 / -1; padding: 12px 14px; border: 1px solid rgba(245,158,11,.25); border-left: 3px solid var(--u-warn); border-radius: 14px; background: rgba(245,158,11,.07); color: #cbd5e1; font: 500 13px/1.45 var(--u-sans); }
+.ufc-honesty { grid-column: 1 / -1; padding: var(--sp-3) var(--sp-4); border: 1px solid rgba(245,158,11,.25); border-left: 3px solid var(--u-warn); border-radius: var(--r-3); background: rgba(245,158,11,.07); color: #cbd5e1; font: 500 var(--fs-3)/1.45 var(--u-sans); }
 .ufc-honesty strong { color: #fbbf24; }
 /* The card grid itself comes from .today-schedule-games (style.css); the list
    only needs to span the full width of the parent schedule grid. */
@@ -52,30 +52,30 @@ body.ufc-active #homeEdgePreview, body.ufc-active .toast { display: none !import
 
 /* ---- fighter page ---- */
 .ufc-page-body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, rgba(128,198,246,.10), transparent 60%), #070708; color: #f8fafc; }
-.ufc-page { max-width: 760px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); color: var(--u-text); font: 400 15px/1.5 var(--u-sans); }
-.ufc-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--u-border); border-radius: 999px; background: var(--u-card); color: var(--u-text); font: 600 14px/1 var(--u-sans); text-decoration: none; }
+.ufc-page { max-width: 760px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); color: var(--u-text); font: 400 var(--fs-4)/1.5 var(--u-sans); }
+.ufc-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--sp-4); border: 1px solid var(--u-border); border-radius: var(--r-full); background: var(--u-card); color: var(--u-text); font: 600 var(--fs-3)/1 var(--u-sans); text-decoration: none; }
 .ufc-back:hover { background: var(--u-card-hover); }
 /* Same card chrome as the schedule cards (graphite face from style.css). */
-.ufc-hero { display: flex; gap: 16px; align-items: center; margin: 18px 0 6px; padding: 18px; border: 1px solid rgba(190,205,218,.16); border-radius: 26px; background: linear-gradient(150deg, #29292d 0%, #1a1a1d 38%, #101012 74%, #242427 100%); box-shadow: inset 0 1px rgba(255,255,255,.08), 0 16px 32px rgba(0,0,0,.24); }
+.ufc-hero { display: flex; gap: var(--sp-4); align-items: center; margin: var(--sp-5) 0 var(--sp-2); padding: var(--sp-5); border: 1px solid rgba(190,205,218,.16); border-radius: var(--r-3); background: linear-gradient(150deg, #29292d 0%, #1a1a1d 38%, #101012 74%, #242427 100%); box-shadow: inset 0 1px rgba(255,255,255,.08), 0 16px 32px rgba(0,0,0,.24); }
 .ufc-hero .ufc-photo { flex: none; width: 96px; height: 96px; }
-.ufc-hero h1 { margin: 0; font: 700 24px/1.15 var(--u-display); }
-.ufc-hero p { margin: 6px 0 0; color: var(--u-muted); font-size: 14px; }
-.ufc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin: 14px 0; }
-.ufc-stats div { padding: 12px 14px; border: 1px solid var(--u-border); border-radius: 16px; background: var(--u-card); }
-.ufc-stats span { display: block; color: var(--u-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
-.ufc-stats b { display: block; margin-top: 4px; font: 600 20px/1.2 var(--u-mono); }
-.ufc-page h2 { margin: 22px 0 10px; font: 600 17px/1.3 var(--u-display); }
-.ufc-history { display: grid; gap: 8px; }
-.ufc-history div { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid var(--u-border); border-radius: 14px; background: var(--u-card); font-size: 14px; }
+.ufc-hero h1 { margin: 0; font: 700 var(--fs-6)/1.15 var(--u-display); }
+.ufc-hero p { margin: var(--sp-2) 0 0; color: var(--u-muted); font-size: var(--fs-3); }
+.ufc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: var(--sp-3); margin: var(--sp-4) 0; }
+.ufc-stats div { padding: var(--sp-3) var(--sp-4); border: 1px solid var(--u-border); border-radius: var(--r-3); background: var(--u-card); }
+.ufc-stats span { display: block; color: var(--u-muted); font-size: var(--fs-2); text-transform: uppercase; letter-spacing: .06em; }
+.ufc-stats b { display: block; margin-top: var(--sp-1); font: 600 var(--fs-5)/1.2 var(--u-mono); }
+.ufc-page h2 { margin: var(--sp-6) 0 var(--sp-3); font: 600 var(--fs-4)/1.3 var(--u-display); }
+.ufc-history { display: grid; gap: var(--sp-2); }
+.ufc-history div { display: grid; grid-template-columns: 92px 1fr auto; gap: var(--sp-3); align-items: center; min-height: 44px; padding: var(--sp-2) var(--sp-4); border: 1px solid var(--u-border); border-radius: var(--r-3); background: var(--u-card); font-size: var(--fs-3); }
 .ufc-history .r-W { color: #6ee7b7; font-weight: 700; } .ufc-history .r-L { color: #fca5a5; font-weight: 700; }
-.ufc-history small { color: var(--u-muted); font-size: 13px; }
-.ufc-note { color: #fbbf24; font-size: 13px; }
-.ufc-src { margin-top: 20px; color: #64748b; font-size: 12px; }
+.ufc-history small { color: var(--u-muted); font-size: var(--fs-3); }
+.ufc-note { color: #fbbf24; font-size: var(--fs-3); }
+.ufc-src { margin-top: var(--sp-5); color: #64748b; font-size: var(--fs-2); }
 /* Shared circular photo (fighter page hero; the schedule cards use the
    today-team-logo / today-prop-photo classes instead). */
 .ufc-photo { width: 96px; height: 96px; overflow: hidden; border: 1px solid var(--u-border); border-radius: 50%; background: rgba(255,255,255,.05); }
 .ufc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.ufc-skel { background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.09), rgba(255,255,255,.04)); background-size: 200% 100%; border-radius: 12px; animation: ufcShimmer 1.2s linear infinite; }
+.ufc-skel { background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.09), rgba(255,255,255,.04)); background-size: 200% 100%; border-radius: var(--r-3); animation: ufcShimmer 1.2s linear infinite; }
 @keyframes ufcShimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .ufc-skel { animation: none; } }
 @media (max-width: 480px) {

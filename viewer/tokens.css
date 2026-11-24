@@ -1,0 +1,68 @@
+/* PropStein design tokens — the only place raw radius, type, spacing, colour,
+ * hairline and motion values are defined. Loaded before every other stylesheet.
+ * Components reference these through var(); scripts/css_tokens_codemod.py moves
+ * literal values in viewer/*.css onto them and is safe to re-run.
+ */
+:root {
+  /* Radius: 2 / 4 / 8 / full. */
+  --r-1: 2px;
+  --r-2: 4px;
+  --r-3: 8px;
+  --r-full: 9999px;
+
+  /* Type: 7 steps, nothing under 11px. Numbers are tabular everywhere (see body). */
+  --fs-1: 11px;   /* metadata, labels */
+  --fs-2: 12px;   /* secondary text */
+  --fs-3: 14px;   /* body small */
+  --fs-4: 16px;   /* body */
+  --fs-5: 20px;   /* section titles */
+  --fs-6: 28px;   /* key figures */
+  --fs-7: 36px;   /* display */
+
+  /* Spacing: 4px grid. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Colour: graphite surfaces at 3 luminance steps, one accent, muted metadata. */
+  --c-surface-0: #0c0f14;   /* page */
+  --c-surface-1: #151a22;   /* card */
+  --c-surface-2: #1c232e;   /* raised / input */
+  --c-text: #f4f6f8;
+  --c-text-muted: #b7c0cc;  /* metadata (AA on surface-0..2) */
+  --c-text-faint: #8b95a3;  /* tertiary metadata (AA on surface-0/1 at >=11px) */
+  --c-accent: #8ee0bf;      /* actionable or quoted state — the only accent */
+  --c-accent-ink: #06281c;
+  --c-warn: #f3d48a;
+  --c-danger: #f3b4b8;
+
+  /* Hairlines. */
+  --hairline-color: rgba(255, 255, 255, 0.06);
+  --hairline: 1px solid var(--hairline-color);
+
+  /* Motion: 150–200ms ease-out. */
+  --dur-1: 150ms;
+  --dur-2: 200ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
