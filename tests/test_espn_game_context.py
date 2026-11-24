@@ -695,17 +695,162 @@ def test_provenance_report_blocks_when_pricing_window_lacks_weather():
     assert stale["stale_captures"][0]["game_id"] == "2026_09_NYJ_KC"
 
 
-def test_outdoor_stadium_coords_cover_all_us_outdoor_home_teams_and_unknown_fails_closed():
-    """Every US outdoor/retractable NFL home team must have coordinates; unknown team returns None."""
-    from scripts.ingest_espn_game_context import OUTDOOR_STADIUM_COORDS, fetch_nws_weather
+def test_nws_user_agent_includes_contact():
+    """NWS api.weather.gov requires a User-Agent identifying the app and contact."""
+    from scripts.ingest_espn_game_context import NWS_USER_AGENT
 
-    expected_outdoor_or_retractable = {
-        "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN",
-        "GB", "HOU", "IND", "JAX", "KC", "MIA", "NE", "NYG", "NYJ", "PHI",
-        "PIT", "SEA", "SF", "TB", "TEN", "WAS",
+    assert "PropSteinGameContext" in NWS_USER_AGENT
+    assert "@" in NWS_USER_AGENT
+
+
+def test_nws_neutral_site_uses_venue_id_not_home_team():
+    """Known US venue (Highmark 11938) resolves to its own coords even when DAL is listed home."""
+    from scripts.ingest_espn_game_context import lookup_nws_venue
+
+    highmark = lookup_nws_venue("11938", country="USA")
+    assert highmark is not None
+    assert highmark[2] == "Highmark Stadium"
+    assert abs(highmark[0] - 42.7738) < 0.01
+
+    captured_venue_ids: list[str | None] = []
+    neutral_event = {
+        "id": "401999001",
+        "date": "2026-11-27T01:20Z",
+        "status": {"type": {"state": "pre"}},
+        "competitions": [
+            {
+                "competitors": [
+                    {"homeAway": "home", "team": {"abbreviation": "DAL"}},
+                    {"homeAway": "away", "team": {"abbreviation": "KC"}},
+                ],
+                "odds": [{"provider": {"name": "DraftKings"}, "spread": -2.5, "overUnder": 46.5}],
+                "venue": {"id": "11938", "fullName": "Highmark Stadium", "indoor": False, "address": {"country": "USA"}},
+            }
+        ],
     }
-    assert expected_outdoor_or_retractable.issubset(set(OUTDOOR_STADIUM_COORDS.keys()))
-    assert fetch_nws_weather("UNKNOWN_VENUE", datetime(2026, 11, 27, 1, 20, tzinfo=timezone.utc)) is None
+
+    def capture_fallback(venue_id, kickoff_utc, **_kw):
+        captured_venue_ids.append(venue_id)
+        info = lookup_nws_venue(venue_id, country="USA")
+        assert info is not None and info[2] == "Highmark Stadium"
+        return {
+            "temp": 37.0,
+            "wind": 10.0,
+            "observed_at": "2026-11-24T14:00:05+00:00",
+            "weather_source": "nws_hourly_forecast",
+            "payload": b"{}",
+        }
+
+    recs = parse_espn_games(
+        {"events": [neutral_event]},
+        2026,
+        12,
+        "2026-11-24T14:00:00+00:00",
+        fetch_weather=True,
+        weather_fetcher=lambda _eid: None,
+        fallback_weather_fetcher=capture_fallback,
+        expected_game_ids={"2026_12_KC_DAL"},
+    )
+    assert captured_venue_ids == ["11938"]
+    assert recs[0]["temp"] == 37.0
+
+
+def test_nws_international_venues_fail_closed():
+    """Each of the 3 international venue IDs (Mexico, Germany, Spain) fails closed."""
+    from scripts.ingest_espn_game_context import OUTDOOR_VENUE_COORDS, fetch_nws_weather, lookup_nws_venue
+
+    kickoff = datetime(2026, 11, 27, 1, 20, tzinfo=timezone.utc)
+    for intl_id, country in (("8219", "Mexico"), ("11930", "Germany"), ("1353", "Spain")):
+        assert intl_id not in OUTDOOR_VENUE_COORDS
+        assert lookup_nws_venue(intl_id, country=country) is None
+        assert fetch_nws_weather(intl_id, kickoff, country=country) is None
+
+
+def test_nws_unknown_venue_and_non_us_country_fail_closed():
+    """Unknown venue ID or non-US country fails closed."""
+    from scripts.ingest_espn_game_context import fetch_nws_weather, lookup_nws_venue
+
+    kickoff = datetime(2026, 11, 27, 1, 20, tzinfo=timezone.utc)
+    assert lookup_nws_venue("999999", country="USA") is None
+    assert fetch_nws_weather("999999", kickoff, country="USA") is None
+    assert lookup_nws_venue("11938", country="UK") is None
+
+
+def test_retractable_roof_closed_uses_enclosure_and_skips_nws():
+    """Closed retractable roof (AT&T Stadium 3687, indoor=True) uses enclosure and never calls NWS."""
+    closed_retractable = {
+        "id": "401999002",
+        "date": "2026-11-27T01:20Z",
+        "status": {"type": {"state": "pre"}},
+        "competitions": [
+            {
+                "competitors": [
+                    {"homeAway": "home", "team": {"abbreviation": "DAL"}},
+                    {"homeAway": "away", "team": {"abbreviation": "KC"}},
+                ],
+                "odds": [{"provider": {"name": "DraftKings"}, "spread": -2.5, "overUnder": 46.5}],
+                "venue": {"id": "3687", "fullName": "AT&T Stadium", "indoor": True, "address": {"country": "USA"}},
+            }
+        ],
+    }
+    called = []
+    closed_recs = parse_espn_games(
+        {"events": [closed_retractable]},
+        2026,
+        12,
+        "2026-11-24T14:00:00+00:00",
+        fetch_weather=True,
+        weather_fetcher=lambda _eid: None,
+        fallback_weather_fetcher=lambda *a, **k: called.append(a) or None,
+        expected_game_ids={"2026_12_KC_DAL"},
+    )
+    assert closed_recs[0]["roof"] == "closed"
+    assert closed_recs[0]["weather_source"] == "espn_venue_enclosure"
+    assert called == []
+
+
+def test_retractable_roof_unknown_indoor_status_is_explicitly_tagged():
+    """When ESPN omits 'indoor' on a retractable stadium, roof_state is explicitly 'retractable_unknown'."""
+    unknown_retractable = {
+        "id": "401999003",
+        "date": "2026-11-27T01:20Z",
+        "status": {"type": {"state": "pre"}},
+        "competitions": [
+            {
+                "competitors": [
+                    {"homeAway": "home", "team": {"abbreviation": "DAL"}},
+                    {"homeAway": "away", "team": {"abbreviation": "KC"}},
+                ],
+                "odds": [{"provider": {"name": "DraftKings"}, "spread": -2.5, "overUnder": 46.5}],
+                # 'indoor' omitted (None) — ESPN has not reported roof status yet
+                "venue": {"id": "3687", "fullName": "AT&T Stadium", "address": {"country": "USA"}},
+            }
+        ],
+    }
+    seen_roof_states: list[str | None] = []
+
+    def capture_unknown(venue_id, kickoff_utc, roof_state=None, **_kw):
+        seen_roof_states.append(roof_state)
+        return {
+            "temp": 62.0,
+            "wind": 8.0,
+            "observed_at": "2026-11-24T14:00:05+00:00",
+            "weather_source": "nws_hourly_forecast_retractable_unknown",
+            "payload": b'{"retractable_roof_status":"unknown"}',
+        }
+
+    recs = parse_espn_games(
+        {"events": [unknown_retractable]},
+        2026,
+        12,
+        "2026-11-24T14:00:00+00:00",
+        fetch_weather=True,
+        weather_fetcher=lambda _eid: None,
+        fallback_weather_fetcher=capture_unknown,
+        expected_game_ids={"2026_12_KC_DAL"},
+    )
+    assert seen_roof_states == ["retractable_unknown"]
+    assert recs[0]["weather_source"] == "nws_hourly_forecast_retractable_unknown"
 
 
 def test_non_sunday_outdoor_game_uses_nws_fallback_and_checks_weather_staleness():
@@ -729,7 +874,7 @@ def test_non_sunday_outdoor_game_uses_nws_fallback_and_checks_weather_staleness(
                     {"homeAway": "away", "team": {"abbreviation": "KC"}},
                 ],
                 "odds": [{"provider": {"name": "DraftKings"}, "spread": -3.0, "overUnder": 47.5}],
-                "venue": {"fullName": "Highmark Stadium", "indoor": False},
+                "venue": {"id": "11938", "fullName": "Highmark Stadium", "indoor": False, "address": {"country": "USA"}},
             }
         ],
     }
@@ -762,7 +907,7 @@ def test_non_sunday_outdoor_game_uses_nws_fallback_and_checks_weather_staleness(
         fetch_ts,
         fetch_weather=True,
         weather_fetcher=lambda _eid: None,
-        fallback_weather_fetcher=lambda _team, _ko, **_kw: None,
+        fallback_weather_fetcher=lambda _vid, _ko, **_kw: None,
         expected_game_ids={"2026_12_KC_BUF"},
     )
     assert records_missing[0]["weather_observed_at"] is None
@@ -772,8 +917,8 @@ def test_non_sunday_outdoor_game_uses_nws_fallback_and_checks_weather_staleness(
     assert report_blocked["per_game_readiness"]["2026_12_KC_BUF"]["status"] == "CONTEXT_MISSING"
 
     # 2. NWS fallback supplies real hourly forecast -> READY with explicit source
-    def fake_nws(home_team: str, kickoff_utc: datetime, espn_temp_f=None):
-        assert home_team == "BUF"
+    def fake_nws(venue_id: str | None, kickoff_utc: datetime, espn_temp_f=None, **_kw):
+        assert venue_id == "11938"
         assert espn_temp_f == 43.0
         assert kickoff_utc.strftime("%Y-%m-%dT%H:%M") == "2026-11-27T01:20"
         return {

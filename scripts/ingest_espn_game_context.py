@@ -66,37 +66,42 @@ ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/s
 NWS_POINTS_URL = "https://api.weather.gov/points"
 NFLVERSE_GAMES_URL = "https://github.com/nflverse/nfldata/raw/master/data/games.csv"
 
-# Coordinates (lat, lon) for US outdoor and retractable-roof NFL home stadiums,
-# used only as a public-domain NWS (api.weather.gov) hourly forecast fallback
-# when ESPN's summary gameInfo.weather omits temperature or wind/gust.
-OUTDOOR_STADIUM_COORDS: dict[str, tuple[float, float]] = {
-    "ARI": (33.5276, -112.2626),
-    "ATL": (33.7554, -84.4008),
-    "BAL": (39.2780, -76.6227),
-    "BUF": (42.7738, -78.7870),
-    "CAR": (35.2258, -80.8528),
-    "CHI": (41.8623, -87.6167),
-    "CIN": (39.0954, -84.5160),
-    "CLE": (41.5061, -81.6995),
-    "DAL": (32.7473, -97.0945),
-    "DEN": (39.7439, -105.0201),
-    "GB": (44.5013, -88.0622),
-    "HOU": (29.6847, -95.4107),
-    "IND": (39.7601, -86.1639),
-    "JAX": (30.3239, -81.6373),
-    "KC": (39.0489, -94.4839),
-    "MIA": (25.9580, -80.2389),
-    "NE": (42.0909, -71.2643),
-    "NYG": (40.8135, -74.0745),
-    "NYJ": (40.8135, -74.0745),
-    "PHI": (39.9008, -75.1675),
-    "PIT": (40.4468, -80.0158),
-    "SEA": (47.5952, -122.3316),
-    "SF": (37.4033, -121.9694),
-    "TB": (27.9759, -82.5033),
-    "TEN": (36.1665, -86.7713),
-    "WAS": (38.9076, -76.8645),
+# Coordinates (lat, lon, venue_name, roof_type) keyed strictly by ESPN venue.id
+# for US outdoor and retractable-roof NFL stadiums. Keying by venue.id (never by
+# home_team) guarantees neutral-site and international games (Mexico, Germany,
+# Spain, London) fail closed instead of inheriting the home team's US weather.
+OUTDOOR_VENUE_COORDS: dict[str, tuple[float, float, str, str]] = {
+    # Outdoor US stadiums
+    "3752": (40.4468, -80.0158, "Acrisure Stadium", "outdoors"),
+    "3622": (39.0489, -94.4839, "Arrowhead Stadium", "outdoors"),
+    "3628": (35.2258, -80.8528, "Bank of America Stadium", "outdoors"),
+    "3937": (39.7439, -105.0201, "Empower Field at Mile High", "outdoors"),
+    "3712": (30.3239, -81.6373, "EverBank Stadium", "outdoors"),
+    "3738": (42.0909, -71.2643, "Gillette Stadium", "outdoors"),
+    "3948": (25.9580, -80.2389, "Hard Rock Stadium", "outdoors"),
+    "11938": (42.7738, -78.7870, "Highmark Stadium", "outdoors"),
+    "3679": (41.5061, -81.6995, "Huntington Bank Field", "outdoors"),
+    "3798": (44.5013, -88.0622, "Lambeau Field", "outdoors"),
+    "4738": (37.4033, -121.9694, "Levi's Stadium", "outdoors"),
+    "3806": (39.9008, -75.1675, "Lincoln Financial Field", "outdoors"),
+    "3673": (47.5952, -122.3316, "Lumen Field", "outdoors"),
+    "3814": (39.2780, -76.6227, "M&T Bank Stadium", "outdoors"),
+    "3839": (40.8135, -74.0745, "MetLife Stadium", "outdoors"),
+    "3810": (36.1665, -86.7713, "Nissan Stadium", "outdoors"),
+    "3719": (38.9076, -76.8645, "Northwest Stadium", "outdoors"),
+    "3874": (39.0954, -84.5160, "Paycor Stadium", "outdoors"),
+    "3886": (27.9759, -82.5033, "Raymond James Stadium", "outdoors"),
+    "3933": (41.8623, -87.6167, "Soldier Field", "outdoors"),
+    # Retractable-roof US stadiums (only reached when ESPN marks indoor=False / roof='open';
+    # tagged explicitly as retractable so downstream models know roof status may shift).
+    "3687": (32.7473, -97.0945, "AT&T Stadium", "retractable"),
+    "3812": (39.7601, -86.1639, "Lucas Oil Stadium", "retractable"),
+    "5348": (33.7554, -84.4008, "Mercedes-Benz Stadium", "retractable"),
+    "3891": (29.6847, -95.4107, "Reliant Stadium", "retractable"),
+    "3970": (33.5276, -112.2626, "State Farm Stadium", "retractable"),
 }
+
+NWS_USER_AGENT = "PropSteinGameContext/1.0 (https://propstein.com; contact@propstein.com)"
 
 ET = ZoneInfo("America/New_York")
 LIVE_GRACE = timedelta(hours=4)
@@ -392,25 +397,40 @@ def _parse_nws_wind_mph(raw: object) -> float | None:
     return sum(nums) / len(nums)
 
 
+def lookup_nws_venue(venue_id: str | None, country: str | None = None) -> tuple[float, float, str, str] | None:
+    """Resolve US outdoor/retractable coordinates strictly by ESPN venue.id.
+
+    Fails closed (None) for unknown venue IDs or any non-US country so neutral-site
+    and international games never inherit the home team's US weather.
+    """
+    if country is not None and str(country).strip() and str(country).strip().upper() not in ("USA", "US"):
+        return None
+    if not venue_id:
+        return None
+    return OUTDOOR_VENUE_COORDS.get(str(venue_id).strip())
+
+
 def fetch_nws_weather(
-    home_team: str,
+    venue_id: str | None,
     kickoff_utc: datetime,
     timeout: int = 10,
     espn_temp_f: float | None = None,
+    country: str | None = None,
+    roof_state: str | None = None,
 ) -> dict | None:
     """Fetch public-domain NWS hourly forecast (°F, mph) when ESPN omits wind/temp.
 
     Uses NOAA/NWS api.weather.gov (US federal public domain, commercial-safe,
-    no API key). Fails closed (returns None) on unknown stadium, HTTP/JSON
-    error, or missing kickoff-hour temperature/wind. Never fabricates values.
+    no API key). Keyed strictly by ESPN venue.id; fails closed (returns None) on
+    unknown/non-US venue, HTTP/JSON error, or missing kickoff-hour temperature/wind.
     """
-    coords = OUTDOOR_STADIUM_COORDS.get(home_team)
-    if coords is None:
+    venue_info = lookup_nws_venue(venue_id, country=country)
+    if venue_info is None:
         return None
-    lat, lon = coords
+    lat, lon, venue_name, roof_type = venue_info
     kickoff_utc = kickoff_utc.astimezone(timezone.utc)
     headers = {
-        "User-Agent": "PropSteinGameContext/1.0 (https://propstein.com)",
+        "User-Agent": NWS_USER_AGENT,
         "Accept": "application/geo+json",
     }
     try:
@@ -453,14 +473,30 @@ def fetch_nws_weather(
     temp_diff = round(temp - espn_temp_f, 1) if espn_temp_f is not None else None
     if temp_diff is not None and abs(temp_diff) >= 3.0:
         print(
-            f"[espn-context] weather divergence for {home_team}: "
+            f"[espn-context] weather divergence for venue {venue_id} ({venue_name}): "
             f"ESPN={espn_temp_f}°F vs NWS={temp}°F (delta={temp_diff:+.1f}°F)",
             file=sys.stderr,
         )
 
+    is_retractable = roof_type == "retractable"
+    if is_retractable:
+        weather_source = (
+            "nws_hourly_forecast_retractable_unknown"
+            if roof_state == "retractable_unknown"
+            else "nws_hourly_forecast_retractable_open"
+        )
+    else:
+        weather_source = "nws_hourly_forecast"
+
     payload = json.dumps(
         {
-            "home_team": home_team,
+            "venue_id": str(venue_id),
+            "venue_name": venue_name,
+            "retractable_roof": is_retractable,
+            "retractable_roof_status": (
+                "unknown" if roof_state == "retractable_unknown" else ("open" if is_retractable else None)
+            ),
+            "roof_state": roof_state or roof_type,
             "kickoff_utc": kickoff_utc.isoformat(),
             "observed_at": observed_at,
             "latitude": lat,
@@ -470,7 +506,7 @@ def fetch_nws_weather(
             "espn_temp_f": espn_temp_f,
             "temp_divergence_f": temp_diff,
             "nws_period": matched,
-            "source": "nws_hourly_forecast",
+            "source": weather_source,
         },
         sort_keys=True,
     ).encode("utf-8")
@@ -478,7 +514,7 @@ def fetch_nws_weather(
         "temp": temp,
         "wind": wind,
         "observed_at": observed_at,
-        "weather_source": "nws_hourly_forecast",
+        "weather_source": weather_source,
         "payload": payload,
     }
 
@@ -636,11 +672,24 @@ def parse_espn_games(
             fetched = fetcher(str(event["id"]))
             if not (fetched and fetched.get("temp") is not None and fetched.get("wind") is not None):
                 if fallback_fetcher is not None:
+                    venue_id = str(venue.get("id") or "").strip() or None
+                    venue_country = (venue.get("address") or {}).get("country")
                     espn_temp = parse_optional_float((event.get("weather") or {}).get("temperature"))
+                    effective_roof_state = (
+                        "retractable_unknown"
+                        if venue_name in RETRACTABLE_ROOFS and venue.get("indoor") is None
+                        else roof
+                    )
                     try:
-                        fetched = fallback_fetcher(teams[1], kickoff, espn_temp_f=espn_temp)
+                        fetched = fallback_fetcher(
+                            venue_id,
+                            kickoff,
+                            espn_temp_f=espn_temp,
+                            country=venue_country,
+                            roof_state=effective_roof_state,
+                        )
                     except TypeError:
-                        fetched = fallback_fetcher(teams[1], kickoff)
+                        fetched = fallback_fetcher(venue_id, kickoff)
             if fetched and fetched.get("temp") is not None and fetched.get("wind") is not None:
                 temp = float(fetched["temp"])
                 wind = float(fetched["wind"])
