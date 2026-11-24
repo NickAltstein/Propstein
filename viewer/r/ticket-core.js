@@ -37,12 +37,12 @@
     const keys = Object.keys(t).sort().join(',');
     if (t.v !== 1) return null;
     if (t.m === 'anytime_td') {
-      const allowed = ['at', 'g', 'm', 'n', 'o', 'p', 'take', 'v'];
+      const allowed = ['at', 'f', 'g', 'm', 'n', 'o', 'p', 'take', 'v'];
       if (Object.keys(t).some((k) => !allowed.includes(k))) return null;
       if (typeof t.p !== 'string' || !PLAYER_ID_RE.test(t.p)) return null;
       if (typeof t.g !== 'string' || !GAME_ID_RE.test(t.g)) return null;
     } else if (t.m === 'nba_threes') {
-      const allowed = ['at', 'g', 'm', 'n', 'o', 'p', 'r', 'take', 'v'];
+      const allowed = ['at', 'f', 'g', 'm', 'n', 'o', 'p', 'r', 'take', 'v'];
       if (Object.keys(t).some((k) => !allowed.includes(k))) return null;
       if (typeof t.p !== 'string' || !NBA_PLAYER_ID_RE.test(t.p)) return null;
       if (typeof t.g !== 'string' || !NBA_GAME_ID_RE.test(t.g)) return null;
@@ -54,9 +54,23 @@
     if (!Number.isInteger(t.o) || Math.abs(t.o) < 100 || Math.abs(t.o) > 100000) return null;
     if (typeof t.at !== 'string' || !Number.isFinite(Date.parse(t.at))) return null;
     if (t.take !== undefined && (typeof t.take !== 'string' || t.take.length > 100)) return null;
+    // Optional fork context: the parent ticket's ask. Same selection by construction;
+    // the new cutoff must differ from it. Anything else fails closed.
+    let from = null;
+    if (t.f !== undefined) {
+      const f = t.f;
+      if (!f || typeof f !== 'object' || Array.isArray(f)) return null;
+      if (Object.keys(f).some((k) => !['at', 'o', 'take'].includes(k))) return null;
+      if (!Number.isInteger(f.o) || Math.abs(f.o) < 100 || Math.abs(f.o) > 100000) return null;
+      if (typeof f.at !== 'string' || !Number.isFinite(Date.parse(f.at))) return null;
+      if (f.take !== undefined && (typeof f.take !== 'string' || f.take.length > 100)) return null;
+      if (Tail.toDecimal(f.o) === Tail.toDecimal(t.o)) return null;
+      from = { o: f.o, at: new Date(Date.parse(f.at)).toISOString(), take: (f.take || '').trim() };
+    }
     void keys;
     const out = { v: 1, m: t.m, p: t.p, g: t.g, n: t.n.trim(), o: t.o, at: new Date(Date.parse(t.at)).toISOString(), take: (t.take || '').trim() };
     if (t.m === 'nba_threes') out.r = t.r;
+    if (from) out.f = from;
     return out;
   }
 
@@ -66,6 +80,10 @@
     const payload = { v: 1, m: clean.m, p: clean.p, g: clean.g, n: clean.n, o: clean.o, at: clean.at };
     if (clean.m === 'nba_threes') payload.r = clean.r;
     if (clean.take) payload.take = clean.take;
+    if (clean.f) {
+      payload.f = { o: clean.f.o, at: clean.f.at };
+      if (clean.f.take) payload.f.take = clean.f.take;
+    }
     return b64urlEncode(JSON.stringify(payload));
   }
 
@@ -77,6 +95,23 @@
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Recipient becomes sender: same selection, new cutoff, parent ask kept as
+   * context. Returns { ok, encoded } or { ok:false, reason }. The parent is not
+   * modified; only its own ask (not its fork context) is carried forward.
+   */
+  function forkTicket(parent, newOdds, take, nowIso) {
+    if (!Number.isInteger(newOdds) || Math.abs(newOdds) < 100) return { ok: false, reason: 'Enter signed American odds such as +250 or -110.' };
+    if (Tail.toDecimal(newOdds) === Tail.toDecimal(parent.o)) return { ok: false, reason: `Pick a different minimum than the original ${Tail.fmtOdds(parent.o)}.` };
+    const child = { v: 1, m: parent.m, p: parent.p, g: parent.g, n: parent.n, o: newOdds, at: nowIso, f: { o: parent.o, at: parent.at } };
+    if (parent.m === 'nba_threes') child.r = parent.r;
+    if (parent.take) child.f.take = parent.take;
+    const t = String(take || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+    if (t) child.take = t;
+    const encoded = encodeTicket(child);
+    return encoded ? { ok: true, encoded } : { ok: false, reason: 'Could not create a ticket from this cutoff.' };
   }
 
   function ticketKey(t) {
@@ -188,6 +223,7 @@
     encodeTicket,
     decodeTicket,
     validateTicket,
+    forkTicket,
     ticketKey,
     isWatching,
     toggleWatch,
