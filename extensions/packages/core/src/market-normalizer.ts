@@ -74,7 +74,7 @@ export const NBA_TEAM_ALIASES: Readonly<Record<string, string>> = {
   MIL: "MIL", MILWAUKEE: "MIL", BUCKS: "MIL",
   MIN: "MIN", TIMBERWOLVES: "MIN", WOLVES: "MIN",
   NOP: "NOP", NO: "NOP", PELICANS: "NOP",
-  NYK: "NYK", "NEW YORK KNICKS": "NYK", KNICKS: "NYK",
+  NYK: "NYK", NY: "NYK", "NEW YORK KNICKS": "NYK", KNICKS: "NYK",
   OKC: "OKC", "OKLAHOMA CITY": "OKC", THUNDER: "OKC",
   ORL: "ORL", ORLANDO: "ORL", MAGIC: "ORL",
   PHI: "PHI", "76ERS": "PHI", SIXERS: "PHI",
@@ -173,7 +173,7 @@ export function classifyMarketLabel(label: string): MarketClassification {
   const mentionsFirstTd = /\b(first|1st)\s+(touchdown|td)\b|\bfirst_td\b/.test(t);
   const mentionsTwoPlusTd = /\b(2\+|2 or more|two\+|two or more)\s+(touchdowns?|tds?)\b|\btwo_plus_td\b/.test(t);
   const mentionsAnytimeTd = /anytime (touchdown|td)|to score a (touchdown|td)|\banytime_td\b/.test(t);
-  const mentionsPra = /\b(pts?\s*\+\s*rebs?\s*\+\s*asts?|points?\s*\+\s*rebounds?\s*\+\s*assists?|points?,?\s*rebounds?\s*(?:&|and|\+)\s*assists?|pra|nba_pra)\b/.test(t);
+  const mentionsPra = /\b(pts?\s*(?:\+|\s)\s*rebs?\s*(?:\+|\s)\s*asts?|points?\s*(?:\+|\s)\s*rebounds?\s*(?:\+|\s)\s*assists?|points?,?\s*rebounds?\s*(?:&|and|\+)\s*assists?|pra|nba_pra)\b/.test(t);
   const mentionsThrees = /\b(3[\s-]*(?:pointers?|pt|pts)\s*(?:made)?|three[\s-]*pointers?\s*(?:made)?|3pm|threes|nba_threes)\b/.test(t);
   const mentionsRebounds = /\b(rebounds?|rebs?|nba_rebounds)\b/.test(t);
   const mentionsAssists = /\b(assists?|asts?|nba_assists)\b/.test(t);

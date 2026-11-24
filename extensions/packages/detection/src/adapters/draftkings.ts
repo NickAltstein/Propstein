@@ -87,6 +87,15 @@ function normalizeDkSelection(raw: string, isTdMarket: boolean): string {
   return isTdMarket ? "YES" : "OVER";
 }
 
+function isElementDisabled(el: Element | null | undefined): boolean {
+  if (!el) return false;
+  return (
+    el.hasAttribute("disabled")
+    || el.getAttribute("aria-disabled")?.toLowerCase() === "true"
+    || /\b(disabled|locked|suspended)\b/i.test(el.getAttribute("class") ?? "")
+  );
+}
+
 function inferLeagueAndSport(root: Document, row: Element, marketTitle: string): { league: string; sport: string } {
   const attr = (row.getAttribute("data-league") ?? root.querySelector(DRAFTKINGS_SELECTORS.marketGroup)?.getAttribute("data-league") ?? "").toUpperCase();
   if (attr === "NBA") return { league: "NBA", sport: "basketball" };
@@ -120,6 +129,9 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     }
     const rows = group.querySelectorAll(DRAFTKINGS_SELECTORS.marketRow);
     if (rows.length === 0) {
+      if (root.querySelector(DRAFTKINGS_SELECTORS.ladderRow)) {
+        return this.detectLadderMarkets(root);
+      }
       return this.degraded("market container present but no rows matched the versioned selectors");
     }
     const markets: ObservedMarket[] = [];
@@ -138,7 +150,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     };
   }
 
-  private parseRowMarkets(root: Document, group: Element | null, row: Element): ObservedMarket[] {
+  private parseRowMarkets(root: Document, group: Element | null, row: Element, onlyCell?: Element): ObservedMarket[] {
     if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
     const playerName = row.querySelector(DRAFTKINGS_SELECTORS.playerName)?.textContent?.trim() ?? "";
     if (!playerName) return [];
@@ -146,7 +158,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     const marketTitle =
       row.querySelector(DRAFTKINGS_SELECTORS.marketTitle)?.textContent?.trim()
       ?? group?.querySelector(DRAFTKINGS_SELECTORS.marketTitle)?.textContent?.trim()
-      ?? root.querySelector("h1")?.textContent?.trim()
+      ?? (marketFromUrl(root) || root.querySelector("h1")?.textContent?.trim())
       ?? "";
 
     const classification = classifyMarketLabel(marketTitle);
@@ -162,47 +174,82 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
 
     // Sportsbook table rows often contain paired Over / Under outcome cells.
     const outcomeCells = Array.from(row.querySelectorAll(DRAFTKINGS_SELECTORS.outcomeCell));
-    const containers: Element[] = outcomeCells.length > 0 ? outcomeCells : [row];
+    const containers: Element[] = onlyCell ? [onlyCell] : outcomeCells.length > 0 ? outcomeCells : [row];
     const results: ObservedMarket[] = [];
 
     for (const cell of containers) {
-      const oddsEl = cell.querySelector(DRAFTKINGS_SELECTORS.oddsButton);
-      const americanOdds = parseAmericanOddsText(oddsEl?.textContent ?? "");
-      if (americanOdds === undefined) continue;
-
-      const line = parseNumericLine(cell.querySelector(DRAFTKINGS_SELECTORS.line)?.textContent);
-      const rawSelection = cell.querySelector(DRAFTKINGS_SELECTORS.selection)?.textContent?.trim()
-        ?? row.getAttribute("data-selection")
-        ?? "";
-      const selection = normalizeDkSelection(rawSelection, isTdMarket);
-
-      let confidence = 0.95;
-      if (classification.code === "unknown") confidence = 0.55;
-      else if (!isTdMarket && line === undefined) confidence = 0.72;
-      else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
-      else if (!eventId && homeTeam && awayTeam) confidence = 0.93;
-
-      results.push({
-        source: "draftkings",
-        ...(eventId ? { eventId } : {}),
-        ...(homeTeam ? { homeTeam } : {}),
-        ...(awayTeam ? { awayTeam } : {}),
-        sport,
-        league,
+      const parsed = this.parseOutcomeCell(
+        cell,
+        row,
         playerName,
-        marketType: marketTitle,
-        marketLabel: marketTitle,
-        selection,
-        ...(line !== undefined ? { line } : {}),
-        americanOdds,
+        marketTitle,
+        classification.code,
+        isTdMarket,
+        league,
+        sport,
+        homeTeam,
+        awayTeam,
+        eventId,
         marketStatus,
-        observedAt: this.now().toISOString(),
-        adapterVersion: this.adapterVersion,
-        detectionConfidence: confidence,
-        provenance: "visible-page",
-      });
+      );
+      if (parsed) results.push(parsed);
     }
     return results;
+  }
+
+  private parseOutcomeCell(
+    cell: Element,
+    row: Element,
+    playerName: string,
+    marketTitle: string,
+    classificationCode: string,
+    isTdMarket: boolean,
+    league: string,
+    sport: string,
+    homeTeam: string | undefined,
+    awayTeam: string | undefined,
+    eventId: string | undefined,
+    rowStatus: "OPEN" | "SUSPENDED" | "CLOSED",
+  ): ObservedMarket | undefined {
+    const oddsEl = cell.querySelector(DRAFTKINGS_SELECTORS.oddsButton);
+    const americanOdds = parseAmericanOddsText(oddsEl?.textContent ?? "");
+    if (americanOdds === undefined) return undefined;
+
+    const line = parseNumericLine(cell.querySelector(DRAFTKINGS_SELECTORS.line)?.textContent);
+    const rawSelection = cell.querySelector(DRAFTKINGS_SELECTORS.selection)?.textContent?.trim()
+      ?? row.getAttribute("data-selection")
+      ?? "";
+    const selection = normalizeDkSelection(rawSelection, isTdMarket);
+    const marketStatus =
+      rowStatus === "OPEN" && (isElementDisabled(cell) || isElementDisabled(oddsEl))
+        ? "SUSPENDED"
+        : rowStatus;
+
+    let confidence = 0.95;
+    if (classificationCode === "unknown") confidence = 0.55;
+    else if (!isTdMarket && line === undefined) confidence = 0.72;
+    else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
+    else if (!eventId && homeTeam && awayTeam) confidence = 0.93;
+
+    return {
+      source: "draftkings",
+      ...(eventId ? { eventId } : {}),
+      ...(homeTeam ? { homeTeam } : {}),
+      ...(awayTeam ? { awayTeam } : {}),
+      sport,
+      league,
+      playerName,
+      marketType: marketTitle,
+      marketLabel: marketTitle,
+      selection,
+      ...(line !== undefined ? { line } : {}),
+      americanOdds,
+      marketStatus,
+      observedAt: this.now().toISOString(),
+      adapterVersion: this.adapterVersion,
+      detectionConfidence: confidence,
+      provenance: "visible-page",
+    };
   }
 
   /** v1.2 ladder layout: one row per player, one button per "N+" rung. */
@@ -222,7 +269,7 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     };
   }
 
-  private parseLadderRow(root: Document, row: Element): ObservedMarket[] {
+  private parseLadderRow(root: Document, row: Element, onlyButton?: Element): ObservedMarket[] {
     if (row.closest("[class*='slip'], [data-testid*='slip']")) return [];
     const playerEl = row.querySelector(DRAFTKINGS_SELECTORS.ladderPlayer);
     const playerName = playerEl?.textContent?.replace(/\s+/g, " ").trim() ?? "";
@@ -241,39 +288,72 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
     const rawStatus = (row.getAttribute("data-market-status") ?? "OPEN").toUpperCase();
     const marketStatus = rawStatus === "SUSPENDED" ? "SUSPENDED" : rawStatus === "CLOSED" ? "CLOSED" : "OPEN";
 
+    const buttons = onlyButton ? [onlyButton] : Array.from(picker.querySelectorAll(DRAFTKINGS_SELECTORS.ladderButton));
     const results: ObservedMarket[] = [];
-    for (const button of Array.from(picker.querySelectorAll(DRAFTKINGS_SELECTORS.ladderButton))) {
-      const line = parseLadderRung(button.querySelector(DRAFTKINGS_SELECTORS.ladderLabel)?.textContent);
-      const americanOdds = parseAmericanOddsText(button.querySelector(DRAFTKINGS_SELECTORS.ladderOdds)?.textContent ?? "");
-      if (line === undefined || americanOdds === undefined) continue;
-
-      // Same confidence ladder as the table path; nothing is promoted for parsing cleanly.
-      let confidence = 0.95;
-      if (classification.code === "unknown") confidence = 0.55;
-      else if (!eventId && !(matchup.homeTeam && matchup.awayTeam)) confidence = 0.82;
-      else if (!eventId) confidence = 0.93;
-
-      results.push({
-        source: "draftkings",
-        ...(eventId ? { eventId } : {}),
-        ...(matchup.homeTeam ? { homeTeam: matchup.homeTeam } : {}),
-        ...(matchup.awayTeam ? { awayTeam: matchup.awayTeam } : {}),
-        sport,
-        league,
+    for (const button of buttons) {
+      const parsed = this.parseLadderButton(
+        button,
         playerName,
-        marketType: marketTitle,
-        marketLabel: marketTitle,
-        selection: "OVER",
-        line,
-        americanOdds,
+        marketTitle,
+        classification.code,
+        league,
+        sport,
+        matchup.homeTeam,
+        matchup.awayTeam,
+        eventId,
         marketStatus,
-        observedAt: this.now().toISOString(),
-        adapterVersion: this.adapterVersion,
-        detectionConfidence: confidence,
-        provenance: "visible-page",
-      });
+      );
+      if (parsed) results.push(parsed);
     }
     return results;
+  }
+
+  private parseLadderButton(
+    button: Element,
+    playerName: string,
+    marketTitle: string,
+    classificationCode: string,
+    league: string,
+    sport: string,
+    homeTeam: string | undefined,
+    awayTeam: string | undefined,
+    eventId: string | undefined,
+    rowStatus: "OPEN" | "SUSPENDED" | "CLOSED",
+  ): ObservedMarket | undefined {
+    const line = parseLadderRung(button.querySelector(DRAFTKINGS_SELECTORS.ladderLabel)?.textContent);
+    const americanOdds = parseAmericanOddsText(button.querySelector(DRAFTKINGS_SELECTORS.ladderOdds)?.textContent ?? "");
+    if (line === undefined || americanOdds === undefined) return undefined;
+
+    const marketStatus =
+      rowStatus === "OPEN" && isElementDisabled(button)
+        ? "SUSPENDED"
+        : rowStatus;
+
+    // Same confidence ladder as the table path; nothing is promoted for parsing cleanly.
+    let confidence = 0.95;
+    if (classificationCode === "unknown") confidence = 0.55;
+    else if (!eventId && !(homeTeam && awayTeam)) confidence = 0.82;
+    else if (!eventId) confidence = 0.93;
+
+    return {
+      source: "draftkings",
+      ...(eventId ? { eventId } : {}),
+      ...(homeTeam ? { homeTeam } : {}),
+      ...(awayTeam ? { awayTeam } : {}),
+      sport,
+      league,
+      playerName,
+      marketType: marketTitle,
+      marketLabel: marketTitle,
+      selection: "OVER",
+      line,
+      americanOdds,
+      marketStatus,
+      observedAt: this.now().toISOString(),
+      adapterVersion: this.adapterVersion,
+      detectionConfidence: confidence,
+      provenance: "visible-page",
+    };
   }
 
   private degraded(reason: string): AdapterDetectionResult {
@@ -287,13 +367,38 @@ export class DraftKingsAdapter implements VisibleMarketAdapter {
 
   observeChanges(callback: (event: MarketChangeEvent) => void): () => void {
     const hooks: DifferHooks = {
-      selectCards: (root) => Array.from(root.querySelectorAll(DRAFTKINGS_SELECTORS.marketRow)),
+      selectCards: (root) => {
+        const rows = Array.from(root.querySelectorAll(DRAFTKINGS_SELECTORS.marketRow));
+        if (rows.length > 0) {
+          const targets: Element[] = [];
+          for (const row of rows) {
+            const cells = Array.from(row.querySelectorAll(DRAFTKINGS_SELECTORS.outcomeCell));
+            targets.push(...(cells.length > 0 ? cells : [row]));
+          }
+          return targets;
+        }
+        if (root.querySelector(DRAFTKINGS_SELECTORS.ladderRow)) {
+          return Array.from(root.querySelectorAll(DRAFTKINGS_SELECTORS.ladderButton));
+        }
+        return [];
+      },
       parseCard: (el) => {
         const doc = el.ownerDocument ?? document;
-        return this.parseRowMarkets(doc, doc.querySelector(DRAFTKINGS_SELECTORS.marketGroup), el)[0];
+        if (el.matches(DRAFTKINGS_SELECTORS.ladderButton)) {
+          const row = el.closest(DRAFTKINGS_SELECTORS.ladderRow);
+          return row ? this.parseLadderRow(doc, row, el)[0] : undefined;
+        }
+        const row = el.matches(DRAFTKINGS_SELECTORS.marketRow)
+          ? el
+          : el.closest(DRAFTKINGS_SELECTORS.marketRow);
+        if (!row) return undefined;
+        const onlyCell = el.matches(DRAFTKINGS_SELECTORS.outcomeCell) ? el : undefined;
+        return this.parseRowMarkets(doc, doc.querySelector(DRAFTKINGS_SELECTORS.marketGroup), row, onlyCell)[0];
       },
     };
-    this.unsubscribe = diffMarkets(hooks, callback, { targetSelector: DRAFTKINGS_SELECTORS.marketGroup });
+    this.unsubscribe = diffMarkets(hooks, callback, {
+      targetSelector: `${DRAFTKINGS_SELECTORS.marketGroup}, ${DRAFTKINGS_SELECTORS.ladderRow}`,
+    });
     return () => this.unsubscribe?.();
   }
 }

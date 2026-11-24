@@ -325,3 +325,68 @@ test("DraftKings ladder edge cases: bad rungs/odds skipped, missing player skipp
   assert.equal(res.status, "ADAPTER_DEGRADED");
   assert.equal(res.markets.length, 0);
 });
+
+test("DraftKings gap fixes: accordion+ladder coexistence, URL subcategories (pts-reb-ast/threes), disabled rungs, NY Knicks URL, table URL fallback", async () => {
+  const adapter = new DraftKingsAdapter({ now: CLOCK });
+  const base = fs.readFileSync(path.join(FIXTURES_DIR, "draftkings-ladder-points.html"), "utf8");
+  const withDoc = (html: string, url: string) => {
+    const doc = parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+    Object.defineProperty(doc, "location", { value: new URL(url), configurable: true });
+    return doc;
+  };
+
+  // 1. Ladder rows coexist with an empty sportsbook-event-accordion wrapper (must not degrade).
+  let res = await adapter.detectVisibleMarkets(
+    withDoc(`<div data-testid="sportsbook-event-accordion">${base}</div>`, DK_LADDER_URL),
+  );
+  assert.equal(res.status, "OK");
+  assert.equal(res.markets.length, 3);
+  assert.ok(res.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+
+  // 2. URL subcategories: pts-reb-ast -> nba_pra, threes -> nba_threes, plus BOS Celtics @ NY Knicks matchup.
+  const praUrl = "https://sportsbook.draftkings.com/event/bos-celtics-%40-ny-knicks/35062798?category=odds&subcategory=pts-reb-ast";
+  res = await adapter.detectVisibleMarkets(withDoc(base, praUrl));
+  assert.equal(res.status, "OK");
+  assert.ok(res.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+  const praNorm = normalizeObservedMarket(res.markets[0]!);
+  assert.equal(praNorm.marketTypeCode, "nba_pra");
+  assert.equal(praNorm.observed.awayTeam, "BOS");
+  assert.equal(praNorm.observed.homeTeam, "NYK");
+
+  const threesUrl = "https://sportsbook.draftkings.com/event/bos-celtics-%40-ny-knicks/35062798?category=odds&subcategory=threes";
+  res = await adapter.detectVisibleMarkets(withDoc(base, threesUrl));
+  assert.equal(res.status, "OK");
+  assert.equal(normalizeObservedMarket(res.markets[0]!).marketTypeCode, "nba_threes");
+
+  // 3. Disabled / locked ladder button is marked SUSPENDED, never OPEN.
+  const lockedHtml = base.replace(
+    'data-testid="cb-selection-picker__selection-0"',
+    'data-testid="cb-selection-picker__selection-0" disabled aria-disabled="true"',
+  );
+  res = await adapter.detectVisibleMarkets(withDoc(lockedHtml, DK_LADDER_URL));
+  assert.equal(res.status, "OK");
+  assert.equal(res.markets[0]!.marketStatus, "SUSPENDED");
+  assert.equal(res.markets[1]!.marketStatus, "OPEN");
+
+  // 4. Table row without title element falls back to URL ?subcategory= instead of <h1>CHI @ DEN</h1>,
+  //    and disabled outcome cell is marked SUSPENDED.
+  const tableHtml = `<header><h1>CHI @ DEN</h1></header>
+    <div data-testid="sportsbook-event-accordion">
+      <table><tbody>
+        <tr class="sportsbook-table__body-row">
+          <th class="sportsbook-row-name">Nikola Jokic</th>
+          <td><div class="sportsbook-outcome-cell"><span class="sportsbook-outcome-cell__label">O</span><span class="sportsbook-outcome-cell__line">27.5</span><span class="sportsbook-odds">-110</span></div></td>
+          <td><div class="sportsbook-outcome-cell" aria-disabled="true"><span class="sportsbook-outcome-cell__label">U</span><span class="sportsbook-outcome-cell__line">27.5</span><span class="sportsbook-odds">-110</span></div></td>
+        </tr>
+      </tbody></table>
+    </div>`;
+  res = await adapter.detectVisibleMarkets(
+    withDoc(tableHtml, "https://sportsbook.draftkings.com/event/chi-bulls-%40-den-nuggets/35062799?subcategory=points"),
+  );
+  assert.equal(res.status, "OK");
+  assert.equal(res.markets.length, 2);
+  assert.ok(res.confidence >= MIN_PREGAME_PARSE_CONFIDENCE);
+  assert.equal(normalizeObservedMarket(res.markets[0]!).marketTypeCode, "nba_points");
+  assert.equal(res.markets[0]!.marketStatus, "OPEN");
+  assert.equal(res.markets[1]!.marketStatus, "SUSPENDED");
+});

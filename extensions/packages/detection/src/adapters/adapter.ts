@@ -52,7 +52,8 @@ export function parseMatchupFromHeaderOrUrl(root: Document, league?: string): Pa
       ?? canonicalTeam(awayRaw?.split(/\s+/).pop(), league);
     const home =
       canonicalTeam(homeRaw, league)
-      ?? canonicalTeam(homeRaw?.split(/\s+/)[0], league);
+      ?? canonicalTeam(homeRaw?.split(/\s+/)[0], league)
+      ?? canonicalTeam(homeRaw?.split(/\s+/).pop(), league);
     if (away && home && away !== home) {
       return { awayTeam: away, homeTeam: home };
     }
