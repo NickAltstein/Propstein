@@ -141,7 +141,7 @@ jobs:
             cp data/news_watcher_state.json "$tmp/data.json"
             cp viewer/news_watcher_state.json "$tmp/viewer.json"
             cp public/news_watcher_state.json "$tmp/public.json"
-            git commit -m "chore(data): news watcher heartbeat [skip ci]"
+            git commit -m "chore(data): news watcher heartbeat [skip ci] [vercel skip]"
             local attempt
             for attempt in 1 2 3 4 5; do
               git rebase --abort >/dev/null 2>&1 || true
@@ -162,7 +162,7 @@ jobs:
                 echo "Heartbeat already matches origin/main."
                 return 0
               fi
-              git commit -m "chore(data): news watcher heartbeat [skip ci]"
+              git commit -m "chore(data): news watcher heartbeat [skip ci] [vercel skip]"
               sleep $((attempt * 2))
             done
             echo "Failed to publish heartbeat after 5 attempts."
