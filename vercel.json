@@ -2,6 +2,12 @@
   "version": 2,
   "outputDirectory": "viewer",
   "ignoreCommand": "bash scripts/vercel_ignore.sh",
+  "git": {
+    "deploymentEnabled": {
+      "*": false,
+      "main": true
+    }
+  },
   "cleanUrls": true,
   "trailingSlash": true,
   "rewrites": [
