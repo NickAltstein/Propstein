@@ -1,0 +1,65 @@
+name: Production deploy gate
+
+# Decides on every push to main whether production needs a deploy, and
+# triggers it through a Vercel deploy hook (scripts/deploy_gate.py):
+#   code/UI change  -> deploy now
+#   data-only       -> deploy if the last production deploy is >= 60 min old
+#   nothing served  -> skip
+# Runs on push, not on a cron: GitHub's cron is the unreliable part.
+# It commits nothing, so it cannot trigger itself.
+#
+# While vercel.json still deploys main automatically, the gate only
+# reports. Run it by hand with force=true to test the deploy hook.
+#
+# Secrets (never printed; no `set -x` anywhere in this workflow):
+#   VERCEL_DEPLOY_HOOK_URL  deploy hook for branch main; anyone holding it
+#                           can trigger a production deploy
+#   VERCEL_API_TOKEN        reads the deployments list
+#   ALARM_WEBHOOK_URL       pages on any failed or unconfirmed deploy
+#
+# Pushes whose head commit says [skip ci] do not run this workflow; the next
+# push diffs against the last deployed commit, so nothing is lost.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Call the deploy hook regardless of what changed (tests the hook)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy-gate
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Decide and deploy
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          VERCEL_PROJECT_ID: prj_x5jE5FpSwubky56ZNjFY5nksEPNt
+          VERCEL_TEAM_ID: team_x9wKpIlonQbu4ppHYWJ4mobH
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            python3 scripts/deploy_gate.py --force
+          else
+            python3 scripts/deploy_gate.py
+          fi
