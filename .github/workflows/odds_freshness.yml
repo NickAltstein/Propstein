@@ -60,6 +60,9 @@ jobs:
           GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
           git add viewer/live_odds_feed.json viewer/live_odds_feed.manifest.json data/polymarket_receipt_log.json viewer/api/lines/
+          if [ -f data/polymarket_line_collisions.json ]; then
+            git add data/polymarket_line_collisions.json
+          fi
           if [ -f viewer/feeds/feed_heartbeat.json ]; then
             git add viewer/feeds/feed_heartbeat.json
           fi

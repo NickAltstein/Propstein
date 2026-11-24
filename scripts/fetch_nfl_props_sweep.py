@@ -26,6 +26,11 @@ HONESTY RULES (fail-closed — this sweep must NEVER block book #1):
     (a game within -1..+7 days, the same rule as check_odds_freshness)
     unless --mode force. Exit code is always 0 (except --selftest failures):
     this step must never gate the Polymarket steps around it.
+  * Every run prints the named slate state (scripts/slate_state.py). In auto
+    mode NO_CURRENT_SLATE and SLATE_BLOCKED skip with their reason and
+    NO_SLATE_ROWS skips with a SLATE ALARM line on stderr; no credits are
+    spent on a slate with nothing to match. The alarm itself is raised by
+    the Polymarket poller and feed_age.py, so this step still exits 0.
 
 USAGE:
   ODDS_API_KEY=... python3 scripts/fetch_nfl_props_sweep.py            # auto
@@ -114,6 +119,14 @@ def active_slate_window(now: datetime | None = None) -> bool:
     today_et = now.astimezone(ZoneInfo("America/New_York")).date()
     return any(-1 <= (datetime.fromisoformat(g["gameday"]).date() - today_et).days <= 7
                for g in games)
+
+
+def slate_status() -> dict:
+    """Named state of the default NFL slate (see scripts/slate_state.py)."""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from scripts import slate_state
+    return slate_state.classify(VIEWER)
 
 
 def api_get(path: str, params: dict, key: str) -> tuple[object, str | None]:
@@ -235,6 +248,16 @@ def run(mode: str, min_remaining: int, slate_idx: dict | None = None,
         return 0
     if mode == "off":
         print("[oddsapi] sweep mode 'off' — skipped by request")
+        return 0
+    status = slate_status()
+    line = f"{status['state']}: {status['detail']}"
+    print(f"[oddsapi] slate state {line}")
+    if status["state"] == "NO_SLATE_ROWS":
+        print(f"[oddsapi] SLATE ALARM {line}", file=sys.stderr)
+    for ex in status.get("exclusions") or []:
+        print(f"[oddsapi]   excluded {ex.get('matchup') or ex.get('game_id')}: {ex.get('reason')}")
+    if mode == "auto" and status["state"] in ("NO_CURRENT_SLATE", "SLATE_BLOCKED", "NO_SLATE_ROWS"):
+        print(f"[oddsapi] sweep skipped: slate state {status['state']} (no credits spent)")
         return 0
     if mode == "auto" and not active_slate_window():
         print("[oddsapi] no NFL game within the active seven-day window — "

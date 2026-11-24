@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 # ingestion: a feed must never be blocked for carrying it. VERIFIED stays
 # unreachable on this single-publisher feed and out of this allowlist.
 from src.contracts.polymarket import LIVE_FEED_STATUSES  # noqa: E402
+from scripts import slate_state  # noqa: E402
 
 VIEWER = Path(__file__).resolve().parent.parent / "viewer"
 
@@ -37,15 +38,24 @@ def check(viewer: Path = VIEWER, now: datetime | None = None,
     if now.tzinfo is None:
         raise ValueError("current time has no timezone")
     now = now.astimezone(timezone.utc)
+    # Name the slate state first. Between weeks is expected every week and
+    # only alarms once it outlasts the next ingest run plus a buffer; a
+    # context-gated slate reports its reasons; a live slate with no rows is a
+    # bug and fails now.
+    status = slate_state.classify(viewer, now=now)
+    state = status["state"]
+    if state == slate_state.NO_SLATE_ROWS:
+        raise ValueError(slate_state.summary(status))
+    if state == slate_state.NO_CURRENT_SLATE:
+        if status["overdue"]:
+            raise ValueError(slate_state.summary(status))
+        return f"{slate_state.summary(status)}; odds alarm skipped."
+    if state == slate_state.SLATE_BLOCKED:
+        return f"{slate_state.summary(status)}; odds alarm skipped."
     index = json.loads((viewer / "feeds/slate-index.json").read_text())
     nfl = index.get("sports", {}).get("nfl", {})
     default_key = nfl.get("default_slate")
-    if not default_key:
-        raise ValueError("no default slate set in slate-index.json")
-    slates = nfl.get("slates", {})
-    if default_key not in slates:
-        raise ValueError(f"default slate {default_key!r} not found in slate-index.json")
-    slate = slates[default_key]
+    slate = (nfl.get("slates") or {}).get(default_key) or {}
     games_file = slate.get("games")
     if not games_file or not (viewer / games_file).is_file():
         raise ValueError(f"games file {games_file!r} missing for slate {default_key}")
