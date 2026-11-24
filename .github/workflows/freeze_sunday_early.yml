@@ -8,7 +8,7 @@ on:
     - cron: '30 17 * * 0'
 
 concurrency:
-  group: autopilot
+  group: freeze-sunday-early-data
   cancel-in-progress: false
 
 jobs:
@@ -16,9 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.11'
@@ -28,14 +30,25 @@ jobs:
         run: PYTHONPATH=. python -m unittest tests.test_sunday_freeze
       - name: Freeze 1 PM slate and capture full board
         run: PYTHONPATH=. python scripts/freeze_sunday_early.py
-      - name: Commit immutable research records
+      - name: Open auto-merge PR for immutable research records
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add snapshots/ viewer/snapshots_*_w*.json viewer/snapshots_*_w*.manifest.json
-          if git diff --cached --quiet; then
-            echo "No new Sunday freeze records."
-            exit 0
+          bash scripts/open_automerge_data_pr.sh \
+            "freeze-sunday-early" \
+            "chore(freeze): capture Sunday early full board"
+
+      - name: Notify on failure (webhook)
+        if: failure()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
           fi
-          git commit -m "chore(freeze): capture Sunday early full board [skip ci]"
-          git push
+          MESSAGE="PropStein Sunday early freeze FAILED. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

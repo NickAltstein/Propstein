@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: autopilot
+  group: odds-freshness-data
   cancel-in-progress: false
 
 jobs:
@@ -19,10 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -53,47 +55,38 @@ jobs:
       - name: Ingest into B1 line history and export static lines
         run: python src/line_history.py --ingest-feed viewer/live_odds_feed.json --export-static
 
-      - name: Publish passing snapshot
+      - name: Publish passing snapshot via auto-merge PR
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add viewer/live_odds_feed.json viewer/live_odds_feed.manifest.json data/polymarket_receipt_log.json viewer/api/lines/
           if [ -f viewer/feeds/feed_heartbeat.json ]; then
             git add viewer/feeds/feed_heartbeat.json
           fi
-          if git diff --cached --quiet; then
-            echo "No new odds snapshot to publish."
-            exit 0
-          fi
-          git commit -m "chore(data): refresh Polymarket odds snapshot and B1 lines [skip ci]"
-          git push
+          bash scripts/open_automerge_data_pr.sh \
+            "odds-freshness" \
+            "chore(data): refresh Polymarket odds snapshot and B1 lines"
 
-      - name: Publish degraded-day flag without publishing failed feed data
+      - name: Publish degraded-day flag via auto-merge PR without failed feed data
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/commercial_degraded_days.json
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "chore(data): flag commercial feed degradation [skip ci] [vercel skip]"
-          git push
+          bash scripts/open_automerge_data_pr.sh \
+            "odds-freshness-degraded" \
+            "chore(data): flag commercial feed degradation [vercel skip]"
 
-      # v205: by default a failed run only emails the repo owner and leaves a red
-      # X in the Actions history. This optional step POSTs a failure notice to a
-      # webhook of the owner's choice (Discord uses the "content" field, Slack
-      # uses "text"; both keys are sent so either receiver works). It is a safe
-      # no-op until the owner sets the ALARM_WEBHOOK_URL repository secret.
-      - name: Notify on failure (webhook, optional)
+      - name: Notify on failure (webhook)
         if: failure()
         env:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${ALARM_WEBHOOK_URL:-}" ]; then
-            echo "ALARM_WEBHOOK_URL secret not configured; alarm visible only in Actions history and owner email."
-            exit 0
+            echo "::error::ALARM_WEBHOOK_URL secret is not configured."
+            exit 1
           fi
-          MESSAGE="PropStein odds freshness alarm: feed stale (>6h), empty (no observed CLOB quotes), or manifest mismatch. See https://github.com/NickAltstein/Propstein/actions/workflows/odds_freshness.yml"
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" \
-            -H 'Content-Type: application/json' \
-            -d "{\"content\": \"$MESSAGE\", \"text\": \"$MESSAGE\"}" \
-            || echo "WARN: webhook POST failed; alarm still recorded in Actions history."
+          MESSAGE="PropStein odds freshness alarm: feed stale (>6h), empty, or PR publish failed. ${RUN_URL}"
+          python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
+          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
