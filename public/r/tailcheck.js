@@ -1,39 +1,45 @@
 /*
- * "Would you still tail?" — read-only comparison of a committed snapshot
- * against the current PropStein feed. Shared by /r/<hash> and /check.
+ * Read-only price comparison shared by /r/<hash>, /check and /t/.
  *
- * Rules:
- *  - Only committed snapshot fields and observed feed quotes are shown.
- *  - A current quote counts only if it is for the same player, market and
- *    game as the snapshot. Otherwise: "no current quote". Nothing is filled in.
- *  - Status compares line vs model fair only. No edge, no stake sizing,
- *    no recommendation, and nothing here claims a bet was placed.
- *  - Quotes are labeled by provenance: observed (snapshot / feed) vs
- *    user-reported (a pasted slip, never verified).
+ * Rules (fail closed):
+ *  - "Current" = observed quotes from the slate's existing odds feed, only
+ *    when the feed is not fail-closed (feeds/feed_status.json) and the quote
+ *    is no older than the existing odds staleness gate
+ *    (circuit_breaker_config.json → odds_stale_max_age_seconds).
+ *  - Exact selection only: same game, player, market, side and threshold.
+ *    No nearest-line substitution, no fuzzy player matching.
+ *  - Model fair is shown only when the committed slate carries it for that
+ *    exact selection. It is never derived from book odds or a logged price.
+ *  - Descriptive text only. No edge, no sizing, no recommendation, and
+ *    nothing here says a bet was placed.
+ *  - Nothing here changes a committed receipt. The live comparison is
+ *    rendered separately and may fail without touching verification.
  */
 (() => {
   const SNAPSHOT_FILE_RE = /^(?:[a-z0-9_]+_)?snapshots_[A-Za-z0-9_-]+\.json$/;
-  const ODDS_FILE_RE = /^[A-Za-z0-9_.-]+\.json$/;
-  const FALLBACK_SLATES = [{ key: '2026_w7', snapshots: 'snapshots_2026_w7.json', odds: null }];
+  const DATA_FILE_RE = /^[A-Za-z0-9_.-]+\.json$/;
+  const FALLBACK_SLATES = [{ sport: 'nfl', key: '2026_w7', snapshots: 'snapshots_2026_w7.json', odds: null, slate: 'slate_2026_w7.json', historical: true }];
+  const DEFAULT_ODDS_STALE_SECONDS = 21600; // same default as viewer/app.js feedThresholds()
+  const TICKET_BOOKS = ['DraftKings', 'FanDuel'];
+  const MARKET_LABEL = { receiving_yards: 'Receiving Yards', receptions: 'Receptions', anytime_td: 'Anytime TD' };
 
-  const STATUS = {
-    STILL_ABOVE_FAIR: 'still above fair',
-    PRICE_GONE: 'price gone',
-    NO_CURRENT_QUOTE: 'no current quote',
-    FAIR_UNAVAILABLE: 'fair unavailable',
-    NO_SIDE: 'no side logged',
-  };
-
-  const MARKET_LABEL = { receiving_yards: 'Receiving Yards', receptions: 'Receptions' };
-
+  // ---------------------------------------------------------------- utils
   function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
   function num(v) {
-    if (v === null || v === undefined || v === '') return NaN;
+    if (v === null || v === undefined || v === '' || typeof v === 'boolean') return NaN;
     const n = Number(v);
     return Number.isFinite(n) ? n : NaN;
+  }
+
+  /** Existing odds normalization (viewer/js/quant-math.js). Missing → NaN (fail closed). */
+  function toDecimal(odds) {
+    const math = window.PropSteinMath;
+    if (!math || typeof math.americanToDecimal !== 'function') return NaN;
+    const dec = math.americanToDecimal(odds);
+    return Number.isFinite(dec) && dec > 1 ? dec : NaN;
   }
 
   function fmtOdds(v) {
@@ -47,56 +53,84 @@
     return Number.isFinite(n) ? n.toFixed(1) : '—';
   }
 
+  function parseTs(v) {
+    if (!v) return NaN;
+    const s = String(v).trim();
+    const iso = (!s.endsWith('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(s)) ? `${s}Z` : s;
+    const t = Date.parse(iso);
+    return Number.isFinite(t) ? t : NaN;
+  }
+
   function fmtTs(v) {
-    if (!v) return 'time not recorded';
-    const d = new Date(v);
-    if (Number.isNaN(d.getTime())) return 'time not recorded';
-    return `${d.toISOString().replace('T', ' ').slice(0, 16)} UTC`;
+    const t = parseTs(v);
+    if (!Number.isFinite(t)) return 'time not recorded';
+    return `${new Date(t).toISOString().replace('T', ' ').slice(0, 16)} UTC`;
+  }
+
+  function fmtMoney(v) {
+    const n = Math.round(v * 100) / 100;
+    if (Math.abs(n) < 0.005) return '$0.00';
+    return `${n > 0 ? '+' : '−'}$${Math.abs(n).toFixed(2)}`;
+  }
+
+  function normName(s) {
+    return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ').trim();
   }
 
   async function fetchJson(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function fetchJsonOrNull(url) {
     try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) return null;
-      return await res.json();
+      return await fetchJson(url);
     } catch {
       return null;
     }
   }
 
-  /** Slates from the committed slate index: { key, snapshots, odds }. */
-  async function loadSlates() {
-    const manifest = await fetchJson('/feeds/slate-index.json');
+  // ---------------------------------------------------------- slate index
+  async function loadSlateIndex() {
+    const manifest = await fetchJsonOrNull('/feeds/slate-index.json');
     const out = [];
-    const seen = new Set();
+    const defaults = {};
     const sports = manifest && manifest.sports && typeof manifest.sports === 'object' ? manifest.sports : {};
-    Object.values(sports).forEach((sport) => {
-      const slates = sport && sport.slates && typeof sport.slates === 'object' ? sport.slates : {};
+    Object.entries(sports).forEach(([sport, cfgSport]) => {
+      if (cfgSport && typeof cfgSport.default_slate === 'string') defaults[sport] = cfgSport.default_slate;
+      const slates = cfgSport && cfgSport.slates && typeof cfgSport.slates === 'object' ? cfgSport.slates : {};
       Object.entries(slates).forEach(([key, cfg]) => {
-        const snapshots = cfg && typeof cfg.snapshots === 'string' && SNAPSHOT_FILE_RE.test(cfg.snapshots) ? cfg.snapshots : null;
-        if (!snapshots || seen.has(snapshots)) return;
-        seen.add(snapshots);
-        const odds = cfg && typeof cfg.odds === 'string' && ODDS_FILE_RE.test(cfg.odds) ? cfg.odds : null;
-        out.push({ key, snapshots, odds });
+        if (!cfg || typeof cfg !== 'object') return;
+        out.push({
+          sport,
+          key,
+          snapshots: typeof cfg.snapshots === 'string' && SNAPSHOT_FILE_RE.test(cfg.snapshots) ? cfg.snapshots : null,
+          odds: typeof cfg.odds === 'string' && DATA_FILE_RE.test(cfg.odds) ? cfg.odds : null,
+          slate: typeof cfg.slate === 'string' && DATA_FILE_RE.test(cfg.slate) ? cfg.slate : null,
+          historical: cfg.historical === true,
+        });
       });
     });
+    const seen = new Set(out.map((s) => s.snapshots));
     FALLBACK_SLATES.forEach((s) => { if (!seen.has(s.snapshots)) out.push(s); });
-    return out;
-  }
-
-  async function loadSnapshotRows(slate) {
-    const rows = await fetchJson(`/${slate.snapshots}`);
-    return Array.isArray(rows) ? rows.filter((r) => r && typeof r === 'object') : [];
+    return { slates: out, defaults };
   }
 
   /** Exactly one distinct committed snapshot must match the hash, else null. */
   async function findSnapshotByHash(hash) {
     const needle = String(hash || '').toLowerCase();
     if (!/^[0-9a-f]{6,64}$/.test(needle)) return null;
-    const slates = await loadSlates();
+    const { slates } = await loadSlateIndex();
     const hits = new Map();
+    const files = new Set();
     for (const slate of slates) {
-      for (const r of await loadSnapshotRows(slate)) {
+      if (!slate.snapshots || files.has(slate.snapshots)) continue;
+      files.add(slate.snapshots);
+      const rows = await fetchJsonOrNull(`/${slate.snapshots}`);
+      if (!Array.isArray(rows)) continue;
+      for (const r of rows) {
+        if (!r || typeof r !== 'object') continue;
         const ch = String(r.content_hash || '').toLowerCase();
         const sid = String(r.snapshot_id || '').replace(/-/g, '').toLowerCase();
         if ((ch && ch.startsWith(needle)) || (sid && sid.startsWith(needle))) {
@@ -108,216 +142,317 @@
     return hits.size === 1 ? hits.values().next().value : null;
   }
 
-  /** Observed quotes for the snapshot's own slate feed, same player/market/game only. */
-  async function currentQuotesFor(snapshot, slate) {
-    if (!slate || !slate.odds || !snapshot) return [];
-    const feed = await fetchJson(`/${slate.odds}`);
-    const quotes = Array.isArray(feed) ? feed : (feed && Array.isArray(feed.quotes) ? feed.quotes : []);
-    return quotes.filter((q) => q && typeof q === 'object'
-      && String(q.player_id || '') === String(snapshot.player_id || '')
-      && String(q.market || '') === String(snapshot.market || '')
-      && Boolean(snapshot.game_id) && String(q.game_id || '') === String(snapshot.game_id)
-      && Number.isFinite(num(q.line))
-      && Boolean(q.observed_at));
+  // ------------------------------------------------------ current quotes
+  async function oddsStaleSeconds(sport) {
+    const cfg = await fetchJsonOrNull('/circuit_breaker_config.json');
+    const v = num(cfg && cfg.sports && cfg.sports[sport] && cfg.sports[sport].thresholds && cfg.sports[sport].thresholds.odds_stale_max_age_seconds);
+    return Number.isFinite(v) && v > 0 ? v : DEFAULT_ODDS_STALE_SECONDS;
   }
 
-  /** Best line for the side: Over = lowest line, Under = highest; ties go to newer. */
-  function bestQuote(quotes, side) {
-    if (!quotes.length) return null;
-    const sorted = quotes.slice().sort((a, b) => {
-      const la = num(a.line);
-      const lb = num(b.line);
-      if (side === 'OVER' && la !== lb) return la - lb;
-      if (side === 'UNDER' && la !== lb) return lb - la;
-      return String(b.observed_at).localeCompare(String(a.observed_at));
-    });
-    return sorted[0];
+  /**
+   * Load observed quotes for the given feed files.
+   * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed', quotes, checkedFiles }.
+   */
+  async function loadCurrentQuotes(sport, oddsFiles) {
+    const files = [...new Set((oddsFiles || []).filter((f) => f && DATA_FILE_RE.test(f)))];
+    if (!files.length) return { status: 'no_source', quotes: [], checkedFiles: [] };
+    const feedStatus = await fetchJsonOrNull('/feeds/feed_status.json');
+    const sportStatus = feedStatus && feedStatus.sports && feedStatus.sports[sport];
+    if (sportStatus && sportStatus.fail_closed === true) return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    const quotes = [];
+    for (const f of files) {
+      let feed;
+      try {
+        feed = await fetchJson(`/${f}`);
+      } catch {
+        return { status: 'source_failed', quotes: [], checkedFiles: files };
+      }
+      const list = Array.isArray(feed) ? feed : (feed && Array.isArray(feed.quotes) ? feed.quotes : null);
+      if (!list) return { status: 'source_failed', quotes: [], checkedFiles: files };
+      list.forEach((q) => { if (q && typeof q === 'object') quotes.push(q); });
+    }
+    return { status: 'ok', quotes, checkedFiles: files };
   }
 
-  function sideOdds(quote, side) {
-    if (!quote) return NaN;
-    if (side === 'OVER') return num(quote.over_odds);
-    if (side === 'UNDER') return num(quote.under_odds);
-    return num(quote.odds);
+  /**
+   * Exact-selection filter. selection = { gameId, playerId, market, side, threshold }.
+   * side: 'OVER' | 'UNDER' for line markets, 'YES' for anytime_td (threshold null).
+   * Returns { eligible: [{ book, odds, decimal, observedAt, line }], rejected: { stale, mismatch } }.
+   */
+  function eligibleQuotes(quotes, selection, { nowMs, maxAgeSeconds, books = null }) {
+    const eligible = [];
+    const rejected = { stale: 0, mismatch: 0 };
+    for (const q of quotes || []) {
+      if (!q || typeof q !== 'object') continue;
+      const sameEvent = selection.gameId && String(q.game_id || '') === String(selection.gameId);
+      const samePlayer = selection.playerId && String(q.player_id || '') === String(selection.playerId);
+      if (!sameEvent || !samePlayer) continue;
+      if (String(q.market || '') !== selection.market) { rejected.mismatch += 1; continue; }
+      if (books && !books.includes(String(q.book || ''))) continue;
+      let odds = NaN;
+      let line = NaN;
+      if (selection.market === 'anytime_td') {
+        if (String(q.selection || '').toUpperCase() !== 'YES') { rejected.mismatch += 1; continue; }
+        if (q.line !== undefined && q.line !== null && q.line !== '') { rejected.mismatch += 1; continue; }
+        odds = num(q.odds);
+      } else {
+        line = num(q.line);
+        if (!Number.isFinite(line) || line !== selection.threshold) { rejected.mismatch += 1; continue; }
+        odds = selection.side === 'OVER' ? num(q.over_odds) : selection.side === 'UNDER' ? num(q.under_odds) : NaN;
+      }
+      const decimal = toDecimal(odds);
+      if (!Number.isFinite(decimal)) { rejected.mismatch += 1; continue; }
+      const observed = parseTs(q.observed_at);
+      if (!Number.isFinite(observed)) { rejected.stale += 1; continue; }
+      const ageSeconds = (nowMs - observed) / 1000;
+      if (ageSeconds > maxAgeSeconds || ageSeconds < -60) { rejected.stale += 1; continue; }
+      eligible.push({ book: String(q.book || 'Unknown book'), odds, decimal, observedAt: q.observed_at, line });
+    }
+    return { eligible, rejected };
   }
 
-  /** Price logged inside the committed snapshot (observed), or null. */
-  function loggedSnapshotPrice(snapshot) {
-    const q = snapshot && snapshot.quote;
-    if (!q || typeof q !== 'object' || !Number.isFinite(num(q.line))) return null;
-    const side = String((q.evaluation && q.evaluation.best_side) || '').toUpperCase();
-    const s = side === 'OVER' || side === 'UNDER' ? side : null;
-    return {
-      provenance: 'observed',
-      book: q.book || q.source || 'Unknown book',
-      side: s,
-      line: num(q.line),
-      odds: s ? sideOdds(q, s) : NaN,
-      overOdds: num(q.over_odds),
-      underOdds: num(q.under_odds),
-      at: q.observed_at || null,
+  /** Best = highest payout among the eligible quotes actually checked; ties → newer. */
+  function bestOf(eligible) {
+    if (!eligible.length) return null;
+    return eligible.slice().sort((a, b) => (b.decimal - a.decimal) || (parseTs(b.observedAt) - parseTs(a.observedAt)))[0];
+  }
+
+  // ---------------------------------------------------------- comparisons
+  function vsPosted(currentOdds, postedOdds) {
+    const c = toDecimal(currentOdds);
+    const p = toDecimal(postedOdds);
+    if (!Number.isFinite(c) || !Number.isFinite(p)) return null;
+    if (Math.abs(c - p) < 1e-9) return 'Matches posted price';
+    return c > p ? 'Better than posted' : 'Worse than posted';
+  }
+
+  function vsFair(currentOdds, fairOdds) {
+    const c = toDecimal(currentOdds);
+    const f = toDecimal(fairOdds);
+    if (!Number.isFinite(c) || !Number.isFinite(f)) return null;
+    if (Math.abs(c - f) < 1e-9) return 'At fair';
+    return c > f ? 'Above fair' : 'Below fair';
+  }
+
+  /** Profit difference on a $20 ticket: current price minus posted price. */
+  function dollarDiff20(currentOdds, postedOdds) {
+    const c = toDecimal(currentOdds);
+    const p = toDecimal(postedOdds);
+    if (!Number.isFinite(c) || !Number.isFinite(p)) return NaN;
+    return 20 * (c - 1) - 20 * (p - 1);
+  }
+
+  // -------------------------------------------------------------- render
+  function tag(text, cls) {
+    return `<span class="t-tag ${cls}">${esc(text)}</span>`;
+  }
+
+  function row(label, tagHtml, body, attrs = '') {
+    return `<div class="t-row" ${attrs}><div class="t-row-head"><span class="t-label">${esc(label)}</span>${tagHtml}</div><div class="t-row-body">${body}</div></div>`;
+  }
+
+  function selectionText(sel) {
+    if (sel.market === 'anytime_td') return 'Anytime TD · Yes';
+    const side = sel.side === 'OVER' ? 'Over' : sel.side === 'UNDER' ? 'Under' : '';
+    return `${MARKET_LABEL[sel.market] || sel.market} · ${side} ${fmtLine(sel.threshold)}`;
+  }
+
+  const SOURCE_NOTE = {
+    no_source: 'No enabled quote source covers this game.',
+    source_failed: 'Quote source could not be loaded.',
+    fail_closed: 'Quote source is fail-closed right now.',
+  };
+
+  function rejectedNote(rejected) {
+    const parts = [];
+    if (rejected.stale) parts.push(`${rejected.stale} stale`);
+    if (rejected.mismatch) parts.push(`${rejected.mismatch} for a different selection`);
+    return parts.length ? `Skipped: ${parts.join(', ')}.` : '';
+  }
+
+  /**
+   * Comparison block.
+   * opts: { title, scopeNote, selection, posted: { odds, label, tagText, tagClass, at, book }, fair: { odds, label } | null,
+   *         fairNote, source: { status, quotes }, nowMs, maxAgeSeconds, perBook: string[] | null, dollarDiff: boolean }
+   */
+  function renderComparison(container, opts) {
+    const sel = opts.selection;
+    const posted = opts.posted;
+    const parts = [];
+    parts.push(`<p class="t-subject">${esc(opts.subject || '')}</p>`);
+    parts.push(row(posted.label, tag(posted.tagText, posted.tagClass), `<strong>${esc(selectionText(sel))}</strong> <span class="t-odds">${esc(fmtOdds(posted.odds))}</span>${posted.book ? ` · ${esc(posted.book)}` : ''}<br><span class="t-ts">${esc(posted.atText || fmtTs(posted.at))}</span>`, 'data-posted="1"'));
+
+    const sourceOk = opts.source.status === 'ok';
+    const result = sourceOk
+      ? eligibleQuotes(opts.source.quotes, sel, { nowMs: opts.nowMs, maxAgeSeconds: opts.maxAgeSeconds, books: opts.perBook })
+      : { eligible: [], rejected: { stale: 0, mismatch: 0 } };
+    const fairOdds = opts.fair && Number.isFinite(toDecimal(opts.fair.odds)) ? opts.fair.odds : null;
+    const summary = { currentCount: result.eligible.length, books: {} };
+
+    const quoteBody = (q) => {
+      const lines = [`<strong>${esc(fmtOdds(q.odds))}</strong> · ${esc(q.book)} <span class="t-ts">observed ${esc(fmtTs(q.observedAt))}</span>`];
+      const p = vsPosted(q.odds, posted.odds);
+      if (p) lines.push(`<span class="t-cmp" data-vs-posted="${esc(p)}">${esc(p)}</span>`);
+      if (fairOdds !== null) {
+        const f = vsFair(q.odds, fairOdds);
+        if (f) lines.push(`<span class="t-cmp" data-vs-fair="${esc(f)}">${esc(f)}</span>`);
+      }
+      if (opts.dollarDiff) {
+        const d = dollarDiff20(q.odds, posted.odds);
+        if (Number.isFinite(d)) lines.push(`<span class="t-cmp" data-dollar-diff="${esc(fmtMoney(d))}">${esc(fmtMoney(d))} profit on $20 vs posted</span>`);
+      }
+      return lines.join('<br>');
     };
-  }
 
-  /**
-   * One-line status. Compares the current line against model fair for the
-   * logged side. It does not price the odds and is not a recommendation.
-   */
-  function tailStatus({ fair, side, current }) {
-    if (!Number.isFinite(fair)) {
-      return { code: STATUS.FAIR_UNAVAILABLE, detail: 'This snapshot has no model fair line to compare against.' };
-    }
-    if (!current) {
-      return { code: STATUS.NO_CURRENT_QUOTE, detail: 'PropStein feeds have no current quote for this player, market and game.' };
-    }
-    const line = num(current.line);
-    if (!side) {
-      return { code: STATUS.NO_SIDE, detail: `Current line ${fmtLine(line)} vs model fair ${fmtLine(fair)}. No Over/Under side was logged, so there is nothing to compare.` };
-    }
-    const better = side === 'OVER' ? line < fair : line > fair;
-    if (better) {
-      return { code: STATUS.STILL_ABOVE_FAIR, detail: `${side === 'OVER' ? 'Over' : 'Under'} ${fmtLine(line)} is still on the fair side of model fair ${fmtLine(fair)}.` };
-    }
-    return { code: STATUS.PRICE_GONE, detail: `${side === 'OVER' ? 'Over' : 'Under'} ${fmtLine(line)} is no longer on the fair side of model fair ${fmtLine(fair)}.` };
-  }
-
-  function priceRow(label, tag, tagClass, body) {
-    return `<div class="t-row"><div class="t-row-head"><span class="t-label">${esc(label)}</span><span class="t-tag ${tagClass}">${esc(tag)}</span></div><div class="t-row-body">${body}</div></div>`;
-  }
-
-  function priceText(p) {
-    const side = p.side ? `${p.side === 'OVER' ? 'Over' : 'Under'} ` : '';
-    const odds = p.side ? fmtOdds(p.odds) : `O ${fmtOdds(p.overOdds)} / U ${fmtOdds(p.underOdds)}`;
-    return `<strong>${esc(side)}${esc(fmtLine(p.line))}</strong> <span class="t-odds">${esc(odds)}</span> · ${esc(p.book)}<br><span class="t-ts">${esc(fmtTs(p.at))}</span>`;
-  }
-
-  /**
-   * Render the comparison block.
-   * snapshot: committed row. slate: its slate entry. slip: optional parsed
-   * user-reported slip { side, line, odds, raw }.
-   */
-  async function renderTailCheck(container, { snapshot, slate, slip = null }) {
-    const fair = num(snapshot && snapshot.projection && snapshot.projection.fair_line);
-    const logged = loggedSnapshotPrice(snapshot);
-    const side = (slip && slip.side) || (logged && logged.side) || null;
-    const quotes = await currentQuotesFor(snapshot, slate);
-    const current = bestQuote(quotes, side);
-    const status = tailStatus({ fair, side, current });
-    const market = MARKET_LABEL[snapshot.market] || snapshot.market || 'Prop';
-
-    const rows = [];
-    rows.push(`<p class="t-subject">${esc(snapshot.player_name || 'Player')} · ${esc(market)}${snapshot.team ? ` · ${esc(snapshot.team)}${snapshot.opponent ? ` vs ${esc(snapshot.opponent)}` : ''}` : ''}</p>`);
-
-    if (slip) {
-      rows.push(priceRow('Your slip', 'USER-REPORTED · NOT VERIFIED', 'is-user', priceText({
-        side: slip.side, line: slip.line, odds: slip.odds, book: 'Your book', at: null,
-      }).replace('time not recorded', 'pasted by you')));
-    }
-    rows.push(priceRow('Logged price', 'OBSERVED · COMMITTED SNAPSHOT', 'is-observed', logged
-      ? priceText(logged)
-      : `<span class="t-none">No price was logged in this snapshot.</span><br><span class="t-ts">Snapshot committed ${esc(fmtTs(snapshot.created_at))}</span>`));
-
-    if (current) {
-      const cs = side;
-      rows.push(priceRow('Current best quote', 'OBSERVED · PROPSTEIN FEED', 'is-observed', priceText({
-        side: cs, line: num(current.line), odds: sideOdds(current, cs), overOdds: num(current.over_odds), underOdds: num(current.under_odds),
-        book: current.book || 'Unknown book', at: current.observed_at,
-      })));
+    if (opts.perBook) {
+      opts.perBook.forEach((book) => {
+        const best = bestOf(result.eligible.filter((q) => q.book === book));
+        summary.books[book] = best;
+        parts.push(row(`${book} now`, tag('OBSERVED', 'is-observed'), best
+          ? quoteBody(best)
+          : '<span class="t-none" data-no-current-quote="1">No current quote</span>', `data-book-row="${esc(book)}"`));
+      });
     } else {
-      rows.push(priceRow('Current best quote', 'PROPSTEIN FEED', 'is-none', '<span class="t-none">No current quote in PropStein feeds for this game.</span>'));
+      const best = bestOf(result.eligible);
+      summary.best = best;
+      parts.push(row(best ? 'Best observed now' : 'Current quote', tag('OBSERVED', 'is-observed'), best
+        ? quoteBody(best)
+        : '<span class="t-none" data-no-current-quote="1">No current quote</span>', 'data-current-row="1"'));
     }
 
-    rows.push(priceRow('Model fair', 'COMMITTED SNAPSHOT', 'is-observed', Number.isFinite(fair)
-      ? `<strong>${esc(fmtLine(fair))}</strong> <span class="t-ts">${esc(snapshot.model && snapshot.model.version ? snapshot.model.version : '')}</span>`
-      : '<span class="t-none">Fair unavailable.</span>'));
+    const notes = [];
+    if (!sourceOk) notes.push(SOURCE_NOTE[opts.source.status] || 'Quote source unavailable.');
+    else {
+      notes.push(`Checked ${result.eligible.length} current exact-match quote${result.eligible.length === 1 ? '' : 's'}.`);
+      const r = rejectedNote(result.rejected);
+      if (r) notes.push(r);
+    }
+    notes.push('An observed quote is not a promise the price is still available at checkout.');
+    parts.push(`<p class="t-note" data-source-status="${esc(opts.source.status)}">${esc(notes.join(' '))}</p>`);
 
-    rows.push(`<div class="t-status" data-tail-status="${esc(status.code)}"><strong>${esc(status.code)}</strong><span>${esc(status.detail)}</span></div>`);
-    rows.push('<p class="t-note">Line vs model fair only. Odds are shown, not priced. Research only, not a recommendation. PropStein does not place or track bets.</p>');
+    parts.push(row(opts.fair ? opts.fair.label : 'Model fair', tag('MODEL · RESEARCH ONLY', 'is-model'), fairOdds !== null
+      ? `<strong>${esc(fmtOdds(fairOdds))}</strong>`
+      : `<span class="t-none" data-fair-unavailable="1">Model fair unavailable</span>${opts.fairNote ? `<br><span class="t-ts">${esc(opts.fairNote)}</span>` : ''}`));
 
-    container.innerHTML = `<section class="t-card" data-tail-check="1" aria-label="Would you still tail?"><h2 class="t-title">Would you still tail?</h2>${rows.join('')}</section>`;
-    return { status: status.code, current, logged, fair };
+    parts.push('<p class="t-note">Descriptive comparison only. Not a recommendation. PropStein does not place or track bets.</p>');
+    container.innerHTML = `<section class="t-card" data-tail-check="1" aria-label="${esc(opts.title)}"><h2 class="t-title">${esc(opts.title)}</h2>${opts.scopeNote ? `<p class="t-scope">${esc(opts.scopeNote)}</p>` : ''}${parts.join('')}</section>`;
+    return summary;
   }
 
-  // ---------------------------------------------------------------------
-  // Slip parsing: "Player Market [over|under|o|u] Line Odds"
-  // ---------------------------------------------------------------------
-  const MARKET_ALIASES = [
-    { market: 'receiving_yards', words: ['receiving yards', 'receiving yds', 'rec yards', 'rec yds', 'rec yd', 'rec yard'] },
-    { market: 'receptions', words: ['receptions', 'recs', 'rec', 'catches'] },
-  ];
+  // ------------------------------------------------------ slip parsing
+  // One supported market: NFL anytime TD. Example: "Ja'Marr Chase anytime TD +150".
+  const SLIP_EXAMPLE = "Ja'Marr Chase anytime TD +150";
+  const TD_RE = /^(.*?)\s+(?:anytime\s+(?:td|touchdown)|atd|anytime\s+td\s+scorer|to\s+score\s+(?:a\s+)?(?:td|touchdown))(?:\s+(yes))?(?:\s+(.*))?$/i;
 
-  function normName(s) {
-    return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ').trim();
+  function parseOddsToken(tok) {
+    const t = String(tok || '').trim().replace(/[−–—]/g, '-');
+    if (/^even$/i.test(t)) return { ok: true, odds: 100 };
+    const m = /^([+-])(\d{3,5})$/.exec(t);
+    if (!m) return { ok: false };
+    const v = Number(`${m[1]}${m[2]}`);
+    if (Math.abs(v) < 100) return { ok: false };
+    return { ok: true, odds: v };
   }
 
-  /** Returns { ok:true, player, market, side, line, odds, raw } or { ok:false, reason }. */
+  /** { ok, player, team, odds, read } or { ok:false, reason, read }. Never guesses. */
   function parseSlip(raw) {
-    const text = String(raw || '').replace(/[−–—]/g, '-').replace(/\s+/g, ' ').trim();
-    if (!text) return { ok: false, reason: 'Paste a slip like “Mike Evans receiving yards over 46.5 -110”.' };
-    if (text.length > 120) return { ok: false, reason: 'Slip text is too long. Paste one leg.' };
-    const tokens = text.split(' ');
-    const oddsTok = tokens.pop();
-    if (!/^[+-]\d{3,5}$/.test(oddsTok || '') || Math.abs(Number(oddsTok)) < 100) {
-      return { ok: false, reason: 'Could not read American odds at the end (e.g. -110 or +125).' };
+    const text = String(raw || '').replace(/\s+/g, ' ').trim();
+    const read = {};
+    if (!text) return { ok: false, reason: `Paste one leg, for example “${SLIP_EXAMPLE}”.`, read };
+    if (text.length > 120) return { ok: false, reason: 'Paste one leg only. Multi-leg slips are not supported.', read };
+    if (/[,;|]|\bparlay\b|\bsgp\b|\n/i.test(text)) return { ok: false, reason: 'Multi-leg slips are not supported. Paste one leg.', read };
+    const m = TD_RE.exec(text);
+    if (!m) return { ok: false, reason: `Only NFL anytime TD is supported here. Example: “${SLIP_EXAMPLE}”.`, read };
+    let playerPart = m[1].trim();
+    read.market = 'Anytime TD';
+    let team = null;
+    const pt = playerPart.split(' ');
+    if (pt.length > 1 && /^[A-Z]{2,3}$/.test(pt[pt.length - 1])) {
+      team = pt.pop();
+      playerPart = pt.join(' ');
     }
-    const odds = Number(oddsTok);
-    let lineTok = tokens.pop() || '';
-    let side = null;
-    const m = /^([ou])?(\d{1,3}(?:\.\d)?)$/i.exec(lineTok);
-    if (!m) return { ok: false, reason: 'Could not read the line before the odds (e.g. 46.5 or o46.5).' };
-    if (m[1]) side = m[1].toLowerCase() === 'o' ? 'OVER' : 'UNDER';
-    const line = Number(m[2]);
-    const sideTok = (tokens[tokens.length - 1] || '').toLowerCase();
-    if (!side && (sideTok === 'over' || sideTok === 'under' || sideTok === 'o' || sideTok === 'u')) {
-      side = sideTok.startsWith('o') ? 'OVER' : 'UNDER';
-      tokens.pop();
-    }
-    const rest = tokens.join(' ').toLowerCase();
-    let market = null;
-    let playerPart = '';
-    for (const alias of MARKET_ALIASES) {
-      for (const w of alias.words) {
-        if (rest === w || rest.endsWith(` ${w}`)) {
-          if (!market || w.length > market.w.length) market = { market: alias.market, w };
-        }
-      }
-    }
-    if (!market) return { ok: false, reason: 'Market not recognized. Supported: receiving yards, receptions.' };
-    playerPart = tokens.join(' ').slice(0, rest.length - market.w.length).trim();
-    if (!normName(playerPart)) return { ok: false, reason: 'Could not read a player name.' };
-    return { ok: true, player: playerPart, market: market.market, side, line, odds, raw: text };
+    if (team) read.team = team;
+    if (!normName(playerPart)) return { ok: false, reason: 'Could not read a player name.', read };
+    read.player = playerPart;
+    const rest = String(m[3] || '').trim();
+    if (!rest) return { ok: false, reason: 'Missing odds. Add signed American odds such as +150 or -120.', read };
+    const restTokens = rest.split(' ');
+    if (restTokens.length !== 1) return { ok: false, reason: 'Could not read the odds. Use one signed price such as +150.', read };
+    const o = parseOddsToken(restTokens[0]);
+    if (!o.ok) return { ok: false, reason: 'Odds need an explicit sign, such as +150 or -120 (or “even”).', read };
+    read.odds = fmtOdds(o.odds);
+    return { ok: true, player: playerPart, team, odds: o.odds, read };
   }
 
-  /** Latest committed snapshot for player+market. Ambiguous names fail closed. */
-  async function findSnapshotForSlip(slip) {
-    const want = normName(slip.player);
-    const slates = await loadSlates();
-    const matches = [];
-    for (const slate of slates) {
-      for (const r of await loadSnapshotRows(slate)) {
-        if (r.market !== slip.market || normName(r.player_name) !== want) continue;
-        if (!/^[0-9a-f]{64}$/.test(String(r.content_hash || '').toLowerCase())) continue;
-        matches.push({ row: r, slate });
-      }
+  /**
+   * Resolve a parsed slip against the current default NFL slate.
+   * Exactly one player row must match (name, and team when given).
+   */
+  async function resolveSlipPlayer(parsed) {
+    const { slates, defaults } = await loadSlateIndex();
+    const key = defaults.nfl;
+    const slate = slates.find((s) => s.sport === 'nfl' && s.key === key && !s.historical);
+    if (!slate || !slate.slate) return { ok: false, reason: 'No current NFL slate is published.' };
+    const rows = await fetchJsonOrNull(`/${slate.slate}`);
+    if (!Array.isArray(rows)) return { ok: false, reason: 'The current NFL slate could not be loaded.' };
+    const want = normName(parsed.player);
+    let matches = rows.filter((r) => r && normName(r.player_display_name || r.player_name) === want && r.player_id && r.game_id);
+    if (parsed.team) matches = matches.filter((r) => String(r.team || '').toUpperCase() === parsed.team);
+    const ids = new Map();
+    matches.forEach((r) => ids.set(`${r.player_id}|${r.game_id}`, r));
+    if (ids.size === 0) return { ok: false, reason: `“${parsed.player}” is not on the current NFL slate (${key}).` };
+    if (ids.size > 1) {
+      const options = [...ids.values()].map((r) => `${r.player_display_name || r.player_name} (${r.team} vs ${r.opponent_team})`);
+      return { ok: false, ambiguous: true, reason: `That matches more than one player or game: ${options.join('; ')}. Add the team, e.g. “${parsed.player} ${[...ids.values()][0].team} anytime TD ${fmtOdds(parsed.odds)}”.` };
     }
-    const ids = new Set(matches.map((m) => m.row.player_id));
-    if (ids.size !== 1) return { ok: false, reason: ids.size ? 'That name matches more than one player. Add more of the name.' : 'No committed PropStein snapshot for that player and market.' };
-    matches.sort((a, b) => String(b.row.created_at || '').localeCompare(String(a.row.created_at || '')));
-    return { ok: true, ...matches[0] };
+    const r = [...ids.values()][0];
+    return { ok: true, row: r, slate };
   }
 
-  function encodeSlip(slip) {
-    return encodeURIComponent(slip.raw);
+  /** Model fair for an exact anytime TD selection from a committed slate row, if present. */
+  function tdFairFromRow(r) {
+    const f = num(r && r.fair_odds_anytime);
+    return Number.isFinite(f) && Math.abs(f) >= 100 ? f : null;
+  }
+
+  async function nflOddsFiles() {
+    const { slates } = await loadSlateIndex();
+    return slates.filter((s) => s.sport === 'nfl' && !s.historical && s.odds).map((s) => s.odds);
+  }
+
+  async function findSlateRow(playerId, gameId) {
+    const { slates } = await loadSlateIndex();
+    for (const s of slates.filter((x) => x.sport === 'nfl' && x.slate && !x.historical)) {
+      const rows = await fetchJsonOrNull(`/${s.slate}`);
+      if (!Array.isArray(rows)) continue;
+      const r = rows.find((x) => x && x.player_id === playerId && x.game_id === gameId);
+      if (r) return r;
+    }
+    return null;
   }
 
   window.PropsteinTail = {
-    STATUS,
+    TICKET_BOOKS,
+    SLIP_EXAMPLE,
     esc,
+    fmtOdds,
+    fmtTs,
+    toDecimal,
+    normName,
+    loadSlateIndex,
     findSnapshotByHash,
-    findSnapshotForSlip,
+    oddsStaleSeconds,
+    loadCurrentQuotes,
+    eligibleQuotes,
+    vsPosted,
+    vsFair,
+    dollarDiff20,
+    renderComparison,
     parseSlip,
-    encodeSlip,
-    renderTailCheck,
-    tailStatus,
+    parseOddsToken,
+    resolveSlipPlayer,
+    tdFairFromRow,
+    nflOddsFiles,
+    findSlateRow,
   };
 })();

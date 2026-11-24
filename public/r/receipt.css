@@ -32,3 +32,10 @@ body { margin: 0; background: #0c0d0f; color: #e9ebee; font-family: Inter, syste
 .c-input { width: 100%; box-sizing: border-box; min-height: 72px; padding: 10px; border-radius: 10px; background: #0f1114; border: 1px solid rgba(169,173,178,0.22); color: #f8fafc; font: 14px/1.4 "IBM Plex Mono", ui-monospace, monospace; resize: vertical; }
 .c-btn { justify-self: start; padding: 9px 14px; border-radius: 10px; border: 1px solid rgba(143,181,234,0.45); background: #17181b; color: #e9ebee; font-size: 14px; font-weight: 600; cursor: pointer; }
 .c-help { font-size: 12px; color: #9da3ab; margin: 0; }
+.t-scope { margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #9da3ab; }
+.t-tag.is-model { color: #c7ccd2; }
+.t-cmp { display: inline-block; margin-top: 2px; font-size: 13px; color: #e9ebee; }
+.c-ticket { display: grid; gap: 8px; margin: 12px 0; }
+.c-ticket label { font-size: 12px; color: #9da3ab; }
+.c-line { width: 100%; box-sizing: border-box; padding: 9px 10px; border-radius: 10px; background: #0f1114; border: 1px solid rgba(169,173,178,0.22); color: #f8fafc; font: 14px/1.4 Inter, system-ui, sans-serif; }
+.c-ticket-link { word-break: break-all; margin-top: 0; }

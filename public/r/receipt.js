@@ -30,28 +30,59 @@
   const Tail = window.PropsteinTail;
   const tailEl = document.getElementById('tailCheck');
 
-  function slipFromQuery(snapshot) {
-    const raw = new URLSearchParams(window.location.search).get('slip');
-    if (!raw) return { slip: null, notice: '' };
-    const parsed = Tail.parseSlip(raw);
-    if (!parsed.ok) return { slip: null, notice: `Slip ignored: ${parsed.reason}` };
-    const sameMarket = parsed.market === snapshot.market;
-    const norm = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-    if (!sameMarket || norm(parsed.player) !== norm(snapshot.player_name)) {
-      return { slip: null, notice: 'Slip ignored: it does not match this receipt’s player and market.' };
-    }
-    return { slip: parsed, notice: '' };
-  }
-
+  /**
+   * Live comparison, rendered separately from the verified receipt. Any
+   * failure here leaves the receipt (and its hash and verify result) intact.
+   */
   async function renderTail(found) {
     if (!tailEl || !Tail) return;
-    if (!found) {
-      tailEl.innerHTML = '<p class="t-note" data-tail-status="unavailable">Tail check unavailable: the committed snapshot file could not be loaded.</p>';
-      return;
+    try {
+      if (!found) {
+        tailEl.innerHTML = '<p class="t-note" data-tail-status="unavailable">Live comparison unavailable: the committed snapshot file could not be loaded.</p>';
+        return;
+      }
+      const snap = found.row;
+      const q = snap.quote && typeof snap.quote === 'object' ? snap.quote : null;
+      const side = String((q && q.evaluation && q.evaluation.best_side) || '').toUpperCase();
+      const line = Number(q && q.line);
+      const fairLine = Number(snap.projection && snap.projection.fair_line);
+      const fairNote = Number.isFinite(fairLine) ? `Fair when logged: ${fairLine.toFixed(1)} (a line, not a price at this threshold).` : '';
+      const subject = `${snap.player_name || 'Player'} · ${snap.team || ''}${snap.opponent ? ` vs ${snap.opponent}` : ''}`;
+      if (!q || !Number.isFinite(line) || (side !== 'OVER' && side !== 'UNDER')) {
+        tailEl.innerHTML = `<section class="t-card" data-tail-check="1" aria-label="Would you still tail?">
+          <h2 class="t-title">Would you still tail?</h2>
+          <p class="t-scope">Live comparison · read-only · not part of the verified receipt</p>
+          <p class="t-subject">${esc(subject)}</p>
+          <div class="t-row" data-posted="1"><div class="t-row-head"><span class="t-label">Posted price</span><span class="t-tag is-observed">OBSERVED · COMMITTED SNAPSHOT</span></div><div class="t-row-body"><span class="t-none">No price was logged in this snapshot.</span></div></div>
+          <div class="t-row" data-current-row="1"><div class="t-row-head"><span class="t-label">Current quote</span><span class="t-tag is-observed">OBSERVED</span></div><div class="t-row-body"><span class="t-none" data-no-current-quote="1">No current quote</span><br><span class="t-ts">No logged side and threshold to match against.</span></div></div>
+          <div class="t-row"><div class="t-row-head"><span class="t-label">Model fair</span><span class="t-tag is-model">MODEL · RESEARCH ONLY</span></div><div class="t-row-body"><span class="t-none" data-fair-unavailable="1">Model fair unavailable</span>${fairNote ? `<br><span class="t-ts">${esc(fairNote)}</span>` : ''}</div></div>
+        </section>`;
+        return;
+      }
+      const odds = side === 'OVER' ? q.over_odds : q.under_odds;
+      const sport = found.slate.sport || 'nfl';
+      const [source, maxAgeSeconds] = await Promise.all([
+        Tail.loadCurrentQuotes(sport, found.slate.odds ? [found.slate.odds] : []),
+        Tail.oddsStaleSeconds(sport),
+      ]);
+      Tail.renderComparison(tailEl, {
+        title: 'Would you still tail?',
+        scopeNote: 'Live comparison · read-only · not part of the verified receipt',
+        subject,
+        selection: { gameId: snap.game_id, playerId: snap.player_id, market: snap.market, side, threshold: line },
+        posted: { label: 'Posted price', tagText: 'OBSERVED · COMMITTED SNAPSHOT', tagClass: 'is-observed', odds, at: q.observed_at, book: q.book || q.source || '' },
+        // Line markets carry a fair LINE, not a fair price at this threshold.
+        fair: null,
+        fairNote,
+        source,
+        nowMs: Date.now(),
+        maxAgeSeconds,
+        perBook: null,
+        dollarDiff: false,
+      });
+    } catch {
+      tailEl.innerHTML = '<p class="t-note" data-tail-status="unavailable"><span data-no-current-quote="1">No current quote</span>. Live comparison unavailable; the receipt above is unaffected.</p>';
     }
-    const { slip, notice } = slipFromQuery(found.row);
-    await Tail.renderTailCheck(tailEl, { snapshot: found.row, slate: found.slate, slip });
-    if (notice) tailEl.insertAdjacentHTML('afterbegin', `<p class="t-notice" data-slip-notice="1">${esc(notice)}</p>`);
   }
 
   async function verify() {
