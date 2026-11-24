@@ -16,12 +16,12 @@
       notFound();
       return;
     }
-    titleEl.textContent = `${ticket.n} · Anytime TD`;
+    titleEl.textContent = `${ticket.n} · ${Ticket.marketTitle(ticket)}`;
     root.innerHTML = `<div data-ticket-status="OK">
       <div class="t-card" data-ticket-ask="1">
         <h2 class="t-title">Original ask</h2>
         <div class="t-row"><div class="t-row-head"><span class="t-label">Ask</span><span class="t-tag is-user">USER-ENTERED · NOT VERIFIED</span></div>
-          <div class="t-row-body"><strong>${esc(ticket.n)} · Anytime TD · Yes</strong><br>Minimum odds <span class="t-odds">${esc(Tail.fmtOdds(ticket.o))}</span><br><span class="t-ts">Created ${esc(Tail.fmtTs(ticket.at))}</span></div></div>
+          <div class="t-row-body"><strong>${esc(ticket.n)} · ${esc(Ticket.selectionLabel(ticket))}</strong><br>Minimum odds <span class="t-odds">${esc(Tail.fmtOdds(ticket.o))}</span><br><span class="t-ts">Created ${esc(Tail.fmtTs(ticket.at))}</span></div></div>
         ${ticket.take ? `<div class="t-row"><div class="t-row-head"><span class="t-label">Sender's take</span><span class="t-tag is-user">USER-ENTERED</span></div><div class="t-row-body" data-ticket-take="1">${esc(ticket.take)}</div></div>` : ''}
         <p class="t-note">A ticket is someone's ask, not proof of a wager.</p>
       </div>

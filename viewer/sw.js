@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v282-ticket';
+const CACHE_NAME = 'propstein-v283-nba-3pm-ticket';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -24,10 +24,10 @@ const STATIC_ASSETS = [
   '/js/front-page.js?v=2026_v254',
   '/r/receipt.css?v=2026_v282',
   '/r/receipt.js?v=2026_v282',
-  '/r/tailcheck.js?v=2026_v282',
-  '/check/check.js?v=2026_v282',
-  '/r/ticket-core.js?v=2026_v282',
-  '/t/ticket.js?v=2026_v282',
+  '/r/tailcheck.js?v=2026_v283',
+  '/check/check.js?v=2026_v283',
+  '/r/ticket-core.js?v=2026_v283',
+  '/t/ticket.js?v=2026_v283',
   '/league-logos/nba.png',
   '/league-logos/nfl.png',
   '/league-logos/ufc.svg',

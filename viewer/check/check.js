@@ -11,6 +11,7 @@
     if (read.player) parts.push(`player “${read.player}”`);
     if (read.team) parts.push(`team ${read.team}`);
     if (read.market) parts.push(read.market);
+    if (read.rung) parts.push(`rung ${read.rung}`);
     if (read.odds) parts.push(`odds ${read.odds}`);
     return parts.length ? `<p class="t-note" data-slip-read="1">Read: ${esc(parts.join(' · '))}</p>` : '';
   }
@@ -38,7 +39,8 @@
     }
     const ticket = {
       v: 1,
-      m: 'anytime_td',
+      m: parsed.market,
+      ...(parsed.market === 'nba_threes' ? { r: parsed.rung } : {}),
       p: match.row.player_id,
       g: match.row.game_id,
       n: match.row.player_display_name || match.row.player_name || parsed.player,
