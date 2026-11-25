@@ -1254,7 +1254,7 @@
     await loadSlate(defaultBootSlate());
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   }
 
@@ -2452,6 +2452,11 @@
     // unique URL. Keep this pattern in sync with viewer/sw.js and vercel.json.
     const revalidate = REVALIDATED_DATA_RE.test(String(path).split('?')[0]);
     try {
+      // Standalone routes are nested, while all viewer data is at /.
+      const pagePath = window.location?.pathname || '/';
+      if (pagePath !== '/' && !/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(path)) {
+        path = `/${path}`;
+      }
       const url = revalidate ? path : `${path}?v=${Date.now()}`;
       const response = await fetch(url, { cache: revalidate ? 'no-cache' : 'no-store', signal: controller.signal });
       return { response, data: response.ok ? await response.json() : null };
