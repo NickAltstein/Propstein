@@ -2,34 +2,30 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-25T01:29:07Z",
-      "last_success_quotes": 43,
+      "last_success_at": "2026-11-25T03:53:15Z",
+      "last_success_quotes": 20,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
       "last_error_at": "2026-11-24T21:01:11Z",
-      "last_attempt_at": "2026-11-25T01:29:07Z",
+      "last_attempt_at": "2026-11-25T03:53:15Z",
       "schedule": {
-        "observed_at": "2026-11-25T01:29:07Z",
-        "state": "pending",
-        "starts": [
-          "2026-11-25T00:00:00Z",
-          "2026-11-25T01:00:00Z",
-          "2026-11-25T03:00:00Z"
-        ]
+        "observed_at": "2026-11-25T03:53:15Z",
+        "state": "none",
+        "starts": []
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-25T00:50:35Z",
-      "last_success_quotes": 122,
+      "last_success_at": "2026-11-25T03:53:32Z",
+      "last_success_quotes": 91,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-25T00:50:35Z",
+      "last_attempt_at": "2026-11-25T03:53:32Z",
       "schedule": {
         "observed_at": null,
         "state": null,
         "starts": []
       },
       "slate_state": {
-        "observed_at": "2026-11-25T00:50:35Z",
+        "observed_at": "2026-11-25T03:53:32Z",
         "state_since": "2026-11-24T21:01:28Z",
         "state": "OK",
         "detail": "slate '2026_w12' has 544 priced row(s)",
@@ -43,13 +39,13 @@
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-25T00:50:35Z",
-        "events": 12,
-        "matched": 122,
-        "skipped_low_liquidity": 72,
+        "observed_at": "2026-11-25T03:53:32Z",
+        "events": 13,
+        "matched": 91,
+        "skipped_low_liquidity": 98,
         "skipped_off_slate": 17,
         "skipped_unparsed": 0,
-        "skipped_no_book": 537,
+        "skipped_no_book": 544,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
