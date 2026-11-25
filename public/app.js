@@ -2234,43 +2234,25 @@
           setView(currentView === 'table' ? 'cards' : 'table');
           break;
 
-        case 's': // Market alerts
-        case 'S':
-          e.preventDefault();
-          openSniperDialog('sniper_feed');
-          break;
-
-        case 'l': // Live Board (or bet log if shift held)
+        // S, L, P and E no longer open the market-alerts dialog: it rendered a static
+        // demo snapshot (see issue 312). Shift+L still logs the focused row.
+        case 'l':
         case 'L':
+          if (!e.shiftKey) break;
           e.preventDefault();
-          if (e.shiftKey) {
+          {
             const targetIdx = focusedRowIndex >= 0 ? focusedRowIndex : (rows.length ? 0 : -1);
             if (targetIdx >= 0 && rows[targetIdx]) {
               const playerId = rows[targetIdx].dataset.playerId;
               if (playerId) logBet(playerId);
             }
-          } else {
-            openSniperDialog('live_board');
           }
-          break;
-
-        case 'p': // Polymarket Board
-        case 'P':
-          e.preventDefault();
-          openSniperDialog('polymarket');
           break;
 
         case 'i': // Injuries Drawer
         case 'I':
           e.preventDefault();
           toggleInjuries();
-          break;
-
-        case 'e': // Explain Edge (toggle reasoning chains in the alert feed)
-        case 'E':
-          e.preventDefault();
-          state.sniperExplainAll = !state.sniperExplainAll;
-          openSniperDialog('sniper_feed');
           break;
       }
     };
@@ -4974,13 +4956,9 @@
         return state.sniperTerminalData;
       }
     } catch (_) {}
-    try {
-      const snapRes = await fetch('/feeds/sniper_terminal_snapshot.json?v=' + Date.now(), { cache: 'no-store' });
-      if (snapRes && snapRes.ok) {
-        state.sniperTerminalData = await snapRes.json();
-        return state.sniperTerminalData;
-      }
-    } catch (_) {}
+    // Fail closed: no static fallback. The old static snapshot under /feeds/ was
+    // demo output with invented liquidity and edges (issue 312), so with the API down there
+    // is nothing to show.
     return null;
   }
 
@@ -5885,17 +5863,14 @@
         <button type="button" class="sniper-tab-btn ${activeTab === 'sniper_feed' ? 'is-active active' : ''}" data-sniper-tab="sniper_feed" role="tab">
           <span>Market alerts</span>
           <span class="sniper-tab-count">${alerts.length}</span>
-          <kbd class="sniper-kbd">S</kbd>
         </button>
         <button type="button" class="sniper-tab-btn ${activeTab === 'live_board' ? 'is-active active' : ''}" data-sniper-tab="live_board" role="tab">
           <span>Live Board</span>
           <span class="sniper-tab-count">${liveBoard.length}</span>
-          <kbd class="sniper-kbd">L</kbd>
         </button>
         <button type="button" class="sniper-tab-btn ${activeTab === 'polymarket' ? 'is-active active' : ''}" data-sniper-tab="polymarket" role="tab">
           <span>Polymarket CLOB</span>
           <span class="sniper-tab-count">${polyBoard.length}</span>
-          <kbd class="sniper-kbd">P</kbd>
         </button>
         <button type="button" class="sniper-tab-btn ${activeTab === 'arb_history' ? 'is-active active' : ''}" data-sniper-tab="arb_history" role="tab">
           <span>History</span>
