@@ -27,6 +27,10 @@
     "close-quality-capture": {
       "schedule": "3,18,33,48 0-5,12-23 * * *",
       "function": "api/schedules/dispatch"
+    },
+    "deploy-gate-sweep": {
+      "schedule": "41 * * * *",
+      "function": "api/schedules/dispatch"
     }
   },
   "git": {

@@ -33,6 +33,28 @@ export const SCHEDULE_WORKFLOWS = Object.freeze({
   'game-context-rollover': 'game_context_ingest.yml',
   'game-context-daily': 'game_context_ingest.yml',
   'close-quality-capture': 'close_quality_capture.yml',
+  'deploy-gate-sweep': 'deploy_gate.yml',
+});
+
+/**
+ * workflow_dispatch inputs per schedule. The deploy gate's hourly sweep
+ * (deploy everything served that the 60-min data throttle left behind)
+ * runs from GitHub's cron, which fired 2 times in 24 hours on 2026-11-24.
+ * Once automatic git deploys are off, that sweep is the only catch-up for
+ * the last data merge of the night, so it rides the same backstop as the
+ * odds feed.
+ */
+export const SCHEDULE_INPUTS = Object.freeze({
+  'deploy-gate-sweep': Object.freeze({ sweep: 'true' }),
+});
+
+/**
+ * Which run events cover a slot, per schedule (default: any event). The
+ * deploy gate also runs on every push to main, and a push run that skipped
+ * a data change under the 60-min throttle must not stand in for the sweep.
+ */
+export const SCHEDULE_COVER_EVENTS = Object.freeze({
+  'deploy-gate-sweep': Object.freeze(['schedule', 'workflow_dispatch']),
 });
 
 /**
@@ -80,7 +102,7 @@ function requireToken(token, workflow) {
  * active or finished successfully, or null. A failed or cancelled run does
  * not cover the slot, so the schedule dispatches a fresh one.
  */
-export async function coveringRun(workflow, { token, since, repo = DEFAULT_REPO, fetchImpl = fetch }) {
+export async function coveringRun(workflow, { token, since, repo = DEFAULT_REPO, events = null, fetchImpl = fetch }) {
   requireToken(token, workflow);
   const created = `>=${since.toISOString().replace(/\.\d{3}Z$/, 'Z')}`;
   const url = `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/runs`
@@ -92,24 +114,25 @@ export async function coveringRun(workflow, { token, since, repo = DEFAULT_REPO,
   }
   const body = await response.json();
   const runs = Array.isArray(body.workflow_runs) ? body.workflow_runs : [];
-  return runs.find((run) => ACTIVE_STATUSES.has(run.status)
-    || (run.status === 'completed' && run.conclusion === 'success')) || null;
+  return runs.find((run) => (!events || events.includes(run.event))
+    && (ACTIVE_STATUSES.has(run.status)
+      || (run.status === 'completed' && run.conclusion === 'success'))) || null;
 }
 
-export async function dispatchWorkflow(workflow, { token, repo = DEFAULT_REPO, ref = DEFAULT_REF, fetchImpl = fetch }) {
+export async function dispatchWorkflow(workflow, { token, repo = DEFAULT_REPO, ref = DEFAULT_REF, inputs = null, fetchImpl = fetch }) {
   requireToken(token, workflow);
   const url = `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`;
   const response = await fetchImpl(url, {
     method: 'POST',
     headers: githubHeaders(token),
-    body: JSON.stringify({ ref }),
+    body: JSON.stringify(inputs ? { ref, inputs } : { ref }),
   });
   if (response.status !== 204) {
     // Never echo the token; GitHub's error body does not contain it.
     const detail = (await response.text().catch(() => '')).slice(0, 300);
     throw new DispatchError(`GitHub dispatch of ${workflow} failed: HTTP ${response.status} ${detail}`);
   }
-  return { workflow, ref, repo };
+  return { workflow, ref, repo, inputs };
 }
 
 /**
@@ -161,7 +184,8 @@ export async function runSchedule(metadata, { env = process.env, now = new Date(
   const repo = env.GITHUB_DISPATCH_REPO || DEFAULT_REPO;
   try {
     const since = new Date((Number.isFinite(scheduledAt.getTime()) ? scheduledAt : now).getTime() - SLOT_SLACK_MS);
-    const existing = await coveringRun(workflow, { token, repo, fetchImpl, since });
+    const events = SCHEDULE_COVER_EVENTS[metadata.name] || null;
+    const existing = await coveringRun(workflow, { token, repo, fetchImpl, since, events });
     if (existing) {
       const result = {
         status: 'skipped_covered', schedule: metadata.name, workflow,
@@ -170,7 +194,8 @@ export async function runSchedule(metadata, { env = process.env, now = new Date(
       log.log(`[schedule-dispatch] ${JSON.stringify(result)}`);
       return result;
     }
-    await dispatchWorkflow(workflow, { token, repo, fetchImpl });
+    const inputs = SCHEDULE_INPUTS[metadata.name] || null;
+    await dispatchWorkflow(workflow, { token, repo, fetchImpl, inputs });
   } catch (err) {
     const message = `PropStein SCHEDULE DISPATCH FAILED: ${metadata.name} -> ${workflow}: ${err.message}`;
     log.error(`[schedule-dispatch] ${message}`);

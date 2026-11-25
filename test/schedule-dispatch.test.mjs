@@ -212,3 +212,38 @@ test('.vercelignore deploys only the dispatch function from api/', () => {
   }
   assert.ok(!lines.some((l) => l.startsWith('/api/schedules')), 'api/schedules/ must not be ignored');
 });
+
+test('the deploy gate sweep dispatches deploy_gate.yml on main with sweep=true', async () => {
+  const f = fakeFetch();
+  const result = await runSchedule(meta('deploy-gate-sweep', '2026-11-24T19:41:00Z'), {
+    env: ENV, now: new Date('2026-11-24T19:44:00Z'), fetchImpl: f.impl, log: quiet,
+  });
+  assert.equal(result.status, 'dispatched');
+  const [post] = f.of('dispatch');
+  assert.match(post.url, /\/workflows\/deploy_gate\.yml\/dispatches$/);
+  assert.deepEqual(JSON.parse(post.init.body), { ref: 'main', inputs: { sweep: 'true' } });
+  assert.equal(vercel.schedules['deploy-gate-sweep'].schedule, '41 * * * *');
+});
+
+test('a push-triggered gate run in the slot does not stand in for the sweep', async () => {
+  const f = fakeFetch(204, '', { runs: [{ id: 7, status: 'completed', conclusion: 'success', event: 'push' }] });
+  const result = await runSchedule(meta('deploy-gate-sweep', '2026-11-24T19:41:00Z'), {
+    env: ENV, now: new Date('2026-11-24T19:44:00Z'), fetchImpl: f.impl, log: quiet,
+  });
+  assert.equal(result.status, 'dispatched');
+});
+
+test('a GitHub cron sweep already in the slot covers it', async () => {
+  const f = fakeFetch(204, '', { runs: [{ id: 8, status: 'in_progress', event: 'schedule' }] });
+  const result = await runSchedule(meta('deploy-gate-sweep', '2026-11-24T19:41:00Z'), {
+    env: ENV, now: new Date('2026-11-24T19:44:00Z'), fetchImpl: f.impl, log: quiet,
+  });
+  assert.equal(result.status, 'skipped_covered');
+});
+
+test('the deploy gate workflow turns the sweep input into --sweep', () => {
+  const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/deploy_gate.yml'), 'utf8');
+  assert.match(yml, /sweep:\n\s+description:/);
+  assert.match(yml, /SWEEP: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.sweep \}\}/);
+  assert.match(yml, /\[ "\$SWEEP" = "true" \]; then\n\s+python3 scripts\/deploy_gate\.py --sweep/);
+});
