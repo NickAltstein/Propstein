@@ -9240,7 +9240,8 @@
     $('#clvReportContent').innerHTML = `
       <p>The 8-row hand ledger is a different file and is not this denominator.</p>
       <p>${summary.beat_close_count} of ${summary.total_graded} beat the last stored pre-kickoff price (captured 2.3–5.4 days before kickoff, not T-0 closes). This is not a model-skill claim. See the time-to-close table on the performance page.</p>
-      <div class="clv-table-scroll">
+      <p class="clv-table-hint">Swipe the table to see the snapshot and status →</p>
+      <div class="clv-table-scroll" role="region" aria-label="CLV audit results; scroll horizontally for all columns" tabindex="0">
         <table class="clv-audit-table">
           <thead><tr><th>Player</th><th>Market</th><th>Entry</th><th>Snapshot labeled close</th><th>Status</th></tr></thead>
           <tbody>${body}</tbody>

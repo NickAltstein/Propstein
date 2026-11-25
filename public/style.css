@@ -3922,11 +3922,23 @@ article[data-focused="true"] {
   color: #6e7681;
 }
 .clv-table-scroll {
+  overflow-x: auto;
   overflow-y: auto;
   max-height: 380px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius);
   background: #070a12;
+}
+.clv-table-hint {
+  display: none;
+}
+@media (max-width: 600px) {
+  .clv-table-hint {
+    display: block;
+    margin: 8px 0;
+    color: #94a3b8;
+    font-size: 12px;
+  }
 }
 .clv-audit-table {
   width: 100%;

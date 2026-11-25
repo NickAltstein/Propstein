@@ -1,12 +1,12 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v284-ticket-fork';
+const CACHE_NAME = 'propstein-v285-mobile-audit';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v264',
+  '/style.css?v=2026_v265',
   '/feed-status.css?v=2026_v260',
-  '/app.js?v=2026_v280',
+  '/app.js?v=2026_v281',
   '/design-system.css?v=2026_v230',
   '/terminal-ui.css?v=2026_v276',
   '/js/market-status.js?v=2026_v5',
