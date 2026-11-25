@@ -77,6 +77,8 @@ test('P0-1: missing / timed-out / malformed / unknown health suppresses quotes (
     ['malformed_json', async () => makeResponse(true, new SyntaxError('bad json'), 200)],
     ['missing_sport', async () => makeResponse(true, { schema_version: 'feed-status.v1', generated_at: '2026-11-24T17:59:55Z', sports: {} }, 200)],
     ['unknown_level', async () => makeResponse(true, { schema_version: 'feed-status.v1', generated_at: '2026-11-24T17:59:55Z', sports: { nba: { level: 'mystery_state', fail_closed: false } } }, 200)],
+    ['level_live_not_written', async () => makeResponse(true, { schema_version: 'feed-status.v1', generated_at: '2026-11-24T17:59:55Z', sports: { nba: { level: 'live', fail_closed: false } } }, 200)],
+    ['level_healthy_not_written', async () => makeResponse(true, { schema_version: 'feed-status.v1', generated_at: '2026-11-24T17:59:55Z', sports: { nba: { level: 'healthy', fail_closed: false } } }, 200)],
     ['missing_generated_at', async () => makeResponse(true, { schema_version: 'feed-status.v1', sports: { nba: { level: 'ok', fail_closed: false } } }, 200)],
   ];
 
@@ -92,7 +94,7 @@ test('P0-1: missing / timed-out / malformed / unknown health suppresses quotes (
   }
 });
 
-test('P0-1: suppressed is an intended pause: quotes stay hidden, with the pause reason, not an error', async () => {
+test('P0-1: suppressed and degraded are intended pauses: quotes stay hidden, with the reason, not an error', async () => {
   const validFeed = {
     quotes: [
       { game_id: SEL_3PM_4PLUS.gameId, player_id: SEL_3PM_4PLUS.playerId, market: 'threes', line: 3.5, over_odds: 195, book: 'DraftKings', observed_at: '2026-11-24T17:59:50Z' },
@@ -103,6 +105,8 @@ test('P0-1: suppressed is an intended pause: quotes stay hidden, with the pause 
     ['slate blocked', { level: 'suppressed', fail_closed: false, slate_state: { state: 'SLATE_BLOCKED' } }, 'slate blocked'],
     ['between weeks', { level: 'suppressed', fail_closed: false, slate_state: { state: 'NO_CURRENT_SLATE' } }, 'between weeks'],
     ['no game in window', { level: 'suppressed', fail_closed: false }, 'no game in the current window'],
+    ['degraded', { level: 'degraded', fail_closed: false, age_hours: 2.6, stale_since: '2026-11-24T15:24:00Z' }, 'feed is 2h behind (last update 2026-11-24 15:24 UTC)'],
+    ['degraded, no age recorded', { level: 'degraded', fail_closed: false }, 'feed is behind'],
   ]) {
     const Tail = loadTailCheck(async (url) => {
       if (url === '/feeds/feed_status.json') return makeResponse(true, statusWith(row), 200);

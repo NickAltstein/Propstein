@@ -151,11 +151,14 @@
     return Number.isFinite(v) && v > 0 ? v : DEFAULT_ODDS_STALE_SECONDS;
   }
 
-  const VALID_HEALTH_LEVELS = new Set(['ok', 'live', 'healthy', 'degraded']);
-  // feed_age.py reports `suppressed` when updates stop on purpose (between
-  // weeks, a context-blocked slate, no game in the window). Quotes stay
-  // hidden, exactly like any other non-healthy level, but the reader is told
-  // it is an expected pause rather than a feed error.
+  // Every level scripts/feed_age.py can write, and what the tail check does
+  // with it. Only `ok` serves quotes. `suppressed` (updates stopped on purpose)
+  // and `degraded` (last good fetch 2-12h old with a game still to come) are
+  // honest pauses: quotes hidden, reason shown. `critical`, and any level not
+  // listed here (a typo, a renamed level, a broken writer), fail closed as an
+  // error. test/feed-level-contract.test.mjs keeps this map equal to the
+  // levels feed_age.py writes.
+  const FEED_LEVELS = Object.freeze({ ok: 'healthy', suppressed: 'paused', degraded: 'paused', critical: 'error' });
   const PAUSE_REASON = {
     SLATE_BLOCKED: 'slate blocked',
     NO_CURRENT_SLATE: 'between weeks',
@@ -164,6 +167,14 @@
   function pauseReason(sportStatus) {
     const state = sportStatus && sportStatus.slate_state && sportStatus.slate_state.state;
     return PAUSE_REASON[state] || 'no game in the current window';
+  }
+
+  /** "feed is 4h behind (last update 2026-11-24 16:12 UTC)" from feed_age's own age fields. */
+  function behindReason(sportStatus) {
+    const hours = Number(sportStatus && sportStatus.age_hours);
+    const ago = Number.isFinite(hours) && hours >= 0 ? `${Math.floor(hours)}h behind` : 'behind';
+    const since = sportStatus && sportStatus.stale_since;
+    return Number.isFinite(parseTs(since)) ? `feed is ${ago} (last update ${fmtTs(since)})` : `feed is ${ago}`;
   }
   const FORBIDDEN_PROVENANCE_RE = /fixture|synthetic|test|seed|replay|demo/i;
 
@@ -184,8 +195,8 @@
    * Load observed quotes for the given feed files.
    * Fail-closed health gate (P0-1): missing, timed-out, malformed, unknown-status,
    * or stale feed_status.json suppresses quotes instead of failing open.
-   * Only explicitly healthy levels serve quotes. `suppressed` (an intended pause)
-   * returns status 'paused' with a pauseReason; anything else returns 'fail_closed'.
+   * Only level `ok` serves quotes. `suppressed` and `degraded` (intended pauses)
+   * return status 'paused' with a pauseReason; anything else returns 'fail_closed'.
    * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed' | 'paused', quotes, checkedFiles, pauseReason? }.
    */
   async function loadCurrentQuotes(sport, oddsFiles, { nowMs = null, maxHealthAgeSeconds = null } = {}) {
@@ -218,10 +229,12 @@
       return { status: 'fail_closed', quotes: [], checkedFiles: files };
     }
     const level = String(sportStatus.level || '').trim().toLowerCase();
-    if (level === 'suppressed') {
-      return { status: 'paused', quotes: [], checkedFiles: files, pauseReason: pauseReason(sportStatus) };
+    const kind = Object.prototype.hasOwnProperty.call(FEED_LEVELS, level) ? FEED_LEVELS[level] : 'error';
+    if (kind === 'paused') {
+      const reason = level === 'degraded' ? behindReason(sportStatus) : pauseReason(sportStatus);
+      return { status: 'paused', quotes: [], checkedFiles: files, pauseReason: reason };
     }
-    if (!VALID_HEALTH_LEVELS.has(level)) {
+    if (kind !== 'healthy') {
       return { status: 'fail_closed', quotes: [], checkedFiles: files };
     }
     const quotes = [];
@@ -634,6 +647,7 @@
     loadSlateIndex,
     findSnapshotByHash,
     oddsStaleSeconds,
+    FEED_LEVELS,
     loadCurrentQuotes,
     eligibleQuotes,
     vsPosted,
