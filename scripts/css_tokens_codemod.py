@@ -19,7 +19,7 @@ Rules (px values; `!important` is preserved):
                  nudges and negative values stay literal.
   transition     durations -> --dur-1 (<=150ms) / --dur-2; timing keywords and
                  cubic-bezier() -> --ease-out.
-  border*: 1px solid rgba(255,255,255, 0.03-0.08) -> var(--hairline)
+  Colours, including border/hairline alphas, are never rewritten (no colour changes).
 """
 from __future__ import annotations
 
@@ -107,14 +107,12 @@ def rewrite_decl(prop: str, value: str) -> str:
         new = re.sub(r"(?<![\w.(-])(\d*\.?\d+)(ms|s)\b", dur, body)
         new = re.sub(r"cubic-bezier\([^)]*\)|\bease-in-out\b|\bease-out\b|\bease-in\b|\bease\b|\blinear\b", "var(--ease-out)", new)
         return " " + new.strip() + imp if new != body else value
-    if prop.startswith("border"):
-        m = re.fullmatch(r"\s*1px solid rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(0?\.\d+)\s*\)\s*", body)
-        if m and 0.03 <= float(m.group(1)) <= 0.08:
-            return f" var(--hairline){imp}"
+    # Borders/hairlines are deliberately NOT rewritten: collapsing their alphas onto one
+    # token would change border and divider colour (user rule: no colour changes).
     return value
 
 
-DECL = re.compile(r"(?<![\w-])(font-size|font|border-radius|padding(?:-[a-z]+)?|margin(?:-[a-z]+)?|gap|row-gap|column-gap|transition(?:-duration)?|border(?:-top|-bottom|-left|-right)?)\s*:([^;{}]*)(?=[;}])")
+DECL = re.compile(r"(?<![\w-])(font-size|font|border-radius|padding(?:-[a-z]+)?|margin(?:-[a-z]+)?|gap|row-gap|column-gap|transition(?:-duration)?)\s*:([^;{}]*)(?=[;}])")
 
 
 def rewrite(css: str) -> str:

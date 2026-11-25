@@ -536,7 +536,7 @@ html body.terminal-ui .pw-topbar-right > #frontMenuBtn { border-color: var(--ter
 /* One distribution grammar in cards, compact rows, and the simulator. */
 html body.terminal-ui .rf-dist { position: relative; }
 html body.terminal-ui .rf-dist-tail { fill: none !important; }
-html body.terminal-ui .rf-dist-band { fill: rgb(255 255 255 / 6%) !important; opacity: 1 !important; animation: none !important; transition:fill var(--dur-1) var(--ease-out); }
+html body.terminal-ui .rf-dist-band { fill: rgb(255 255 255 / 6%) !important; opacity: 1 !important; animation: none !important; transition: fill var(--dur-1) var(--ease-out); }
 html body.terminal-ui .mobile-quant-row:is(:hover, :focus-within) .rf-dist-band { fill: rgb(255 255 255 / 10%) !important; }
 html body.terminal-ui .rf-dist-line {
   stroke: var(--ink-dim) !important;
@@ -841,7 +841,7 @@ html body.terminal-ui .terminal-search-trigger { min-width: 78px; gap: var(--sp-
 html body.terminal-ui .terminal-header-search {
   width: 0; min-width: 0; max-width: 0; opacity: 0; padding: 0; border: 0;
   background: transparent; color: var(--ink); font: 500 var(--fs-3) var(--terminal-sans);
-  transition:max-width var(--dur-1) var(--ease-out), opacity var(--dur-1) var(--ease-out);
+  transition: max-width var(--dur-1) var(--ease-out), opacity var(--dur-1) var(--ease-out);
 }
 html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) #headerSearchTrigger { display: none !important; }
 html body.terminal-ui .pw-topbar-right:has(.terminal-header-search:focus) .terminal-header-search,

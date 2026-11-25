@@ -235,7 +235,7 @@ html body [data-rf-card] .home-edge-player span {
   padding: var(--sp-3) var(--sp-4);
   border: 0; border-radius: 0; background: none;
 }
-.rf-stat + .rf-stat { border-left: var(--hairline); }
+.rf-stat + .rf-stat { border-left: 1px solid rgba(255,255,255,0.06); }
 .rf-stat small {
   font: 600 var(--fs-1)/1 var(--rf-sans);
   letter-spacing: 0.08em;
@@ -411,7 +411,7 @@ html body .terminal-compliance-footer button {
 @media (prefers-reduced-motion: reduce) {
   html body *,
   html body *::before,
-  html body *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration:var(--dur-1) !important; }
+  html body *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: var(--dur-1) !important; }
 }
 
 /* ---------- light theme keeps working ---------- */
@@ -490,7 +490,7 @@ html body .home-edge-card[data-rf-card] {
   gap: var(--sp-3) !important;
   padding: var(--sp-4) var(--sp-4) !important;
   border-radius: var(--r-3) !important;
-  border: var(--hairline) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
   background: var(--rf-surface) !important;
   box-shadow: 0 12px 32px -14px rgba(0,0,0,0.7) !important;
   overflow: hidden;
@@ -502,7 +502,7 @@ html body [data-rf-card] .home-edge-player strong { font: 600 var(--fs-4)/1.2 va
 html body [data-rf-card] .home-edge-player span { font: 400 var(--fs-2)/1.3 var(--rf-mono) !important; }
 .rf-badge {
   flex: none; margin-left: auto; padding: 3px var(--sp-2); border-radius: var(--r-2);
-  background: rgba(255,255,255,0.04); border: var(--hairline);
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
   font: 500 var(--fs-1)/1.2 var(--rf-mono); letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; white-space: nowrap;
 }
 .rf-dist { gap: 0; }
@@ -530,7 +530,7 @@ html body .home-edge-card[data-rf-card] .home-research-note .home-research-label
 @keyframes rf-pulse { 50% { opacity: .35; } }
 .rf-status-strip .how-math-works-btn {
   position: relative; flex: none; height: 24px; padding: 0 var(--sp-2) !important; border-radius: var(--r-2) !important;
-  background: rgba(255,255,255,0.04) !important; border: var(--hairline) !important;
+  background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important;
   font: 500 var(--fs-1)/1 var(--rf-mono) !important; color: #cbd5e1 !important; box-shadow: none !important; min-height: 0 !important; width: auto !important;
 }
 /* invisible hit area: 24px visual button, 44px touch target */
@@ -547,10 +547,10 @@ html body .home-edge-card[data-rf-card] .home-research-note .home-research-label
     background: #0B0D11 !important;
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
-  html body .pw-terminal-chrome { border-bottom: var(--hairline) !important; }
+  html body .pw-terminal-chrome { border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
 
   /* segmented controls: 6px inner radius, #11141B track, #1E2330 thumb */
-  html body #mobileFilterStrip .chip-segment-group { background: #11141B !important; border: var(--hairline) !important; border-radius: var(--r-3) !important; padding: 2px !important; gap: 0 !important; }
+  html body #mobileFilterStrip .chip-segment-group { background: #11141B !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: var(--r-3) !important; padding: 2px !important; gap: 0 !important; }
   html body #mobileFilterStrip .chip-segment-group .chip-pill { border: 1px solid transparent !important; border-radius: var(--r-3) !important; background: transparent !important; box-shadow: none !important; }
   html body #mobileFilterStrip .chip-segment-group .chip-pill.active { background: #1E2330 !important; border-color: rgba(255,255,255,0.08) !important; color: #fff !important; }
 }
@@ -559,7 +559,7 @@ html body .home-edge-card[data-rf-card] .home-research-note .home-research-label
 html body .mobile-bottom-nav {
   background: rgba(11,13,17,0.9) !important;
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border-top: var(--hairline) !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
   border-radius: 0 !important; box-shadow: none !important;
 }
 html body .bottom-nav-item, html body .bottom-nav-item.active { border: 0 !important; box-shadow: none !important; }
@@ -577,7 +577,7 @@ html[data-theme="light"] .rf-dist-tail { fill: rgba(15,23,42,0.05); }
 html body #cardView .mobile-quant-row {
   padding: var(--sp-4) var(--sp-4) !important;
   border-radius: var(--r-3) !important;
-  border: var(--hairline) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
   background: var(--rf-surface) !important;
   box-shadow: 0 12px 32px -14px rgba(0,0,0,0.7) !important;
   overflow: hidden;
@@ -600,7 +600,7 @@ html body #cardView .mobile-quant-row .card-hero-edge-block { display: flex !imp
 html body #cardView .mobile-quant-row .card-hero-edge { font: 600 var(--fs-3)/1 var(--rf-mono) !important; font-variant-numeric: tabular-nums; background: none !important; border: 0 !important; padding: 0 !important; }
 html body #cardView .mobile-quant-row .card-edge-sub {
   padding: 3px var(--sp-2) !important; border-radius: var(--r-2) !important;
-  background: rgba(255,255,255,0.04) !important; border: var(--hairline) !important;
+  background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.06) !important;
   font: 500 var(--fs-1)/1.2 var(--rf-mono) !important; letter-spacing: .06em !important; text-transform: uppercase; white-space: nowrap;
 }
 
@@ -618,7 +618,7 @@ html body #cardView .mobile-quant-row .card-ci-chip {
   border: 0 !important; border-radius: 0 !important; background: none !important;
 }
 html body #cardView .mobile-quant-row .card-money-cell + .card-money-div + .card-money-cell,
-html body #cardView .mobile-quant-row .card-ci-chip { border-left: var(--hairline) !important; }
+html body #cardView .mobile-quant-row .card-ci-chip { border-left: 1px solid rgba(255,255,255,0.06) !important; }
 html body #cardView .mobile-quant-row .card-ci-chip {
   grid-column: 3; display: flex; align-items: center; width: auto !important;
   font: 600 var(--fs-2)/1.25 var(--rf-mono) !important; font-variant-numeric: tabular-nums; color: var(--rf-text) !important; letter-spacing: 0 !important;
@@ -639,7 +639,7 @@ html body #cardView .mobile-quant-row .grid-col-lbl { font: 600 var(--fs-1)/1 va
 /* action bar: research tag reads like the home card badge */
 html body #cardView .mobile-quant-row .card-research-tag {
   padding: 3px var(--sp-2) !important; border-radius: var(--r-2) !important;
-  background: rgba(255,255,255,0.04) !important; border: var(--hairline) !important;
+  background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.06) !important;
   font: 500 var(--fs-1)/1.2 var(--rf-mono) !important; letter-spacing: .06em !important; color: #94a3b8 !important;
 }
 
@@ -884,7 +884,7 @@ html body [data-rf-card] .home-edge-player { gap: var(--sp-1); }
 .rf-method { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3); border-radius: var(--r-3); background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.18); }
 .rf-method-flow { display: flex; align-items: stretch; gap: var(--sp-2); flex-wrap: wrap; }
 .rf-method-flow i { align-self: center; font: 500 var(--fs-4) var(--rf-mono); color: var(--rf-muted); font-style: normal; }
-.rf-m-step { display: flex; flex-direction: column; gap: 3px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-3); background: rgba(255,255,255,0.04); border: var(--hairline); min-width: 0; }
+.rf-m-step { display: flex; flex-direction: column; gap: 3px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-3); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); min-width: 0; }
 .rf-m-step small { font: 600 var(--fs-1)/1 var(--rf-sans); letter-spacing: .08em; text-transform: uppercase; color: #64748B; white-space: nowrap; }
 .rf-m-step b { font: 600 var(--fs-4)/1 var(--rf-mono); font-variant-numeric: tabular-nums; color: var(--rf-text); }
 .rf-m-out { border-color: rgba(56,189,248,0.45); }
@@ -1116,7 +1116,7 @@ html body #detailDialog .pd-tile-fair .pd-tile-value, html body #detailDialog .p
 /* (5) segmented controls at every width: a recessed tray, one raised active tile */
 html body #mobileFilterStrip .chip-segment-group {
   display: inline-flex !important; gap: 0 !important; padding: 2px !important; border-radius: var(--r-3) !important;
-  background: rgba(9, 9, 11, 0.6) !important; border: var(--hairline) !important;
+  background: rgba(9, 9, 11, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 html body #mobileFilterStrip .chip-segment-group .chip-pill {
   border: 1px solid transparent !important; border-radius: var(--r-3) !important; background: transparent !important;
@@ -1141,7 +1141,7 @@ html.light body .pw-brand-img { filter: none !important; }
 html.light body .rf-theme-toggle { background: #f4f4f5 !important; border-color: rgba(15, 23, 42, 0.12) !important; }
 html.light body .rf-theme-toggle span:not(.on) { color: #52525b !important; }
 /* (5) view switch (Table / Grid / Compact) uses the same segmented treatment */
-html body .pw-view-toggle { background: rgba(9, 9, 11, 0.6) !important; border: var(--hairline) !important; border-radius: var(--r-3) !important; padding: 2px !important; box-shadow: none !important; }
+html body .pw-view-toggle { background: rgba(9, 9, 11, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: var(--r-3) !important; padding: 2px !important; box-shadow: none !important; }
 html body .pw-view-toggle .pw-seg-btn { border-radius: var(--r-3) !important; border: 1px solid transparent !important; color: #a1a1aa !important; background: transparent !important; box-shadow: none !important; }
 html body .pw-view-toggle .pw-seg-btn.active, html body .pw-view-toggle .pw-seg-btn[aria-pressed="true"] { background: #1e2330 !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.5) !important; }
 html.light body .pw-view-toggle { background: #f4f4f5 !important; border-color: rgba(15, 23, 42, 0.1) !important; }
