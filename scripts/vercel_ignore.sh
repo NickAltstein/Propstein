@@ -15,7 +15,8 @@ if ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null 2>&1; then
 fi
 
 if git diff --quiet "$base" HEAD -- \
-  viewer/ public/ api/ src/ requirements.txt package.json vercel.json \
+  viewer/ public/ api/ src/ requirements.txt package.json package-lock.json \
+  vercel.json .vercelignore \
   ':(exclude)viewer/news_watcher_state.json' \
   ':(exclude)public/news_watcher_state.json'; then
   echo "No deployed paths changed; skipping Vercel build."

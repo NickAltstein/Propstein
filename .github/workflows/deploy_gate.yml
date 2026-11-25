@@ -26,8 +26,9 @@ name: Production deploy gate
 # Secrets (never printed; no `set -x` anywhere in this workflow):
 #   VERCEL_DEPLOY_HOOK_URL  deploy hook for branch main; anyone holding it
 #                           can trigger a production deploy
-#   VERCEL_API_TOKEN        reads the deployments list
-#   ALARM_WEBHOOK_URL       pages on any failed or unconfirmed deploy
+#   VERCEL_API_TOKEN        reads deployments; creates one if the hook fails twice
+#   ALARM_WEBHOOK_URL       pages unless the deploy reaches READY (or Vercel skips
+#                           a build of the commit production already serves)
 #
 # Pushes whose head commit says [skip ci] do not run this workflow; the next
 # push diffs against the last deployed commit, so nothing is lost.
@@ -60,7 +61,8 @@ concurrency:
 jobs:
   gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    # Two hook attempts (3 min each) + up to 10 min waiting for READY.
+    timeout-minutes: 20
     environment: deploy-gate
     steps:
       - name: Checkout repository
@@ -76,6 +78,7 @@ jobs:
           ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
           VERCEL_PROJECT_ID: prj_x5jE5FpSwubky56ZNjFY5nksEPNt
           VERCEL_TEAM_ID: team_x9wKpIlonQbu4ppHYWJ4mobH
+          VERCEL_PROJECT_NAME: propstein
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
           EVENT: ${{ github.event_name }}
           SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.sweep }}

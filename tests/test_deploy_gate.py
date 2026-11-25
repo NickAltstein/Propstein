@@ -52,7 +52,7 @@ def test_served_paths_match_the_ignored_build_step():
     script = (ROOT / "scripts/vercel_ignore.sh").read_text()
     for prefix in gate.SERVED_PREFIXES:
         assert f" {prefix}" in script or f"{prefix} " in script, prefix
-    for name in gate.NOT_SERVED:
+    for name in gate.NOT_SERVED + gate.SERVED_FILES:
         assert name in script, name
 
 
@@ -106,9 +106,10 @@ def test_auto_deploys_enabled_reads_vercel_json(tmp_path, rule, expected):
     assert gate.auto_deploys_enabled(str(p)) is expected
 
 
-def test_repo_vercel_json_still_deploys_main_automatically():
-    # Automatic deploys are turned off in a follow-up, after the hook test.
-    assert gate.auto_deploys_enabled(str(ROOT / "vercel.json")) is True
+def test_repo_vercel_json_leaves_production_deploys_to_the_gate():
+    # Automatic git deploys are off: every production deploy goes through
+    # the deploy gate's hook, so the gate is no longer report-only.
+    assert gate.auto_deploys_enabled(str(ROOT / "vercel.json")) is False
 
 
 # ── hook, verification, alarm ───────────────────────────────────────────
@@ -178,7 +179,7 @@ def _env(**extra):
 def _args(tmp_path, auto=False, **kw):
     vj = tmp_path / "vercel.json"
     vj.write_text(json.dumps({"git": {"deploymentEnabled": auto}}))
-    base = dict(head="HEAD", min_data_interval=60.0, verify_timeout=1.0, force=False,
+    base = dict(head="HEAD", min_data_interval=60.0, verify_timeout=1.0, ready_timeout=1.0, force=False,
                 sweep=False, dry_run=False, vercel_json=str(vj))
     base.update(kw)
     return Namespace(**base)
@@ -189,13 +190,15 @@ def stubs(monkeypatch):
     state = {"hook_calls": 0, "alarms": [], "paths": ["viewer/app.js"],
              "last": {"meta": {"githubCommitSha": "abc123"}, "ready": int((NOW - HOUR * 2).timestamp() * 1000),
                       "state": "READY"},
-             "new_dep": True}
+             "new_dep": True, "final": {"readyState": "READY", "readySubstate": "PROMOTED",
+                                         "meta": {"githubCommitSha": "def456"}},
+             "created": [], "head": "def456"}
 
     def fake_list(token, project, team, *, state=None, limit=10, opener=None):
         if state == "READY":
             return [stubs_state["last"]]
         if stubs_state["hook_calls"] and stubs_state["new_dep"]:
-            return [{"createdAt": int(datetime.now(timezone.utc).timestamp() * 1000) + 1000,
+            return [{"uid": "dpl_new", "createdAt": int(datetime.now(timezone.utc).timestamp() * 1000) + 1000,
                      "state": "QUEUED", "meta": {"githubCommitSha": "def456"}}]
         return [stubs_state["last"]]
 
@@ -205,6 +208,13 @@ def stubs(monkeypatch):
     monkeypatch.setattr(gate, "call_hook", lambda url: state.__setitem__("hook_calls", state["hook_calls"] + 1))
     monkeypatch.setattr(gate, "send_alarm", lambda msg, url: state["alarms"].append(msg))
     monkeypatch.setattr(gate.time, "sleep", lambda s: None)
+    monkeypatch.setattr(gate, "get_deployment", lambda token, dep_id, team: dict(state["final"], uid=dep_id))
+    monkeypatch.setattr(gate, "head_sha", lambda head="HEAD": state["head"])
+
+    def fake_create(token, **kw):
+        state["created"].append(kw)
+        return {"id": "dpl_api", "readyState": "QUEUED"}
+    monkeypatch.setattr(gate, "create_deployment", fake_create)
     return state
 
 
@@ -228,9 +238,95 @@ def test_force_tests_the_hook_even_while_automatic_deploys_are_on(tmp_path, stub
 def test_hook_accepted_but_no_deployment_pages(tmp_path, stubs):
     stubs["new_dep"] = False
     assert gate.run(_args(tmp_path), env=_env()) == 1
+    assert stubs["hook_calls"] == 2, "the hook is tried twice before giving up"
     assert len(stubs["alarms"]) == 1
     assert "no production deployment appeared" in stubs["alarms"][0]
     assert "SECRETHOOK" not in stubs["alarms"][0]
+
+
+# ── final state: only a live deploy counts ──────────────────────────────
+
+def test_ready_but_not_promoted_pages(tmp_path, stubs):
+    stubs["final"] = {"readyState": "READY", "readySubstate": "STAGED", "meta": {"githubCommitSha": "def456"}}
+    assert gate.run(_args(tmp_path), env=_env()) == 1
+    assert "STAGED, not live" in stubs["alarms"][0]
+
+
+def test_build_error_pages(tmp_path, stubs):
+    stubs["final"] = {"readyState": "ERROR", "errorMessage": "Command exited with 1",
+                      "meta": {"githubCommitSha": "def456"}}
+    assert gate.run(_args(tmp_path), env=_env()) == 1
+    assert "failed to build: Command exited with 1" in stubs["alarms"][0]
+
+
+def test_skipped_build_of_a_new_commit_pages(tmp_path, stubs):
+    """The gate saw a served change; Vercel skipping that build means the site froze."""
+    stubs["final"] = {"readyState": "CANCELED",
+                      "errorMessage": "The deployment was canceled because the Ignored Build Step "
+                                      "command returned exit code 0.",
+                      "meta": {"githubCommitSha": "def456"}}
+    assert gate.run(_args(tmp_path), env=_env()) == 1
+    assert "was CANCELED" in stubs["alarms"][0]
+
+
+def test_skipped_build_of_the_commit_production_serves_is_no_change(tmp_path, stubs, capsys):
+    stubs["paths"] = []
+    stubs["final"] = {"readyState": "CANCELED",
+                      "errorMessage": "The deployment was canceled because the Ignored Build Step "
+                                      "command returned exit code 0.",
+                      "meta": {"githubCommitSha": "abc123"}}
+    assert gate.run(_args(tmp_path, force=True), env=_env()) == 0
+    assert stubs["alarms"] == []
+    assert "no change: production already serves abc123" in capsys.readouterr().out
+
+
+def test_cancelled_for_another_reason_pages_even_on_the_served_commit(tmp_path, stubs):
+    stubs["paths"] = []
+    stubs["final"] = {"readyState": "CANCELED", "errorMessage": "Canceled by a newer deployment",
+                      "meta": {"githubCommitSha": "abc123"}}
+    assert gate.run(_args(tmp_path, force=True), env=_env()) == 1
+    assert "Canceled by a newer deployment" in stubs["alarms"][0]
+
+
+def test_still_building_at_the_timeout_pages(tmp_path, stubs):
+    stubs["final"] = {"readyState": "BUILDING", "meta": {"githubCommitSha": "def456"}}
+    assert gate.run(_args(tmp_path), env=_env()) == 1
+    assert "still BUILDING at the timeout" in stubs["alarms"][0]
+
+
+def test_hook_failing_twice_falls_back_to_the_api_and_still_pages(tmp_path, stubs):
+    stubs["new_dep"] = False
+    assert gate.run(_args(tmp_path), env=_env(GITHUB_REPOSITORY_ID="42",
+                                              VERCEL_PROJECT_NAME="propstein")) == 0
+    assert stubs["hook_calls"] == 2
+    assert stubs["created"] == [{"project": "prj", "name": "propstein", "team": "team",
+                                 "repo_id": "42", "sha": "def456"}]
+    assert len(stubs["alarms"]) == 1 and "hook FAILED twice" in stubs["alarms"][0]
+    assert "SECRETHOOK" not in stubs["alarms"][0]
+
+
+def test_api_fallback_deploy_must_also_reach_ready(tmp_path, stubs):
+    stubs["new_dep"] = False
+    stubs["final"] = {"readyState": "ERROR", "errorMessage": "boom", "meta": {"githubCommitSha": "def456"}}
+    assert gate.run(_args(tmp_path), env=_env(GITHUB_REPOSITORY_ID="42",
+                                              VERCEL_PROJECT_NAME="propstein")) == 1
+    assert "failed to build: boom" in stubs["alarms"][-1]
+
+
+def test_wait_for_final_state_stops_at_a_final_state():
+    states = iter([{"readyState": "QUEUED"}, {"readyState": "BUILDING"}, {"readyState": "READY"}])
+    t = iter(range(100))
+    dep = gate.wait_for_final_state(lambda: next(states), timeout_s=50, interval_s=0,
+                                    sleep=lambda s: None, clock=lambda: next(t))
+    assert dep["readyState"] == "READY"
+
+
+def test_workflow_gives_the_gate_time_to_wait_for_ready():
+    import re
+    yml = GATE_YML.read_text()
+    minutes = int(re.search(r"timeout-minutes:\s*(\d+)", yml).group(1))
+    assert minutes * 60 >= 2 * 180 + 600 + 60
+    assert "VERCEL_PROJECT_NAME: propstein" in yml
 
 
 def test_hook_rejection_pages(tmp_path, stubs, monkeypatch):
