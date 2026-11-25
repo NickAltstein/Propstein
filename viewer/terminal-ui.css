@@ -1422,6 +1422,16 @@ html body.terminal-ui .ps-scan-card:hover {
   min-width: 0;
   flex: 1 1 auto;
 }
+.ps-scan-who {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ps-scan-who .pw-avatar {
+  position: relative;
+}
 .ps-scan-name-row {
   display: flex;
   align-items: center;
