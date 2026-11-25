@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-24",
-  "as_of": "2026-11-24T17:15:32Z",
+  "as_of": "2026-11-25T00:34:11Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -48,39 +48,39 @@
       "comment": "Biberovic (heel) is out for Wednesday's game against the Warriors."
     },
     {
+      "player_name": "Cade Cunningham",
+      "team": "DET",
+      "report_status": "Out",
+      "reported_at": "2026-11-24T23:36Z",
+      "comment": "Cunningham (knee) is listed as out for Tuesday's game against Orlando."
+    },
+    {
       "player_name": "Ebuka Okorie",
       "team": "DET",
       "report_status": "Out",
-      "reported_at": "2026-11-23T22:10Z",
-      "comment": "Okorie (oblique) won't play Tuesday in Orlando."
-    },
-    {
-      "player_name": "Jalen Duren",
-      "team": "DET",
-      "report_status": "Out",
-      "reported_at": "2026-11-23T22:08Z",
-      "comment": "Duren (hamstring) has been ruled out for Tuesday's game against the Magic."
-    },
-    {
-      "player_name": "Cade Cunningham",
-      "team": "DET",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-23T22:07Z",
-      "comment": "Cunningham (knee) is probable for Tuesday's game against the Orlando."
+      "reported_at": "2026-11-24T18:37Z",
+      "comment": "The Pistons announced Tuesday that Okorie (oblique) will miss at least two weeks, per Eric Vincent of ClutchPoints.com."
     },
     {
       "player_name": "Taurean Prince",
       "team": "DET",
       "report_status": "Out",
-      "reported_at": "2026-11-20T23:02Z",
-      "comment": "Prince (knee) underwent surgery to address lingering issues and has no timeline for a return, Hunter Patterson of The Athletic reports."
+      "reported_at": "2026-11-24T18:33Z",
+      "comment": "Prince underwent arthroscopic right knee surgery Nov. 18 and will be re-evaluated in four weeks, Eric Vincent of ClutchPoints.com reports."
     },
     {
       "player_name": "Duncan Robinson",
       "team": "DET",
       "report_status": "Out",
-      "reported_at": "2026-11-17T16:25Z",
-      "comment": "Robinson will be re-evaluated in one week due to a left quadriceps strain, Coty M. Davis of The Detroit News reports."
+      "reported_at": "2026-11-24T18:30Z",
+      "comment": "Robinson (quadriceps) is considered day-to-day as he progresses in his rehab, Eric Vincent of ClutchPoints.com reports."
+    },
+    {
+      "player_name": "Jalen Duren",
+      "team": "DET",
+      "report_status": "Out",
+      "reported_at": "2026-11-24T18:27Z",
+      "comment": "Duren (hamstring) is being assigned to the Motor City Cruise on Wednesday for practice as he ramps up for a return, Eric Vincent of ClutchPoints.com reports."
     },
     {
       "player_name": "Jonathan Isaac",
