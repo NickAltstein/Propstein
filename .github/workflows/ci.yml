@@ -9,6 +9,33 @@ permissions:
   contents: read
 
 jobs:
+  viewer-page-load:
+    name: Viewer page-load smoke (fixture data)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Detect viewer changes
+        id: viewer
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -q '^viewer/'; then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install browser test dependencies
+        if: steps.viewer.outputs.changed == 'true'
+        run: |
+          npm ci
+          npx playwright-core install --with-deps chromium
+      - name: Load every viewer page with fixtures
+        if: steps.viewer.outputs.changed == 'true'
+        run: node --test test/viewer-script-order.test.mjs test/viewer-page-load.test.mjs
+
   production-deploy-contract:
     name: Production v1 deploy contract (blocking)
     runs-on: ubuntu-24.04
