@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { buildSandbox, loadApp, FROZEN_MS } from './helpers/sandbox.mjs';
 
 const require = createRequire(import.meta.url);
-const { selectMainQuote, derivePriceState, noVigOver, LABELS, MAIN_LINE_MAX_SKEW, venueName } = require('../viewer/js/price-state.js');
+const { selectMainQuote, derivePriceState, noVigOver, overround, LABELS, MAIN_LINE_MAX_SKEW, MAIN_LINE_MAX_OVERROUND, venueName } = require('../viewer/js/price-state.js');
 
 const NOW = Date.parse('2026-11-24T21:00:00Z');
 const minutesAgo = (m) => new Date(NOW - m * 60000).toISOString();
@@ -67,6 +67,43 @@ test('a lone one-sided quote cannot be checked, so it is an alt line, never main
   const s = derivePriceState([only], { now: NOW, presentation: 'none' });
   assert.equal(s.isMain, false);
   assert.equal(s.quote, only, 'still shown, as an alt line');
+});
+
+test('spread gate: CeeDee Lamb 69.5 at Over -223 / Under -300 (adds up to 1.44) is not the main line', () => {
+  assert.equal(MAIN_LINE_MAX_OVERROUND, 1.15);
+  const wide = q(69.5, -223, -300, { liquidity_usd: 15 });
+  assert.ok(Math.abs(overround(wide) - 1.4404) < 0.001);
+  const p = noVigOver(wide);
+  assert.ok(Math.abs(p - 0.5) <= MAIN_LINE_MAX_SKEW, `inside the 40-60% window (p=${p.toFixed(3)}), so only the spread gate rejects it`);
+  const pick = selectMainQuote([wide]);
+  assert.equal(pick.main, null);
+  assert.deepEqual(pick.alts, [wide], 'still shown, as an alt line');
+  const s = derivePriceState([wide], { now: NOW, presentation: 'none' });
+  assert.equal(s.isMain, false);
+  assert.equal(s.quote, wide);
+});
+
+test('spread gate: a pair adding up to 1.14 inside the window is the main line; 1.15 is inclusive', () => {
+  const ok = q(60.5, null, null, { over_cents: 57, under_cents: 57 }); // 1.14, p = 0.50
+  assert.ok(Math.abs(overround(ok) - 1.14) < 1e-9);
+  assert.equal(selectMainQuote([ok]).main, ok);
+  const edge = q(61.5, null, null, { over_cents: 57, under_cents: 58 }); // exactly 1.15
+  assert.equal(selectMainQuote([edge]).main, edge);
+  const over = q(62.5, null, null, { over_cents: 58, under_cents: 58 }); // 1.16
+  assert.equal(selectMainQuote([over]).main, null);
+});
+
+test('spread gate runs before the window: a wide line nearer 50% cannot displace a tighter main line', () => {
+  const wide = q(69.5, -223, -300);      // p ~ 0.48 but adds up to 1.44
+  const tight = q(64.5, -125, 105);      // p ~ 0.53, adds up to ~1.04
+  const pick = selectMainQuote([wide, tight]);
+  assert.equal(pick.main, tight);
+  assert.deepEqual(pick.alts, [wide]);
+});
+
+test('spread gate never makes a one-sided quote main', () => {
+  assert.equal(overround(q(55.5, -115, null)), null);
+  assert.equal(selectMainQuote([q(55.5, -115, null), q(56.5, null, null, { over_cents: 50 })]).main, null);
 });
 
 test('the main-line rule never looks at the model fair line', () => {
