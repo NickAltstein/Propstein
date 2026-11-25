@@ -286,6 +286,7 @@ export function loadApp(sandbox) {
     ['viewer/js/sports/nba.js', path.join(VIEWER, 'js', 'sports', 'nba.js')],
     ['viewer/js/quant-math.js', path.join(VIEWER, 'js', 'quant-math.js')],
     ['viewer/js/market-status.js', path.join(VIEWER, 'js', 'market-status.js')],
+    ['viewer/js/price-state.js', path.join(VIEWER, 'js', 'price-state.js')],
   ];
   const source = fs.readFileSync(path.join(VIEWER, 'app.js'), 'utf8');
   const hook = `
@@ -295,7 +296,7 @@ export function loadApp(sandbox) {
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate, initSlateIndex,
     feedHealthStates, updateFeedHealthUI, feedVerificationLabel, updateFeedVerificationUI, marketFeedSourceLabel, detectBookDiscrepancy, executionDecision, stampProvenance,
-    renderPickFlow, priceLine, quoteIsSynthetic, resolveDataKind,
+    renderPickFlow, priceLine, findQuote, rowPriceState, quoteIsSynthetic, resolveDataKind,
     renderSportChrome, renderDetailModal,
     quantMath: { americanToDecimal, impliedProbability, devig, pRecOver, pYardsOver, compoundYardsCdf, regularizedGammaP, logGamma },
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }

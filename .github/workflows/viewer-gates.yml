@@ -1,0 +1,61 @@
+name: Viewer gates
+
+# Screenshots + layout/axe assertions for viewer changes (scripts/visual/redesign-gates.mjs).
+# Captures the base branch and this PR on the same pinned data and uploads both sets and
+# the pixel diffs as a workflow artifact. FAILS on a regression vs the base branch, and on
+# the ratchet: any failure not listed in scripts/visual/known-failures.json, or any listed
+# failure that now passes (the fixing PR must delete that entry so it becomes required).
+
+on:
+  pull_request:
+    paths:
+      - "viewer/**"
+      - "scripts/visual/**"
+      - ".github/workflows/viewer-gates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: viewer-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Viewer screenshots and layout gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium for playwright-core
+        run: npx playwright-core install --with-deps chromium
+      - name: Install axe-core (scan only, not saved to package.json)
+        run: npm install --no-save --ignore-scripts axe-core@4.10.2
+      - name: Capture base branch
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          git worktree add "$RUNNER_TEMP/base" "origin/$BASE_REF"
+          mkdir -p "$RUNNER_TEMP/base/scripts/visual"
+          cp scripts/visual/redesign-gates.mjs scripts/visual/redesign-data-ref "$RUNNER_TEMP/base/scripts/visual/"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/base/node_modules"
+          (cd "$RUNNER_TEMP/base" && node scripts/visual/redesign-gates.mjs "$GITHUB_WORKSPACE/gates/base" --axe "$GITHUB_WORKSPACE/node_modules/axe-core/axe.min.js") || true
+      - name: Capture this PR, check regressions and the known-failures ratchet
+        run: node scripts/visual/redesign-gates.mjs gates/pr --axe node_modules/axe-core/axe.min.js --baseline gates/base/report.json --known scripts/visual/known-failures.json
+      - name: Pixel diff base vs PR
+        if: always()
+        run: node scripts/visual/compare.mjs gates/base gates/pr gates/diff || true
+      - name: Upload screenshots, diffs and reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: viewer-gates-${{ github.event.pull_request.number || github.run_id }}
+          path: gates/
+          retention-days: 30

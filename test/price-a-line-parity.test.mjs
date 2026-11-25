@@ -16,7 +16,7 @@ function extractMetrics(pickResultEl, pickLineEl) {
   const underMatch = html.match(/<dt>Under<\/dt>\s*<dd>([0-9.]+%)\s*<span>([^<]+)<\/span><\/dd>/i);
   const breakEvenMatch = html.match(/<dt>Break-even<\/dt>\s*<dd>([0-9.]+)%<\/dd>/i);
   const caveatMatch = html.match(/<p class="pick-caveat">([^<]+)<\/p>/i);
-  const bookMatch = html.match(/<p class="pick-book">([^<]+)<\/p>/i);
+  const bookMatch = html.match(/<p class="pick-book"[^>]*>(.*?)<\/p>/is);
 
   return {
     line: pickLineEl.value,
@@ -27,7 +27,7 @@ function extractMetrics(pickResultEl, pickLineEl) {
     underProb: underMatch ? underMatch[1].trim() : null,
     underVsBreakEven: underMatch ? underMatch[2].trim() : null,
     breakEven: breakEvenMatch ? breakEvenMatch[1].trim() : null,
-    bookLine: bookMatch ? bookMatch[1].trim() : null,
+    bookLine: bookMatch ? bookMatch[1].replace(/<[^>]+>/g, '').trim() : null,
     caveat: caveatMatch ? caveatMatch[1].trim() : null,
   };
 }

@@ -343,35 +343,47 @@ class ProjectionRecalcAgent:
             except Exception:
                 pass
 
-        for nba_file in ("nba_slate_2026-10-29.json", "nba_slate_2026-10-23.json", "nba_slate_2026-10-22.json"):
-            p = VIEWER_DIR / nba_file
-            if p.exists():
-                try:
-                    rows = json.loads(p.read_text(encoding="utf-8"))
-                    for r in rows:
-                        pid = str(r.get("player_id") or "")
-                        if not pid or pid in self.baseline_catalog:
-                            continue
-                        mu_pts = float(r.get("proj_points") or r.get("fair_points") or 21.5)
-                        sd_pts = float(r.get("sd_points") or max(2.5, 0.28 * mu_pts))
-                        mins = float(r.get("proj_minutes") or 33.0)
-                        self.baseline_catalog[pid] = {
-                            "sport": "nba",
-                            "player_id": pid,
-                            "player_name": r.get("player_display_name", pid),
-                            "team": r.get("team", "UNK"),
-                            "opponent": r.get("opponent_team", "UNK"),
-                            "position": r.get("position", "PG"),
-                            "game_id": r.get("game_id", "nba-20261029"),
-                            "market": "points",
-                            "line": float(r.get("fair_points") or round(mu_pts - 0.5, 1)),
-                            "base_mu": mu_pts,
-                            "base_sd": sd_pts,
-                            "base_minutes": mins,
-                            "base_usage_rate": float(r.get("usage_rate") or 0.25),
-                        }
-                except Exception:
-                    pass
+        try:
+            index = json.loads((VIEWER_DIR / "feeds" / "slate-index.json").read_text(encoding="utf-8"))
+            nba = index["sports"]["nba"]
+            current = nba["slates"][nba["default_slate"]]
+            slate_name = current["slate"]
+            if current.get("fixture") is True or Path(slate_name).name != slate_name:
+                return
+            rows = json.loads((VIEWER_DIR / slate_name).read_text(encoding="utf-8"))
+            if not isinstance(rows, list):
+                return
+        except (OSError, ValueError, KeyError, TypeError):
+            return
+
+        for r in rows:
+            # The manifest label is advisory; every pricing row must pass this guard.
+            if not isinstance(r, dict) or r.get("_fixture") is True:
+                continue
+            pid = str(r.get("player_id") or "")
+            if not pid or pid in self.baseline_catalog:
+                continue
+            try:
+                mu_pts = float(r.get("proj_points") or r.get("fair_points") or 21.5)
+                sd_pts = float(r.get("sd_points") or max(2.5, 0.28 * mu_pts))
+                mins = float(r.get("proj_minutes") or 33.0)
+                self.baseline_catalog[pid] = {
+                    "sport": "nba",
+                    "player_id": pid,
+                    "player_name": r.get("player_display_name", pid),
+                    "team": r.get("team", "UNK"),
+                    "opponent": r.get("opponent_team", "UNK"),
+                    "position": r.get("position", "PG"),
+                    "game_id": r.get("game_id", "live_game"),
+                    "market": "points",
+                    "line": float(r.get("fair_points") or round(mu_pts - 0.5, 1)),
+                    "base_mu": mu_pts,
+                    "base_sd": sd_pts,
+                    "base_minutes": mins,
+                    "base_usage_rate": float(r.get("usage_rate") or 0.25),
+                }
+            except (TypeError, ValueError):
+                continue
 
     def get_or_create_baseline(self, player_id: str, fallback: dict[str, Any] | None = None) -> dict[str, Any]:
         if player_id in self.baseline_catalog:
