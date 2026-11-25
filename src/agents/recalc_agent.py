@@ -349,6 +349,11 @@ class ProjectionRecalcAgent:
                 try:
                     rows = json.loads(p.read_text(encoding="utf-8"))
                     for r in rows:
+                        # Synthetic rows (scripts/build_nba_fixtures.py, _fixture: true;
+                        # these three nights are all-fixture) are sample data, never a
+                        # baseline for the live money path.
+                        if not isinstance(r, dict) or r.get("_fixture") is True:
+                            continue
                         pid = str(r.get("player_id") or "")
                         if not pid or pid in self.baseline_catalog:
                             continue

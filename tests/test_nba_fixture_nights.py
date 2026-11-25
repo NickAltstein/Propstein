@@ -53,3 +53,43 @@ def test_committed_index_labels_match_the_slate_files():
             assert "audit" not in entry["state"].lower(), date
     for date in ("2026-10-22", "2026-10-23", "2026-10-29"):
         assert nba[date]["fixture"] is True, date
+
+
+FIXTURE_NIGHTS = ("2026-10-22", "2026-10-23", "2026-10-29")
+
+
+def test_live_recalc_agent_loads_no_synthetic_nba_baselines():
+    """The money-path agent used to load all 169 fx- rows from the three
+    fixture nights as NBA baselines (base_mu, base_sd, line)."""
+    from src.agents import recalc_agent as ra
+
+    agent = ra.ProjectionRecalcAgent.__new__(ra.ProjectionRecalcAgent)
+    agent.baseline_catalog = {}
+    agent._load_baseline_catalog()
+    nba = {pid: row for pid, row in agent.baseline_catalog.items() if row["sport"] == "nba"}
+    assert not [pid for pid in nba if pid.startswith("fx-")]
+    fixture_ids = {
+        str(r.get("player_id"))
+        for d in FIXTURE_NIGHTS
+        for r in json.loads((ROOT / "viewer" / f"nba_slate_{d}.json").read_text())
+    }
+    assert fixture_ids and not (fixture_ids & set(agent.baseline_catalog))
+
+
+def test_s14_evidence_counts_leave_out_fixture_nights():
+    from scripts.diagnostics import s14_evidence as s14
+
+    rows = s14.inspect_field_inventory()
+    kalshi = next(r for r in rows if str(r.get("source", r.get("name", ""))).startswith("Kalshi NBA")
+                  or "Kalshi NBA" in json.dumps(r))
+    real_files = [p for p in sorted((ROOT / "viewer").glob("nba_odds_*.json"))
+                  if not p.name.endswith(".manifest.json")
+                  and json.loads(p.read_text()).get("_fixture") is not True]
+    assert f"({len(real_files)} files)" in json.dumps(kalshi)
+
+    coverage = s14.compute_kalshi_nba_offset_coverage()
+    blob = json.dumps(coverage)
+    for d in FIXTURE_NIGHTS:
+        for g in json.loads((ROOT / "viewer" / f"nba_games_{d}.json").read_text()):
+            gid = str(g.get("game_id") or "")
+            assert not gid or gid not in blob, f"fixture game {gid} counted in offset coverage"
