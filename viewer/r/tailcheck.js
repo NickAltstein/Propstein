@@ -151,16 +151,92 @@
     return Number.isFinite(v) && v > 0 ? v : DEFAULT_ODDS_STALE_SECONDS;
   }
 
+  // Every level scripts/feed_age.py can write, and what the tail check does
+  // with it. Only `ok` serves quotes. `suppressed` (updates stopped on purpose)
+  // and `degraded` (last good fetch 2-12h old with a game still to come) are
+  // honest pauses: quotes hidden, reason shown. `critical`, and any level not
+  // listed here (a typo, a renamed level, a broken writer), fail closed as an
+  // error. test/feed-level-contract.test.mjs keeps this map equal to the
+  // levels feed_age.py writes.
+  const FEED_LEVELS = Object.freeze({ ok: 'healthy', suppressed: 'paused', degraded: 'paused', critical: 'error' });
+  const PAUSE_REASON = {
+    SLATE_BLOCKED: 'slate blocked',
+    NO_CURRENT_SLATE: 'between weeks',
+  };
+
+  function pauseReason(sportStatus) {
+    const state = sportStatus && sportStatus.slate_state && sportStatus.slate_state.state;
+    return PAUSE_REASON[state] || 'no game in the current window';
+  }
+
+  /** "feed is 4h behind (last update 2026-11-24 16:12 UTC)" from feed_age's own age fields. */
+  function behindReason(sportStatus) {
+    const hours = Number(sportStatus && sportStatus.age_hours);
+    const ago = Number.isFinite(hours) && hours >= 0 ? `${Math.floor(hours)}h behind` : 'behind';
+    const since = sportStatus && sportStatus.stale_since;
+    return Number.isFinite(parseTs(since)) ? `feed is ${ago} (last update ${fmtTs(since)})` : `feed is ${ago}`;
+  }
+  const FORBIDDEN_PROVENANCE_RE = /fixture|synthetic|test|seed|replay|demo/i;
+
+  function isFixtureOrTestQuote(q, feedMeta) {
+    if (!q || typeof q !== 'object') return true;
+    if (q._fixture === true || q.fixture === true || q.is_fixture === true) return true;
+    if (q.synthetic === true || q.seeded === true || q.replayed === true || q.is_test === true) return true;
+    if (q.provenance && FORBIDDEN_PROVENANCE_RE.test(String(q.provenance))) return true;
+    if (q.source_env && FORBIDDEN_PROVENANCE_RE.test(String(q.source_env))) return true;
+    if (feedMeta && typeof feedMeta === 'object') {
+      if (feedMeta._fixture === true || feedMeta.is_fixture === true || feedMeta.synthetic === true) return true;
+      if (feedMeta.feed_status && FORBIDDEN_PROVENANCE_RE.test(String(feedMeta.feed_status))) return true;
+    }
+    return false;
+  }
+
   /**
    * Load observed quotes for the given feed files.
-   * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed', quotes, checkedFiles }.
+   * Fail-closed health gate (P0-1): missing, timed-out, malformed, unknown-status,
+   * or stale feed_status.json suppresses quotes instead of failing open.
+   * Only level `ok` serves quotes. `suppressed` and `degraded` (intended pauses)
+   * return status 'paused' with a pauseReason; anything else returns 'fail_closed'.
+   * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed' | 'paused', quotes, checkedFiles, pauseReason? }.
    */
-  async function loadCurrentQuotes(sport, oddsFiles) {
+  async function loadCurrentQuotes(sport, oddsFiles, { nowMs = null, maxHealthAgeSeconds = null } = {}) {
     const files = [...new Set((oddsFiles || []).filter((f) => f && DATA_FILE_RE.test(f)))];
     if (!files.length) return { status: 'no_source', quotes: [], checkedFiles: [] };
-    const feedStatus = await fetchJsonOrNull('/feeds/feed_status.json');
-    const sportStatus = feedStatus && feedStatus.sports && feedStatus.sports[sport];
-    if (sportStatus && sportStatus.fail_closed === true) return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    let feedStatus;
+    try {
+      feedStatus = await fetchJson('/feeds/feed_status.json');
+    } catch {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
+    if (!feedStatus || typeof feedStatus !== 'object' || !feedStatus.sports || typeof feedStatus.sports !== 'object') {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
+    const generatedAt = parseTs(feedStatus.generated_at);
+    if (!Number.isFinite(generatedAt)) {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
+    if (Number.isFinite(nowMs) && Number.isFinite(maxHealthAgeSeconds) && maxHealthAgeSeconds > 0) {
+      const healthAgeSec = (nowMs - generatedAt) / 1000;
+      if (healthAgeSec > maxHealthAgeSeconds || healthAgeSec < -5) {
+        return { status: 'fail_closed', quotes: [], checkedFiles: files };
+      }
+    }
+    const sportStatus = feedStatus.sports[sport];
+    if (!sportStatus || typeof sportStatus !== 'object') {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
+    if (sportStatus.fail_closed !== false) {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
+    const level = String(sportStatus.level || '').trim().toLowerCase();
+    const kind = Object.prototype.hasOwnProperty.call(FEED_LEVELS, level) ? FEED_LEVELS[level] : 'error';
+    if (kind === 'paused') {
+      const reason = level === 'degraded' ? behindReason(sportStatus) : pauseReason(sportStatus);
+      return { status: 'paused', quotes: [], checkedFiles: files, pauseReason: reason };
+    }
+    if (kind !== 'healthy') {
+      return { status: 'fail_closed', quotes: [], checkedFiles: files };
+    }
     const quotes = [];
     for (const f of files) {
       let feed;
@@ -169,9 +245,12 @@
       } catch {
         return { status: 'source_failed', quotes: [], checkedFiles: files };
       }
+      const feedMeta = (!Array.isArray(feed) && feed && typeof feed === 'object') ? feed : null;
       const list = Array.isArray(feed) ? feed : (feed && Array.isArray(feed.quotes) ? feed.quotes : null);
       if (!list) return { status: 'source_failed', quotes: [], checkedFiles: files };
-      list.forEach((q) => { if (q && typeof q === 'object') quotes.push(q); });
+      list.forEach((q) => {
+        if (q && typeof q === 'object' && !isFixtureOrTestQuote(q, feedMeta)) quotes.push(q);
+      });
     }
     return { status: 'ok', quotes, checkedFiles: files };
   }
@@ -179,13 +258,15 @@
   /**
    * Exact-selection filter. selection = { gameId, playerId, market, side, threshold }.
    * side: 'OVER' | 'UNDER' for line markets, 'YES' for anytime_td (threshold null).
-   * Returns { eligible: [{ book, odds, decimal, observedAt, line }], rejected: { stale, mismatch } }.
+   * Excludes fixture/seeded/replayed/test quotes (P0-3).
+   * Returns { eligible: [{ book, odds, decimal, observedAt, receivedAt, line }], rejected: { stale, mismatch, fixture } }.
    */
   function eligibleQuotes(quotes, selection, { nowMs, maxAgeSeconds, books = null }) {
     const eligible = [];
-    const rejected = { stale: 0, mismatch: 0 };
+    const rejected = { stale: 0, mismatch: 0, fixture: 0 };
     for (const q of quotes || []) {
       if (!q || typeof q !== 'object') continue;
+      if (isFixtureOrTestQuote(q, null)) { rejected.fixture += 1; continue; }
       const sameEvent = selection.gameId && String(q.game_id || '') === String(selection.gameId);
       const samePlayer = selection.playerId && String(q.player_id || '') === String(selection.playerId);
       if (!sameEvent || !samePlayer) continue;
@@ -208,15 +289,33 @@
       if (!Number.isFinite(observed)) { rejected.stale += 1; continue; }
       const ageSeconds = (nowMs - observed) / 1000;
       if (ageSeconds > maxAgeSeconds || ageSeconds < -60) { rejected.stale += 1; continue; }
-      eligible.push({ book: String(q.book || 'Unknown book'), odds, decimal, observedAt: q.observed_at, line });
+      eligible.push({ book: String(q.book || 'Unknown book'), odds, decimal, observedAt: q.observed_at, receivedAt: q.received_at || null, line });
     }
     return { eligible, rejected };
   }
 
-  /** Best = highest payout among the eligible quotes actually checked; ties → newer. */
+  /** Newest eligible observation for a single book (P0-2): never picks an older better price over a newer worse price. */
+  function newestOf(eligible) {
+    if (!eligible.length) return null;
+    return eligible.slice().sort((a, b) => {
+      const obsDiff = parseTs(b.observedAt) - parseTs(a.observedAt);
+      if (obsDiff !== 0) return obsDiff;
+      const recA = parseTs(a.receivedAt);
+      const recB = parseTs(b.receivedAt);
+      if (Number.isFinite(recA) && Number.isFinite(recB) && recB !== recA) return recB - recA;
+      return a.decimal - b.decimal; // deterministic conservative tie-break
+    })[0];
+  }
+
+  /** Best across distinct books (each book first reduced to its newest eligible observation). */
   function bestOf(eligible) {
     if (!eligible.length) return null;
-    return eligible.slice().sort((a, b) => (b.decimal - a.decimal) || (parseTs(b.observedAt) - parseTs(a.observedAt)))[0];
+    const byBook = new Map();
+    for (const q of eligible) {
+      const cur = byBook.get(q.book);
+      byBook.set(q.book, cur ? newestOf([cur, q]) : q);
+    }
+    return [...byBook.values()].sort((a, b) => (b.decimal - a.decimal) || (parseTs(b.observedAt) - parseTs(a.observedAt)))[0];
   }
 
   // ---------------------------------------------------------- comparisons
@@ -312,10 +411,10 @@
 
     if (opts.perBook) {
       opts.perBook.forEach((book) => {
-        const best = bestOf(result.eligible.filter((q) => q.book === book));
-        summary.books[book] = best;
-        parts.push(row(`${book} now`, tag('OBSERVED', 'is-observed'), best
-          ? quoteBody(best)
+        const latest = newestOf(result.eligible.filter((q) => q.book === book));
+        summary.books[book] = latest;
+        parts.push(row(`${book} now`, tag('OBSERVED', 'is-observed'), latest
+          ? quoteBody(latest)
           : '<span class="t-none" data-no-current-quote="1">No current quote</span>', `data-book-row="${esc(book)}"`));
       });
     } else {
@@ -327,7 +426,8 @@
     }
 
     const notes = [];
-    if (!sourceOk) notes.push(SOURCE_NOTE[opts.source.status] || 'Quote source unavailable.');
+    if (opts.source.status === 'paused') notes.push(`Quotes paused: ${opts.source.pauseReason || 'no game in the current window'}.`);
+    else if (!sourceOk) notes.push(SOURCE_NOTE[opts.source.status] || 'Quote source unavailable.');
     else {
       notes.push(`Checked ${result.eligible.length} current exact-match quote${result.eligible.length === 1 ? '' : 's'}.`);
       const r = rejectedNote(result.rejected);
@@ -547,6 +647,7 @@
     loadSlateIndex,
     findSnapshotByHash,
     oddsStaleSeconds,
+    FEED_LEVELS,
     loadCurrentQuotes,
     eligibleQuotes,
     vsPosted,

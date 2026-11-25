@@ -443,3 +443,57 @@ def test_main_fails_loudly_on_a_live_slate_with_no_rows(monkeypatch, capsys):
     err = capsys.readouterr().err
     assert "SLATE ALARM NO_SLATE_ROWS: 0 rows while 7 markets" in err
     assert notes[-1]["slate"]["markets"] == 7
+
+
+def _event(*markets):
+    return {"title": "A vs. B - Player Props", "markets": list(markets)}
+
+
+def _market(mid, question, tokens='["o-%s","u-%s"]'):
+    return {"id": mid, "question": question, "outcomes": '["Over","Under"]',
+            "clobTokenIds": tokens % (mid, mid) if "%s" in tokens else tokens}
+
+
+def test_collect_counts_unparsed_and_no_book_separately(monkeypatch, capsys):
+    events = [_event(
+        _market("good", "Puka Nacua: Receiving Yards O/U 74.5"),
+        _market("bad", "Puka Nacua: Receptions O/U 4.5", tokens="not-json"),
+        _market("nobook", "Puka Nacua: Receiving Yards O/U 80.5"),
+        _market("offslate", "Nobody Here: Receptions O/U 2.5"),
+    )]
+    monkeypatch.setattr(pm, "fetch_events", lambda **k: events)
+    monkeypatch.setattr(pm, "load_slate", lambda: [{
+        "player_id": "00-1", "player_display_name": "Puka Nacua", "game_id": "g"}])
+    monkeypatch.setattr(pm, "fetch_token_books", lambda ids: {
+        t: {"token_id": t, "ask_price": 0.5, "ask_depth_usd": 50.0} for t in ids if "nobook" not in t})
+    monkeypatch.setattr(pm, "build_quote", lambda *a, **k: None)
+    stats = {}
+    pm.collect_quotes(stats=stats)
+    c = stats["counters"]
+    assert c["skipped_unparsed"] == 1 and c["unparsed_market_ids"] == ["bad"]
+    assert c["skipped_no_book"] == 1
+    assert c["skipped_off_slate"] == 1
+    out = capsys.readouterr()
+    assert "unparsed: 1 | no book: 1" in out.out
+    assert "PARSE ALARM: 1 in-scope market(s)" in out.err and "bad" in out.err
+
+
+def test_clean_fetch_raises_no_parse_alarm(monkeypatch, capsys):
+    monkeypatch.setattr(pm, "fetch_events", lambda **k: [_event(
+        _market("good", "Puka Nacua: Receiving Yards O/U 74.5"))])
+    monkeypatch.setattr(pm, "load_slate", lambda: [{
+        "player_id": "00-1", "player_display_name": "Puka Nacua", "game_id": "g"}])
+    monkeypatch.setattr(pm, "fetch_token_books", lambda ids: {})
+    stats = {}
+    pm.collect_quotes(stats=stats)
+    assert stats["counters"]["skipped_unparsed"] == 0
+    assert stats["counters"]["skipped_no_book"] == 1
+    assert "PARSE ALARM" not in capsys.readouterr().err
+
+
+def test_runs_that_skip_the_fetch_clear_old_counters(monkeypatch):
+    seen = {}
+    import scripts.feed_age as fa
+    monkeypatch.setattr(fa, "note_fetch", lambda sport, **k: seen.update(k))
+    pm._note_nfl(ok=False, quotes=0, error="x")
+    assert seen["counters"] == {}

@@ -20,6 +20,26 @@ NFL also reports a named slate state (scripts/slate_state.py):
                     exclusion reasons in the status file;
   NO_SLATE_ROWS     live slate with nothing to price; critical at once.
 
+A SLATE_BLOCKED slate raises a separate BLOCKED SLATE alarm (the feed
+level is unchanged) when it has been blocked longer than
+blocked_slate_alarm_hours, or as soon as a kickoff in that slate is within
+blocked_slate_kickoff_hours: a block that starts 10 hours before a
+Thursday game would otherwise never page in time. It pages once when it
+first fires, again when the reason changes (e.g. duration -> kickoff),
+and otherwise at most every blocked_slate_repeat_hours as a reminder. The
+last page (time, reasons, slate) is kept in the status file this check
+already writes; a held-back repeat stays out of the alerts entirely, so it
+neither posts to the webhook nor fails the job. Its
+start time is the poller's heartbeat state_since; if the poller has not
+confirmed the block, slate-index.json's generated_at is used as a lower
+bound, so a block alarms even when the poller is down.
+
+The NFL poller also records its last fetch counters. skipped_no_book (a
+parsed market with no CLOB book) is reported only; skipped_unparsed > 0 (an
+in-scope market whose outcome tokens could not be read) raises a parse alarm
+on every check until a fetch comes back clean. It does not change the feed
+level: the parsed quotes are still good.
+
 Paging uses env secrets and never a URL in the repo:
   ALARM_WEBHOOK_URL    optional POST of {"content", "text"} (Discord or Slack)
   FEED_AGE_UPTIME_URL  optional GET each check. Point an external monitor at
@@ -57,6 +77,9 @@ DEFAULT_CONFIG = {
     "sports": ["nba", "nfl"],
     "nfl_ingest_utc_hour": slate_state.DEFAULT_INGEST_UTC_HOUR,
     "no_current_slate_buffer_hours": slate_state.DEFAULT_NO_CURRENT_SLATE_BUFFER_HOURS,
+    "blocked_slate_alarm_hours": 12.0,
+    "blocked_slate_kickoff_hours": 4.0,
+    "blocked_slate_repeat_hours": 3.0,
 }
 NBA_ODDS_RE = re.compile(r"nba_odds_(\d{4}-\d{2}-\d{2})\.json$")
 EMPTY_ERROR = "empty/zero-event response"
@@ -115,7 +138,8 @@ def save_json(path: Path, payload: dict) -> None:
 def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = None,
                schedule_state: str | None = None, starts: list[str] | None = None,
                path: Path | None = None, now: datetime | None = None,
-               slate: dict | None = None, collisions: int | None = None) -> dict:
+               slate: dict | None = None, collisions: int | None = None,
+               counters: dict | None = None) -> dict:
     """Record one fetch. Zero quotes are a failure even when ok=True."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     quotes = int(quotes or 0)
@@ -140,13 +164,25 @@ def note_fetch(sport: str, *, ok: bool, quotes: int = 0, error: str | None = Non
             "starts": list(starts or []),
         }
     if slate:
+        # state_since: when this state (for this slate) was first recorded.
+        # Kept across notes while the state holds; reset when it changes.
+        prev = sport_row.get("slate_state") or {}
+        same = (prev.get("state") == slate.get("state")
+                and prev.get("slate_key") == slate.get("slate_key")
+                and prev.get("state_since"))
         sport_row["slate_state"] = {
             "observed_at": stamp,
+            "state_since": prev["state_since"] if same else stamp,
             **{k: slate.get(k) for k in ("state", "detail", "slate_key", "since", "alarm_after",
                                          "overdue", "exclusions", "priced_rows", "markets")},
         }
     if collisions is not None:
         sport_row["line_collisions_excluded"] = int(collisions)
+    if counters is not None:
+        if counters:
+            sport_row["fetch_counters"] = {"observed_at": stamp, **counters}
+        else:
+            sport_row.pop("fetch_counters", None)
     save_json(hb_path, heartbeat)
     return heartbeat
 
@@ -339,8 +375,28 @@ def evaluate_sport(sport: str, viewer: Path, heartbeat: dict, now: datetime, cfg
         out["slate_state"] = {k: state[k] for k in ("state", "detail", "slate_key", "since",
                                                     "alarm_after", "overdue", "exclusions",
                                                     "priced_rows")}
+        if named == slate_state.SLATE_BLOCKED:
+            since, source = blocked_since(viewer, row, state)
+            limit = float(cfg["blocked_slate_alarm_hours"])
+            hours = None if since is None else (now - since).total_seconds() / 3600
+            # Kickoffs come from the blocked slate's own games file.
+            window = timedelta(hours=float(cfg["blocked_slate_kickoff_hours"]))
+            upcoming = sorted(t for t in _game_starts(viewer, "nfl") if now <= t <= now + window)
+            kickoff = upcoming[0] if upcoming else None
+            too_long = hours is not None and hours > limit
+            out["slate_state"].update({
+                "blocked_since": None if since is None else since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "blocked_since_source": source,
+                "blocked_hours": None if hours is None else round(hours, 1),
+                "blocked_limit_hours": limit,
+                "blocked_next_kickoff": None if kickoff is None else kickoff.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "blocked_overdue": too_long or kickoff is not None,
+                "blocked_reasons": [r for r, hit in (("duration", too_long), ("kickoff", kickoff is not None)) if hit],
+            })
         if "line_collisions_excluded" in row:
             out["line_collisions_excluded"] = row["line_collisions_excluded"]
+    if row.get("fetch_counters"):
+        out["fetch_counters"] = row["fetch_counters"]
     return out
 
 
@@ -353,13 +409,96 @@ def alert_message(row: dict) -> str:
             f"data age {age}; last error: {err}")
 
 
+def blocked_since(viewer: Path, row: dict, state: dict) -> tuple[datetime | None, str]:
+    """When the current SLATE_BLOCKED stretch began, and where that came from."""
+    hb = row.get("slate_state") or {}
+    if (hb.get("state") == slate_state.SLATE_BLOCKED and hb.get("slate_key") == state.get("slate_key")
+            and hb.get("state_since")):
+        try:
+            return parse_time(hb["state_since"]), "poller heartbeat"
+        except ValueError:
+            pass
+    try:
+        index = json.loads((viewer / "feeds" / "slate-index.json").read_text(encoding="utf-8"))
+        return parse_time(index["generated_at"]), "slate-index generated_at (poller has not confirmed the block)"
+    except (OSError, ValueError, KeyError, TypeError):
+        return None, "unknown"
+
+
+def blocked_page_decision(row: dict, prior: dict | None, now: datetime,
+                          repeat_hours: float) -> tuple[bool, dict | None, str]:
+    """(page now?, page record to keep, why). Pure.
+
+    Pages on the first firing, when the reasons or the slate change, or once
+    repeat_hours have passed since the last page. A row that is no longer
+    overdue keeps no record, so the next block pages fresh."""
+    st = row.get("slate_state") or {}
+    if st.get("state") != slate_state.SLATE_BLOCKED or not st.get("blocked_overdue"):
+        return False, None, "not firing"
+    reasons = sorted(st.get("blocked_reasons") or [])
+    record = {"last_paged_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "reasons": reasons,
+              "slate_key": st.get("slate_key")}
+    if not prior or not prior.get("last_paged_at"):
+        return True, record, "first page"
+    if sorted(prior.get("reasons") or []) != reasons or prior.get("slate_key") != st.get("slate_key"):
+        return True, record, f"reason changed from {'+'.join(prior.get('reasons') or []) or 'none'}"
+    try:
+        last = parse_time(prior["last_paged_at"])
+    except ValueError:
+        return True, record, "unreadable last page time"
+    if now - last >= timedelta(hours=repeat_hours):
+        return True, record, f"reminder ({repeat_hours:g}h since the last page)"
+    nxt = (last + timedelta(hours=repeat_hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return False, dict(prior), f"held: paged at {prior['last_paged_at']}, next reminder after {nxt}"
+
+
+def blocked_alarm(row: dict) -> str | None:
+    """Alert line when a slate has been SLATE_BLOCKED longer than the limit."""
+    st = row.get("slate_state") or {}
+    if st.get("state") != slate_state.SLATE_BLOCKED or not st.get("blocked_overdue"):
+        return None
+    reasons = "; ".join(f"{e.get('matchup') or e.get('game_id')}: {e.get('reason')}"
+                        for e in (st.get("exclusions") or [])) or "(no reasons recorded)"
+    kickoff = (f"; next kickoff {st['blocked_next_kickoff']} is inside the warning window"
+               if st.get("blocked_next_kickoff") else "")
+    return (f"PropStein BLOCKED SLATE: {row['sport'].upper()} slate {st.get('slate_key')!r} has been "
+            f"SLATE_BLOCKED for {st.get('blocked_hours')}h (since {st.get('blocked_since')}, "
+            f"from {st.get('blocked_since_source')}; limit {st.get('blocked_limit_hours'):g}h){kickoff}; "
+            f"exclusions: {reasons}")
+
+
+def parse_alarm(row: dict) -> str | None:
+    """Alert line when the last fetch could not read an in-scope market."""
+    counters = row.get("fetch_counters") or {}
+    unparsed = int(counters.get("skipped_unparsed") or 0)
+    if unparsed < 1:
+        return None
+    ids = ", ".join(counters.get("unparsed_market_ids") or []) or "(ids not recorded)"
+    return (f"PropStein PARSE ALARM: {row['sport'].upper()} last fetch "
+            f"({counters.get('observed_at') or 'time unknown'}) skipped {unparsed} in-scope "
+            f"market(s) with unreadable outcome tokens; market ids: {ids}")
+
+
 def check(viewer: Path, heartbeat: dict | None = None, now: datetime | None = None,
-          cfg: dict | None = None) -> dict:
+          cfg: dict | None = None, prior_status: dict | None = None) -> dict:
+    """prior_status: the last status file, for BLOCKED SLATE repeat control.
+    None means no history, so a firing block pages."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     cfg = cfg or load_config()
     heartbeat = heartbeat if heartbeat is not None else load_heartbeat(viewer / HEARTBEAT_NAME)
     sports = [evaluate_sport(sport, viewer, heartbeat, now, cfg) for sport in cfg["sports"]]
     alerts = [alert_message(row) for row in sports if row["level"] in ("degraded", "critical")]
+    alerts += [line for line in (parse_alarm(row) for row in sports) if line]
+    prior_sports = (prior_status or {}).get("sports") or {}
+    for row in sports:
+        prior = (prior_sports.get(row["sport"]) or {}).get("blocked_page")
+        page, record, why = blocked_page_decision(row, prior, now, float(cfg["blocked_slate_repeat_hours"]))
+        if record is not None:
+            row["blocked_page"] = dict(record, decision=why)
+        if page:
+            line = blocked_alarm(row)
+            if line:
+                alerts.append(line)
     return {
         "schema_version": "feed-status.v1",
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -407,7 +546,13 @@ def main(argv=None) -> int:
     now = parse_time(args.now) if args.now else datetime.now(timezone.utc)
     cfg = load_config(args.config)
     hb_path = args.heartbeat or (args.viewer / HEARTBEAT_NAME)
-    report = check(args.viewer, load_heartbeat(hb_path), now, cfg)
+    prior_status = None
+    if args.status_out and args.status_out.is_file():
+        try:
+            prior_status = json.loads(args.status_out.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prior_status = None
+    report = check(args.viewer, load_heartbeat(hb_path), now, cfg, prior_status=prior_status)
     status = {k: v for k, v in report.items() if k != "alerts"}
     if args.status_out:
         save_json(args.status_out, status)

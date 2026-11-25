@@ -170,4 +170,4 @@ jobs:
           fi
           MESSAGE="PropStein daily autopilot update FAILED. ${RUN_URL}"
           python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
+          curl -fsS -o /dev/null -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json

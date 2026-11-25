@@ -49,6 +49,15 @@ jobs:
             "chore(data): feed age status ${DAY}"
           exit "$code"
 
+      # The checks above read the repo. This one reads what propstein.com
+      # actually serves, so a stalled deploy path (rate limit, deploy gate,
+      # broken hook) alarms even while the repo feed is fresh.
+      - name: Check the live site's odds feed
+        if: always()
+        env:
+          ALARM_WEBHOOK_URL: ${{ secrets.ALARM_WEBHOOK_URL }}
+        run: python3 scripts/check_live_feed.py --max-age-hours 6
+
       - name: Notify on failure (webhook)
         if: failure()
         env:
@@ -61,4 +70,4 @@ jobs:
           fi
           MESSAGE="PropStein feed age watch FAILED. ${RUN_URL}"
           python3 -c 'import json,sys; m=sys.argv[1]; print(json.dumps({"content": m, "text": m}))' "$MESSAGE" > payload.json
-          curl -fsS -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
+          curl -fsS -o /dev/null -X POST "$ALARM_WEBHOOK_URL" -H 'Content-Type: application/json' --data @payload.json
