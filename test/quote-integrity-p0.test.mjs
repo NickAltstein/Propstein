@@ -92,6 +92,40 @@ test('P0-1: missing / timed-out / malformed / unknown health suppresses quotes (
   }
 });
 
+test('P0-1: suppressed is an intended pause: quotes stay hidden, with the pause reason, not an error', async () => {
+  const validFeed = {
+    quotes: [
+      { game_id: SEL_3PM_4PLUS.gameId, player_id: SEL_3PM_4PLUS.playerId, market: 'threes', line: 3.5, over_odds: 195, book: 'DraftKings', observed_at: '2026-11-24T17:59:50Z' },
+    ],
+  };
+  const statusWith = (row) => ({ schema_version: 'feed-status.v1', generated_at: '2026-11-24T17:59:55Z', sports: { nba: row } });
+  for (const [label, row, reason] of [
+    ['slate blocked', { level: 'suppressed', fail_closed: false, slate_state: { state: 'SLATE_BLOCKED' } }, 'slate blocked'],
+    ['between weeks', { level: 'suppressed', fail_closed: false, slate_state: { state: 'NO_CURRENT_SLATE' } }, 'between weeks'],
+    ['no game in window', { level: 'suppressed', fail_closed: false }, 'no game in the current window'],
+  ]) {
+    const Tail = loadTailCheck(async (url) => {
+      if (url === '/feeds/feed_status.json') return makeResponse(true, statusWith(row), 200);
+      if (url === '/nba_odds.json') return makeResponse(true, validFeed, 200);
+      return makeResponse(false, {}, 404);
+    });
+    const res = await Tail.loadCurrentQuotes('nba', ['nba_odds.json']);
+    assert.equal(res.status, 'paused', `${label}: suppressed must report a pause`);
+    assert.equal(res.pauseReason, reason, `${label}: pause reason`);
+    assert.equal(res.quotes.length, 0, `${label}: no quotes while paused`);
+  }
+
+  // Only explicitly healthy levels serve quotes; suppressed with fail_closed true is still an error.
+  const Tail = loadTailCheck(async (url) => {
+    if (url === '/feeds/feed_status.json') return makeResponse(true, statusWith({ level: 'suppressed', fail_closed: true }), 200);
+    if (url === '/nba_odds.json') return makeResponse(true, validFeed, 200);
+    return makeResponse(false, {}, 404);
+  });
+  const res = await Tail.loadCurrentQuotes('nba', ['nba_odds.json']);
+  assert.equal(res.status, 'fail_closed');
+  assert.equal(res.quotes.length, 0);
+});
+
 // ---------------------------------------------------------------------------
 // P0 #2: Newer worse same-book price must replace older better price
 // ---------------------------------------------------------------------------

@@ -152,6 +152,19 @@
   }
 
   const VALID_HEALTH_LEVELS = new Set(['ok', 'live', 'healthy', 'degraded']);
+  // feed_age.py reports `suppressed` when updates stop on purpose (between
+  // weeks, a context-blocked slate, no game in the window). Quotes stay
+  // hidden, exactly like any other non-healthy level, but the reader is told
+  // it is an expected pause rather than a feed error.
+  const PAUSE_REASON = {
+    SLATE_BLOCKED: 'slate blocked',
+    NO_CURRENT_SLATE: 'between weeks',
+  };
+
+  function pauseReason(sportStatus) {
+    const state = sportStatus && sportStatus.slate_state && sportStatus.slate_state.state;
+    return PAUSE_REASON[state] || 'no game in the current window';
+  }
   const FORBIDDEN_PROVENANCE_RE = /fixture|synthetic|test|seed|replay|demo/i;
 
   function isFixtureOrTestQuote(q, feedMeta) {
@@ -171,7 +184,9 @@
    * Load observed quotes for the given feed files.
    * Fail-closed health gate (P0-1): missing, timed-out, malformed, unknown-status,
    * or stale feed_status.json suppresses quotes instead of failing open.
-   * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed', quotes, checkedFiles }.
+   * Only explicitly healthy levels serve quotes. `suppressed` (an intended pause)
+   * returns status 'paused' with a pauseReason; anything else returns 'fail_closed'.
+   * Returns { status: 'ok' | 'no_source' | 'source_failed' | 'fail_closed' | 'paused', quotes, checkedFiles, pauseReason? }.
    */
   async function loadCurrentQuotes(sport, oddsFiles, { nowMs = null, maxHealthAgeSeconds = null } = {}) {
     const files = [...new Set((oddsFiles || []).filter((f) => f && DATA_FILE_RE.test(f)))];
@@ -203,6 +218,9 @@
       return { status: 'fail_closed', quotes: [], checkedFiles: files };
     }
     const level = String(sportStatus.level || '').trim().toLowerCase();
+    if (level === 'suppressed') {
+      return { status: 'paused', quotes: [], checkedFiles: files, pauseReason: pauseReason(sportStatus) };
+    }
     if (!VALID_HEALTH_LEVELS.has(level)) {
       return { status: 'fail_closed', quotes: [], checkedFiles: files };
     }
@@ -395,7 +413,8 @@
     }
 
     const notes = [];
-    if (!sourceOk) notes.push(SOURCE_NOTE[opts.source.status] || 'Quote source unavailable.');
+    if (opts.source.status === 'paused') notes.push(`Quotes paused: ${opts.source.pauseReason || 'no game in the current window'}.`);
+    else if (!sourceOk) notes.push(SOURCE_NOTE[opts.source.status] || 'Quote source unavailable.');
     else {
       notes.push(`Checked ${result.eligible.length} current exact-match quote${result.eligible.length === 1 ? '' : 's'}.`);
       const r = rejectedNote(result.rejected);

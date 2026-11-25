@@ -44,7 +44,12 @@ test('Tail check, slip preview and ticket at 390px dark mode', async (t) => {
     return;
   }
 
-  const fx = { tdFeed: { quotes: [] }, tdFeedStatus: 200, receiptFeed: null, receiptFeedStatus: 200 };
+  // Feed health is a fixture, never the repo's live viewer/feeds/feed_status.json:
+  // reading the live file made this test depend on whatever the feed was doing.
+  //   object -> served as JSON; string -> served raw (malformed); null -> 404 (missing).
+  const healthyStatus = () => ({ schema_version: 'feed-status.v1', generated_at: FRESH, sports: {
+    nfl: { level: 'ok', fail_closed: false }, nba: { level: 'ok', fail_closed: false } } });
+  const fx = { tdFeed: { quotes: [] }, tdFeedStatus: 200, receiptFeed: null, receiptFeedStatus: 200, feedStatus: healthyStatus() };
   const server = http.createServer((req, res) => {
     const urlPath = (req.url || '/').split('?')[0];
     const json = (status, body) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
@@ -56,6 +61,11 @@ test('Tail check, slip preview and ticket at 390px dark mode', async (t) => {
       idx.sports.nfl.slates['2026_w11'].odds = null;
       if (fx.receiptFeed !== null) idx.sports.nfl.slates['2026_w7'].odds = 'fx_receipt_odds.json';
       return json(200, idx);
+    }
+    if (urlPath === '/feeds/feed_status.json') {
+      if (fx.feedStatus === null) { res.writeHead(404); res.end('not found'); return; }
+      if (typeof fx.feedStatus === 'string') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(fx.feedStatus); return; }
+      return json(200, fx.feedStatus);
     }
     if (urlPath === '/fx_slate_w12.json') return json(200, FX_SLATE);
     if (urlPath === '/fx_td_odds.json') return fx.tdFeedStatus === 200 ? json(200, fx.tdFeed) : json(fx.tdFeedStatus, { error: 'down' });
@@ -108,6 +118,7 @@ test('Tail check, slip preview and ticket at 390px dark mode', async (t) => {
         fd: bookRow('FanDuel'),
         fairUnavailable: Boolean(document.querySelector('[data-fair-unavailable]')),
         sourceStatus: document.querySelector('[data-source-status]')?.getAttribute('data-source-status') || null,
+        sourceNote: document.querySelector('[data-source-status]')?.innerText || '',
         ticketStatus: document.querySelector('[data-ticket-status]')?.getAttribute('data-ticket-status') || null,
         slipStatus: document.querySelector('[data-slip-status]')?.getAttribute('data-slip-status') || null,
         shareButtons: document.querySelectorAll('[data-share-receipt]').length,
@@ -156,6 +167,31 @@ test('Tail check, slip preview and ticket at 390px dark mode', async (t) => {
     assert.equal(s.fairUnavailable, true);
     assert.match(s.tail, /Fair when logged: 43\.5/);
     clean(s, '/r fresh match');
+
+    // Feed health (P0-1): only an explicitly healthy level serves quotes. A fresh,
+    // exact-match quote stays hidden when the feed is suppressed (an intended pause,
+    // explained as such) or when the status is unknown, missing or malformed (error).
+    const nflStatus = (row) => ({ ...healthyStatus(), sports: { ...healthyStatus().sports, nfl: row } });
+    for (const [label, status, want, note] of [
+      ['suppressed: slate blocked', nflStatus({ level: 'suppressed', fail_closed: false, slate_state: { state: 'SLATE_BLOCKED' } }), 'paused', /Quotes paused: slate blocked\./],
+      ['suppressed: between weeks', nflStatus({ level: 'suppressed', fail_closed: false, slate_state: { state: 'NO_CURRENT_SLATE' } }), 'paused', /Quotes paused: between weeks\./],
+      ['suppressed: no game in window', nflStatus({ level: 'suppressed', fail_closed: false }), 'paused', /Quotes paused: no game in the current window\./],
+      ['unknown level', nflStatus({ level: 'mystery', fail_closed: false }), 'fail_closed', /fail-closed/],
+      ['critical', nflStatus({ level: 'critical', fail_closed: true }), 'fail_closed', /fail-closed/],
+      ['missing status', null, 'fail_closed', /fail-closed/],
+      ['malformed status', '{"sports": ', 'fail_closed', /fail-closed/],
+    ]) {
+      fx.feedStatus = status;
+      s = await openReceipt();
+      assert.equal(s.receiptBody, baselineReceipt, `${label}: receipt unchanged`);
+      assert.equal(s.current.noQuote, true, `${label}: fresh quote must not be served`);
+      assert.equal(s.sourceStatus, want, `${label}: source status`);
+      assert.match(s.sourceNote, note, `${label}: note`);
+      if (want === 'paused') assert.doesNotMatch(s.sourceNote, /fail-closed/, `${label}: a pause is not reported as an error`);
+      else assert.doesNotMatch(s.sourceNote, /Quotes paused/, `${label}: an error is not reported as a pause`);
+      clean(s, `/r health ${label}`);
+    }
+    fx.feedStatus = healthyStatus();
 
     // Stale quote, wrong rung, wrong side-of-game, source failure → receipt intact + "No current quote".
     for (const [label, feed, status] of [
