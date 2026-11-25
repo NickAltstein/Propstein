@@ -2,7 +2,11 @@
 // Evidence harness for the viewer redesign PRs: screenshots + layout assertions + axe.
 //
 //   node scripts/visual/redesign-gates.mjs <outDir> [--data-ref <sha>] [--axe <path/to/axe.min.js>]
-//                                          [--baseline <base report.json>]
+//                                          [--baseline <base report.json>] [--known <known-failures.json>]
+//
+// --known (the ratchet, how CI runs it): fails on any failing assertion or serious axe
+// rule NOT listed in scripts/visual/known-failures.json, and on any listed one that now
+// passes — the PR that fixes a known failure must delete its entry, so it becomes required.
 //
 // Exit code: without --baseline, 1 if any assertion fails. With --baseline (how CI
 // runs it, see .github/workflows/viewer-gates.yml), 1 only on a REGRESSION: an
@@ -41,6 +45,7 @@ const DATA_REF = flag('--data-ref') || fs.readFileSync(path.join(ROOT, 'scripts/
 const AXE = flag('--axe');
 const ONLY = flag('--only');
 const BASELINE = flag('--baseline');
+const KNOWN = flag('--known');
 
 const show = (rel) => {
   try { return execFileSync('git', ['show', `${DATA_REF}:viewer/${rel}`], { cwd: ROOT, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return null; }
@@ -260,11 +265,38 @@ if (BASELINE) {
   }
   report.regressions = regressions;
 }
+const ratchet = [];
+if (KNOWN) {
+  const known = JSON.parse(fs.readFileSync(KNOWN, 'utf8'));
+  const allowed = new Set();
+  for (const c of known.checks || []) for (const n of c.scenarios) allowed.add(`${n} ${c.check}`);
+  for (const a of known.axe || []) for (const n of a.scenarios) allowed.add(`${n} axe:${a.rule}`);
+  const actual = new Set();
+  for (const r of report.results) {
+    for (const [k, v] of Object.entries(r)) {
+      if (!v || typeof v !== 'object' || v.pass !== false) continue;
+      if (k === 'axe') v.serious.forEach((x) => actual.add(`${r.name} axe:${x.id}`));
+      else actual.add(`${r.name} ${k}`);
+    }
+  }
+  const ran = new Set(report.results.map((r) => r.name));
+  for (const f of actual) if (!allowed.has(f)) ratchet.push(`NEW failure (not in ${path.basename(KNOWN)}): ${f}`);
+  for (const f of allowed) {
+    if (!ran.has(f.split(' ')[0])) continue; // scenario not captured in this run (--only)
+    if (!actual.has(f)) ratchet.push(`FIXED, delete from ${path.basename(KNOWN)} so it stays fixed: ${f}`);
+  }
+  report.ratchet = ratchet;
+}
 fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
 console.log(`${report.results.length} scenarios -> ${path.relative(ROOT, outDir)} (data @ ${DATA_REF.slice(0, 9)}, clock ${FIXED_TIME}); ${failures} failing assertions`);
+if (KNOWN) {
+  console.log(ratchet.length ? `RATCHET (${ratchet.length}):\n  ${ratchet.join('\n  ')}` : `Ratchet OK: failures match ${path.basename(KNOWN)} exactly.`);
+}
+if (KNOWN || BASELINE) {
+  process.exitCode = ratchet.length || regressions.length ? 1 : 0;
+}
 if (BASELINE) {
   console.log(regressions.length ? `REGRESSIONS vs baseline (${regressions.length}):\n  ${regressions.join('\n  ')}` : 'No regressions vs baseline (failures above also fail on the base branch).');
-  process.exitCode = regressions.length ? 1 : 0;
-} else {
+} else if (!KNOWN) {
   process.exitCode = failures ? 1 : 0;
 }

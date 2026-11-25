@@ -1,10 +1,10 @@
 name: Viewer gates
 
 # Screenshots + layout/axe assertions for viewer changes (scripts/visual/redesign-gates.mjs).
-# Captures the base branch and this PR on the same pinned data, uploads both sets and
-# the pixel diffs as a workflow artifact, and FAILS only on a regression: an assertion
-# that passes on the base branch but fails on the PR, or a new serious/critical axe rule.
-# Failures the base branch already has are listed in the log and report but do not block.
+# Captures the base branch and this PR on the same pinned data and uploads both sets and
+# the pixel diffs as a workflow artifact. FAILS on a regression vs the base branch, and on
+# the ratchet: any failure not listed in scripts/visual/known-failures.json, or any listed
+# failure that now passes (the fixing PR must delete that entry so it becomes required).
 
 on:
   pull_request:
@@ -47,8 +47,8 @@ jobs:
           cp scripts/visual/redesign-gates.mjs scripts/visual/redesign-data-ref "$RUNNER_TEMP/base/scripts/visual/"
           ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/base/node_modules"
           (cd "$RUNNER_TEMP/base" && node scripts/visual/redesign-gates.mjs "$GITHUB_WORKSPACE/gates/base" --axe "$GITHUB_WORKSPACE/node_modules/axe-core/axe.min.js") || true
-      - name: Capture this PR and check for regressions
-        run: node scripts/visual/redesign-gates.mjs gates/pr --axe node_modules/axe-core/axe.min.js --baseline gates/base/report.json
+      - name: Capture this PR, check regressions and the known-failures ratchet
+        run: node scripts/visual/redesign-gates.mjs gates/pr --axe node_modules/axe-core/axe.min.js --baseline gates/base/report.json --known scripts/visual/known-failures.json
       - name: Pixel diff base vs PR
         if: always()
         run: node scripts/visual/compare.mjs gates/base gates/pr gates/diff || true

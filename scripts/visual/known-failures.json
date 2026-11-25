@@ -1,0 +1,101 @@
+{
+  "_doc": [
+    "Viewer gate failures that main already has (CI, Linux, data @ scripts/visual/redesign-data-ref).",
+    "scripts/visual/redesign-gates.mjs --known fails on any failure NOT listed here, and on any listed failure that now passes.",
+    "When a PR fixes one, it must delete that entry in the same PR, so the fix becomes required and cannot quietly come back.",
+    "Never add entries to make a PR pass."
+  ],
+  "checks": [
+    {
+      "check": "bookOneLine",
+      "fixed_by": "PR 4",
+      "why": "book line + price wraps onto several lines in the list card",
+      "scenarios": [
+        "expanded--1440",
+        "expanded--375",
+        "expanded--390",
+        "expanded--430",
+        "home--1440",
+        "home--375",
+        "home--390",
+        "home--430",
+        "line-pricer--1440",
+        "line-pricer--375",
+        "line-pricer--390",
+        "line-pricer--430",
+        "no-quote--1440",
+        "no-quote--375",
+        "no-quote--390",
+        "no-quote--430"
+      ]
+    },
+    {
+      "check": "bottomBar",
+      "fixed_by": "PR 3",
+      "why": "the fixed Slate/Audit bar covers the last content; needs bottom padding = bar height + safe-area inset",
+      "scenarios": [
+        "home--375",
+        "home--390",
+        "home--430",
+        "home--768"
+      ]
+    },
+    {
+      "check": "numberOnce",
+      "fixed_by": "PR 3",
+      "why": "projection / CI / fair repeat inside a card",
+      "scenarios": [
+        "expanded--1440",
+        "expanded--375",
+        "expanded--390",
+        "expanded--430",
+        "expanded--768",
+        "home--1440",
+        "home--375",
+        "home--390",
+        "home--430",
+        "home--768",
+        "line-pricer--1440",
+        "line-pricer--375",
+        "line-pricer--390",
+        "line-pricer--430",
+        "line-pricer--768",
+        "no-quote--1440",
+        "no-quote--375",
+        "no-quote--390",
+        "no-quote--430",
+        "no-quote--768",
+        "partial--1440",
+        "partial--375",
+        "partial--390",
+        "partial--430",
+        "partial--768"
+      ]
+    }
+  ],
+  "axe": [
+    {
+      "rule": "button-name",
+      "fixed_by": "PR 3",
+      "why": "#headerSearchTrigger has no accessible name",
+      "scenarios": [
+        "home--375",
+        "home--390",
+        "home--430",
+        "home--768"
+      ]
+    },
+    {
+      "rule": "nested-interactive",
+      "fixed_by": "PR 4",
+      "why": "list cards are role=button with buttons inside",
+      "scenarios": [
+        "home--1440",
+        "home--375",
+        "home--390",
+        "home--430",
+        "home--768"
+      ]
+    }
+  ]
+}
