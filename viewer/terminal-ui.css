@@ -270,8 +270,6 @@ html body.terminal-ui :is(#moreFiltersDialog, #terminalSimDialog) .dialog-shell 
     min-height: 44px !important;
   }
   html body.terminal-ui #cardView :is(.card-action-bar, .col-action) { flex-wrap: wrap !important; }
-  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-model { grid-column: 1; grid-row: 1; }
-  html body.terminal-ui #cardView .quoted-card .card-grid-row > .col-book { grid-column: 2; grid-row: 1; }
   html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-shell { max-height: 90dvh !important; }
   html body.terminal-ui :is(#terminalSimDialog, #moreFiltersDialog) .dialog-sheet-handle {
     height: 24px !important;
@@ -643,7 +641,6 @@ html body.terminal-ui .terminal-audit-link { display: inline-flex; margin-top: v
 
 /* The shared card stylesheet declares several competing avatar sizes. */
 html body.terminal-ui #cardView .card-id-block .pw-avatar,
-html body.terminal-ui #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar,
 html body.terminal-ui #tableView .player-name .pw-avatar {
   width: 48px !important;
   height: 48px !important;
