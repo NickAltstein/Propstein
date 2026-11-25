@@ -43,7 +43,7 @@ jobs:
 
       - name: Poll availability sources into append-only JSONL
         run: |
-          PYTHONPATH=. python -m src.availability_producer --season 2026 --week 11
+          PYTHONPATH=. python -m src.availability_producer --season 2026 --week 12
 
       - name: Open auto-merge PR only when new availability events exist
         env:
