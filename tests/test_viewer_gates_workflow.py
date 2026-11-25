@@ -35,6 +35,7 @@ def test_runs_harness_against_base_and_blocks_only_on_regressions() -> None:
     text = _text()
     assert "scripts/visual/redesign-gates.mjs" in text
     assert "--baseline gates/base/report.json" in text
+    assert "--known scripts/visual/known-failures.json" in text
     assert "--axe" in text
     # The PR capture step must not swallow its exit code.
     pr_step = re.search(r"--baseline gates/base/report.json[^\n]*", text).group(0)
@@ -52,3 +53,16 @@ def test_triggers_on_viewer_changes() -> None:
     text = _text()
     for path in ('"viewer/**"', '"scripts/visual/**"', '".github/workflows/viewer-gates.yml"'):
         assert path in text
+
+
+def test_known_failures_list_is_a_ratchet_not_a_dumping_ground() -> None:
+    import json
+
+    known = json.loads((ROOT / "scripts" / "visual" / "known-failures.json").read_text(encoding="utf-8"))
+    entries = [(c["check"], n) for c in known["checks"] for n in c["scenarios"]]
+    entries += [("axe:" + a["rule"], n) for a in known["axe"] for n in a["scenarios"]]
+    assert len(entries) == len(set(entries)), "duplicate known-failure entries"
+    # Only ever shrinks: the list main started with (2026-11-24) had 45 check + 9 axe entries.
+    assert len(entries) <= 54, "known-failures.json grew; fix the failure instead of listing it"
+    for group in known["checks"] + known["axe"]:
+        assert group["fixed_by"] and group["why"]
