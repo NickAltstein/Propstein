@@ -886,18 +886,18 @@
     return null;
   }
 
-  function awaitingLivePriceCopy() {
-    const source = boardSourceClassLabel();
-    return source ? `No verified ${source} price yet` : 'No verified live price yet';
-  }
-
-  /** One sentence describing a row's price state; used by the hero note and the Line Pricer. */
+  /** One sentence describing a row's price state; used by the hero note and the Line Pricer.
+   *  Names only Polymarket or Kalshi (priceState.source); never a sportsbook. May be empty:
+   *  with no quote and no named venue the state label already says it. */
   function priceStateSentence(priceState) {
-    if (!priceState || priceState.kind === 'none') return awaitingLivePriceCopy();
+    if (!priceState || priceState.kind === 'none') {
+      return priceState && priceState.source ? `No ${priceState.source} quote yet` : '';
+    }
     if (priceState.kind === 'unavailable') return 'Live prices unavailable';
     const quote = priceState.quote;
     const lineText = `${priceState.isMain ? 'main line' : 'alt line'} ${Number(quote.line).toFixed(1)}`;
-    return `${priceState.source || 'Quote'} ${lineText}${priceState.age ? ` · ${priceState.age}` : ''}`;
+    const lead = priceState.source ? `${priceState.source} ${lineText}` : lineText.charAt(0).toUpperCase() + lineText.slice(1);
+    return `${lead}${priceState.age ? ` · ${priceState.age}` : ''}`;
   }
 
   function pricesPostCopy() {
@@ -3188,7 +3188,7 @@
     }
     const priceState = rowPriceState(row, market);
     const pct1 = (value) => `${(value * 100).toFixed(1)}%`;
-    const bookLine = `<p class="pick-book" data-price-state="${esc(priceState.kind)}"><strong>${esc(priceState.label)}</strong> · ${esc(priceStateSentence(priceState))}</p>`;
+    const bookLine = `<p class="pick-book" data-price-state="${esc(priceState.kind)}"><strong>${esc(priceState.label)}</strong>${priceStateSentence(priceState) ? ` · ${esc(priceStateSentence(priceState))}` : ''}</p>`;
     result.innerHTML = `
       ${bookLine}
       <dl class="pick-metrics">
@@ -4383,7 +4383,9 @@
     const asOf = health.oddsUpdatedAt && !Number.isNaN(Date.parse(health.oddsUpdatedAt))
       ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(health.oddsUpdatedAt))
       : null;
-    if (SPORT_ID === 'nba' && SLATES[state.slateKey]?.marketOnly) {
+    // A sport with no model (adapter.model === null, e.g. NBA) never gets fair-line hero
+    // cards, on any night — including archived nights whose rows carry synthetic fixture lines.
+    if (SPORT_ID === 'nba' && (SLATES[state.slateKey]?.marketOnly || adapter.model === null)) {
       const quotes = (state.odds.quotes || []).filter((quote) => quote.market === 'points' && quote._fixture === false && isNbaReferenceQuote(quote) && matches(quote.player_name, quote.team, quote.market, quote.book));
       const title = $('#homeEdgeTitle');
       if (title) title.textContent = '0 NBA picks today';
@@ -4391,7 +4393,7 @@
       status.textContent = `${quotes.length} unverified ${refBook} reference lines · ${refBook.toLowerCase() === 'kalshi' ? 'Kalshi public API' : 'published lines'} · ${asOf || 'time unavailable'}`;
       if ($('#homeEdgeOpenBoard')) $('#homeEdgeOpenBoard').textContent = `Browse ${refBook} lines ↗`;
       if (mountEl) mountEl.innerHTML = '';
-      list.innerHTML = '<p class="home-edge-empty">No NBA model prediction or verified edge is available for this slate. No over or under is being recommended.</p>';
+      list.innerHTML = '<p class="home-edge-empty">NBA shows market prices only. There are no model fair lines for NBA yet.</p>';
       return;
     }
     const fresh = !SLATES[state.slateKey]?.historical && health.dataKind !== 'fixture'
@@ -4400,7 +4402,7 @@
       const research = (Array.isArray(state.livePicks?.picks) ? state.livePicks.picks : [])
         .filter((pick) => matches(pick.player, pick.team, pick.market, pick.book))
         .sort((a, b) => num(b.ev_per_unit) - num(a.ev_per_unit) || num(b.edge) - num(a.edge));
-      const modelRows = research.length ? [] : state.slate
+      const modelRows = research.length || adapter.model === null ? [] : state.slate
         .filter((row) => Number.isFinite(Number(fairValue(row))) && Number(fairValue(row)) > 0 && matches(row.player_display_name, row.team, state.filters.market))
         .sort((a, b) => projectionValue(b) - projectionValue(a))
         .slice(0, HOME_EDGE_LIMIT);
@@ -4475,7 +4477,7 @@
             </div>
             ${dist.isTd ? '' : densityCurveSvg(dist, unit)}
             ${rfMethodStrip(row, state.filters.market)}
-            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · ${esc(priceState.label.toUpperCase())}</span> ${esc(priceStateSentence(priceState))}. Research only · no current edge or stake is available.</p>
+            <p class="home-research-note"><span class="home-research-label">MODEL FAIR · ${esc(priceState.label.toUpperCase())}</span> ${priceStateSentence(priceState) ? `${esc(priceStateSentence(priceState))}. ` : ''}Research only · no current edge or stake is available.</p>
           </article>`;
           }).join('')
           : '<p class="home-edge-empty">Prices or news are unavailable. No model slate is loaded; no picks are being recommended.</p>';
@@ -7592,11 +7594,12 @@
 
     const fairVal = dist.fair;
     const priceState = rowPriceState(row, state.filters.market);
-    const qualifiedGreen = isOfferQualifiedGreen(evaluation);
-    const offerPriceText = evaluation.state !== 'none' ? formatOfferPrice(quote, evaluation.side, evaluation.odds) : '';
-    const offerAgeText = evaluation.state !== 'none' ? offerAgeLabel(quote) : '';
+    // What the card may DISPLAY about the evaluated quote: only when it is the shown main line
+    // of the board's venue. Other venues are hidden; evaluateRow()/gates are untouched.
+    const shownEval = priceState.isMain && evaluation.quote === priceState.quote ? evaluation : { state: 'none', tone: evaluation.tone, actionable: false, closed: evaluation.closed };
+    const qualifiedGreen = isOfferQualifiedGreen(shownEval);
     const marketLabel = marketDef().chipLabel || state.filters.market;
-    const isResearchCard = evaluation.state === 'none';
+    const isResearchCard = !priceState.quote;
     const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
 
     // Single high-signal badge
@@ -7633,11 +7636,14 @@
       bookSubHtml = `<span class="ps-scan-sub">Actual ${settled.actual} · ${esc(settled.outcome)}</span>`;
     } else if (priceState.kind === 'unavailable') {
       bookSubHtml = `<span class="ps-scan-sub ps-scan-state" data-price-state="unavailable">${esc(priceState.label)}</span>`;
-    } else if (priceState.quote && priceState.isMain && evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line))) {
+    } else if (priceState.quote && priceState.isMain) {
       // Main line only: this is the one book number placed beside the fair line.
-      const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
-      bookValueHtml = `<strong class="ps-scan-value ps-scan-value-book">${sideLabel} ${Number(evaluation.line).toFixed(1)} · ${esc(offerPriceText)}</strong>`;
-      bookSubHtml = `<span class="ps-scan-sub">${esc(quote?.book || evaluation.book)}${offerAgeText ? ` · ${esc(offerAgeText)}` : ''}</span><span class="ps-scan-sub ps-scan-state" data-price-state="${esc(priceState.kind)}">${esc(priceState.label)}</span>`;
+      const mainQuote = priceState.quote;
+      const mainSide = String((shownEval.state !== 'none' ? shownEval.side : mainQuote.evaluation?.best_side) || 'OVER').toUpperCase();
+      const sideLabel = mainSide === 'UNDER' ? 'Under' : 'Over';
+      const priceText = formatOfferPrice(mainQuote, mainSide, shownEval.state !== 'none' ? shownEval.odds : null);
+      bookValueHtml = `<strong class="ps-scan-value ps-scan-value-book">${sideLabel} ${Number(mainQuote.line).toFixed(1)} · ${esc(priceText)}</strong>`;
+      bookSubHtml = `<span class="ps-scan-sub">${esc([priceState.source, offerAgeLabel(mainQuote)].filter(Boolean).join(' · '))}</span><span class="ps-scan-sub ps-scan-state" data-price-state="${esc(priceState.kind)}">${esc(priceState.label)}</span>`;
     } else if (priceState.quote) {
       // No main line: show the alt quote, labelled as an alt line, never as the book line.
       const alt = priceState.quote;
@@ -7650,7 +7656,7 @@
     let secondaryLeft = dist.isTd
       ? `Anytime TD ${(dist.prob * 100).toFixed(1)}%`
       : `Proj ${dist.proj.toFixed(1)} · 80% CI ${dist.low}–${dist.high}`;
-    if (evaluation.state !== 'none' && priceState.isMain && Number.isFinite(Number(evaluation.modelProb))) {
+    if (shownEval.state !== 'none' && Number.isFinite(Number(shownEval.modelProb))) {
       const sideLabel = evaluation.side === 'UNDER' ? 'Under' : 'Over';
       secondaryLeft = `P(${sideLabel}) ${(Number(evaluation.modelProb) * 100).toFixed(1)}% · Proj ${dist.proj.toFixed(1)}`;
     }
@@ -7669,12 +7675,12 @@
     const simOpen = state.inlineSim && state.inlineSim.pid === row.player_id;
     const distVizHtml = dist.isTd
       ? cardDistStripSvg(dist, { simLine: simVal })
-      : (evaluation.state !== 'none' && priceState.isMain
-        ? cardDistStripSvg(dist, { bookLine: evaluation.line })
+      : (priceState.isMain
+        ? cardDistStripSvg(dist, { bookLine: Number(priceState.quote.line) })
         : (simVal !== null ? cardDistStripSvg(dist, { simLine: simVal }) : densityCurveSvg(dist, marketDef().unit || '')));
-    const receiptHtml = evaluation.state === 'verified' ? terminalReceiptBadge(quote) : '';
+    const receiptHtml = shownEval.state === 'verified' ? terminalReceiptBadge(shownEval.quote) : '';
     const trustLineHtml = qualifiedGreen
-      ? `<div class="ps-details-trust">VERIFIED QUOTE · <span class="offer-market-pill">${esc(marketLabel)}</span> · ${esc(quote?.book || evaluation.book)} · ${esc(offerAgeText)}</div>`
+      ? `<div class="ps-details-trust">VERIFIED QUOTE · <span class="offer-market-pill">${esc(marketLabel)}</span> · ${esc(priceState.source || '')} · ${esc(offerAgeLabel(shownEval.quote))}</div>`
       : '<div class="ps-details-trust" data-research-trust="1">MODEL FAIR · RESEARCH ONLY</div>';
 
     return `
@@ -7715,9 +7721,9 @@
               ${distVizHtml}
               ${cardSignalRowHtml(row, beneficiary)}
               ${receivingInputs(row)}
-              ${recentHitRateMarkup(row, evaluation, state.filters.market)}
+              ${recentHitRateMarkup(row, shownEval, state.filters.market)}
               ${receiptHtml}
-              ${priceRailMarkup(row, evaluation)}
+              ${priceRailMarkup(row, shownEval)}
               <div class="ps-details-actions">
                 <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}">⚡ ${simOpen ? 'Close sim' : simVal !== null ? `Sim ${simVal.toFixed(1)}` : 'Sim line'}</button>
                 <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}">Copy fair</button>
@@ -7732,7 +7738,7 @@
             player: row.player_display_name,
             market: marketLabel,
             fair: fairDisplay,
-            book: evaluation.state !== 'none' && Number.isFinite(Number(evaluation.line)) ? `${Number(evaluation.line).toFixed(1)} ${offerPriceText}` : '—',
+            book: priceState.isMain ? `${Number(priceState.quote.line).toFixed(1)} ${formatOfferPrice(priceState.quote, String((shownEval.state !== 'none' ? shownEval.side : priceState.quote.evaluation?.best_side) || 'OVER').toUpperCase(), shownEval.state !== 'none' ? shownEval.odds : null)}` : '—',
             matchup: `${row.team || ''} vs ${row.opponent_team || ''}`.trim(),
             receipt: dist.isTd ? null : committedReceiptFor(row, state.filters.market, fairVal),
           })}
@@ -7748,7 +7754,7 @@
     const offers = (state.odds?.quotes || [])
       .filter((q) => q.market === state.filters.market && Number(q.line) === line
         && (q.player_id === row.player_id || String(q.player_name).toLowerCase() === String(row.player_display_name).toLowerCase())
-        && q.book && !quoteIsSynthetic(q))
+        && q.book && !quoteIsSynthetic(q) && displayableQuote(q))
       .map((q) => ({ quote: q, price: Number(side === 'OVER' ? q.over_odds : q.under_odds) }))
       .filter((item) => Number.isFinite(item.price) && item.price !== 0)
       .sort((a, b) => b.price - a.price || String(a.quote.book).localeCompare(String(b.quote.book)));
@@ -7803,6 +7809,11 @@
     return (PriceState && PriceState.selectMainQuote(quotes).main) || quotes[0];
   }
 
+  function displayableQuote(quote) {
+    const venue = boardSourceClassLabel();
+    return Boolean(quote && venue && window.PropSteinPriceState && window.PropSteinPriceState.venueName(quote.book) === venue);
+  }
+
   // One price state per row for every surface (hero, list, Line Pricer). The page-level
   // presentation comes from marketStatus(), cached per render tick because it walks the slate.
   let priceStateCache = null;
@@ -7820,7 +7831,11 @@
     const { derived, offers } = priceStateCache;
     const historical = Boolean(SLATES[state.slateKey]?.historical);
     const presentation = state.feedFailClosed && derived.presentation !== 'started' ? 'snapshot' : derived.presentation;
-    return PriceState.derivePriceState(rowQuotes(row, market), {
+    // Display only: show prices from the board's own venue (Polymarket on NFL, Kalshi on NBA)
+    // and hide every other venue. Gates and evaluateRow() still see every quote.
+    const venue = boardSourceClassLabel();
+    const shown = rowQuotes(row, market).filter((quote) => venue && PriceState.venueName(quote.book) === venue);
+    return PriceState.derivePriceState(shown, {
       presentation: historical ? 'started' : presentation,
       offerFor: (quote) => offers.get(quote),
       now,

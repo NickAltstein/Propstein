@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { buildSandbox, loadApp, FROZEN_MS } from './helpers/sandbox.mjs';
 
 const require = createRequire(import.meta.url);
-const { selectMainQuote, derivePriceState, noVigOver, LABELS, MAIN_LINE_MAX_SKEW } = require('../viewer/js/price-state.js');
+const { selectMainQuote, derivePriceState, noVigOver, LABELS, MAIN_LINE_MAX_SKEW, venueName } = require('../viewer/js/price-state.js');
 
 const NOW = Date.parse('2026-11-24T21:00:00Z');
 const minutesAgo = (m) => new Date(NOW - m * 60000).toISOString();
@@ -204,5 +204,147 @@ test('hero, list and Line Pricer show the same price state for the same player',
     }
     assert.doesNotMatch(hero + card, /No live price/);
     assert.doesNotMatch(hero + card + registry.get('#pickResult').innerHTML, />Verified quote</);
+  }
+});
+
+// ── copy rules: no sportsbook names, no "verified" ─────────────────────────
+
+test('only Polymarket and Kalshi are ever named as a price source', () => {
+  assert.equal(venueName('Polymarket'), 'Polymarket');
+  assert.equal(venueName('kalshi'), 'Kalshi');
+  for (const book of ['DraftKings', 'FanDuel', 'BetMGM', 'Caesars', 'Pinnacle', 'Synthetic Book A', '', null]) {
+    assert.equal(venueName(book), null, String(book));
+  }
+  const sb = derivePriceState([q(69.5, -110, -110, { book: 'DraftKings' })], { now: NOW, presentation: 'none', source: 'Polymarket' });
+  assert.equal(sb.source, null, 'a sportsbook quote renders no source name, not even the board venue');
+  assert.equal(derivePriceState([], { now: NOW, presentation: 'none', source: 'Polymarket' }).source, 'Polymarket');
+  assert.equal(derivePriceState([], { now: NOW, presentation: 'none', source: null }).source, null);
+});
+
+const bookCell = (card) => card.slice(card.indexOf('ps-scan-metric-book'), card.indexOf('ps-scan-secondary'));
+const heroCard = (hero, name) => { const i = hero.indexOf(name); return hero.slice(i, hero.indexOf('</article>', i)); };
+const pricerLine = (html) => (html.match(/<p class="pick-book"[^>]*>(.*?)<\/p>/s) || [])[1] || '';
+const text = (html) => html.replace(/<[^>]+>/g, '');
+
+// Sweep-style sportsbook rows (The Odds API) are hidden from every price surface.
+const sweepRow = (row, book, line, over, under) => ({
+  ...ladderQuote(row, line, over, under), book, source: 'The Odds API (unverified sportsbook quote)',
+  quote_id: `odds_${book}_${line}`, verification_status: 'OBSERVED',
+});
+const surfacesFor = (registry, featured) => ({
+  hero: heroCard(registry.get('#homeEdgeList').innerHTML, featured.player_display_name),
+  pricer: registry.get('#pickResult').innerHTML,
+  card: cardFor(registry, featured.player_id),
+});
+
+test('other venues are hidden: sportsbook rows next to Polymarket never render', async () => {
+  const { registry, featured, app } = await bootWithQuotes((row) => [
+    sweepRow(row, 'DraftKings', 101.5, -105, -105),
+    sweepRow(row, 'FanDuel', 98.5, -118, -102),
+    ladderQuote(row, 104.5, -125, 105),
+  ]);
+  const st = app.rowPriceState(featured, 'receiving_yards');
+  assert.equal(st.quote.book, 'Polymarket');
+  for (const [where, html] of Object.entries(surfacesFor(registry, featured))) {
+    assert.doesNotMatch(html, /DraftKings|FanDuel|Odds API|101\.5|98\.5/, `sportsbook line or name in ${where}`);
+  }
+  assert.match(bookCell(cardFor(registry, featured.player_id)), /ps-scan-value-book">(Over|Under) 104\.5 · /);
+});
+
+test('a card with only sportsbook quotes shows "No quote" everywhere', async () => {
+  const { registry, featured, app } = await bootWithQuotes((row) => [
+    sweepRow(row, 'DraftKings', 101.5, -105, -105), sweepRow(row, 'FanDuel', 98.5, -118, -102),
+  ]);
+  assert.equal(app.rowPriceState(featured, 'receiving_yards').kind, 'none');
+  const sf = surfacesFor(registry, featured);
+  assert.match(sf.hero, /data-price-state="none">No quote</);
+  assert.equal(text(pricerLine(sf.pricer)), 'No quote · No Polymarket quote yet');
+  assert.match(bookCell(sf.card), /<span class="ps-scan-sub">No quote<\/span>/);
+  for (const [where, html] of Object.entries(sf)) assert.doesNotMatch(html, /DraftKings|FanDuel|101\.5|98\.5/, where);
+  assert.doesNotMatch(sf.card, /class="rf-dist-book"/);
+});
+
+test('NFL: a DraftKings line nearer 50% does not change which Polymarket line is main', async () => {
+  // DraftKings 101.5 at -105/-105 is exactly 50% no-vig; Polymarket 104.5 at -125/+105 is ~53%.
+  const { registry, featured, app } = await bootWithQuotes((row) => [
+    sweepRow(row, 'DraftKings', 101.5, -105, -105),
+    ladderQuote(row, 104.5, -125, 105),
+  ]);
+  const st = app.rowPriceState(featured, 'receiving_yards');
+  assert.equal(st.isMain, true);
+  assert.equal(st.quote.line, 104.5);
+  const card = cardFor(registry, featured.player_id);
+  assert.match(bookCell(card), /ps-scan-value-book">(Over|Under) 104\.5 · /);
+  assert.match(card, /class="rf-dist-book"/, 'the Polymarket main line gets the range marker');
+  for (const html of Object.values(surfacesFor(registry, featured))) assert.doesNotMatch(html, /DraftKings|101\.5/);
+});
+
+test('NBA: a DraftKings line nearer 50% does not change which Kalshi line is main', async () => {
+  const { sandbox, registry } = buildSandbox({ seedLocalStorage: { propwire_active_sport: 'nba' } });
+  const app = loadApp(sandbox);
+  await app.loadSlate(app.defaultBootSlate());
+  app.state.livePicks = { picks: [] };
+  const market = app.state.filters.market;
+  const row = app.state.slate.find((r) => Number.isFinite(Number(app.fairValue(r))) && Number(app.fairValue(r)) > 0);
+  const mk = (book, line, over, under) => ({ ...ladderQuote(row, line, over, under), market, book });
+  app.state.odds = { ...app.state.odds, quotes: [mk('DraftKings', 27.5, -105, -105), mk('Kalshi', 28.5, -125, 105), ...app.state.odds.quotes] };
+  app.renderAll(); app.renderHomeEdgePreview(); app.renderPickFlow();
+  const st = app.rowPriceState(row, market);
+  assert.equal(st.source, 'Kalshi');
+  assert.equal(st.quote.book, 'Kalshi');
+  assert.equal(st.quote.line, 28.5);
+  assert.equal(st.isMain, true);
+  for (const id of ['#homeEdgeList', '#cardView', '#pickResult']) {
+    assert.doesNotMatch(registry.get(id).innerHTML, /DraftKings/, `${id} names DraftKings`);
+  }
+  const cell = bookCell(cardFor(registry, row.player_id));
+  assert.match(cell, /ps-scan-value-book">(Over|Under) 28\.5 · /, 'the Kalshi line is the book line');
+  assert.doesNotMatch(cell, /27\.5/, 'the DraftKings line is not shown');
+  assert.match(cell, /Kalshi · /);
+});
+
+test('edge case (i): two lines inside 40-60% — the one nearer 50% is main; exact ties go to feed order', async () => {
+  // 108.5 at -120/+100 ~52.2%; 104.5 at -105/-105 = 50.0% -> 104.5 is main even though listed second.
+  const { registry, featured, app } = await bootWithQuotes((row) => [ladderQuote(row, 108.5, -120, 100), ladderQuote(row, 104.5, -105, -105)]);
+  assert.equal(app.rowPriceState(featured, 'receiving_yards').quote.line, 104.5);
+  const cell = bookCell(cardFor(registry, featured.player_id));
+  assert.match(cell, /ps-scan-value-book">(Over|Under) 104\.5 · /);
+  assert.doesNotMatch(cell, /108\.5/);
+  // Exact tie (both 50.0%): the first one in the feed wins.
+  const tie = await bootWithQuotes((row) => [ladderQuote(row, 102.5, -110, -110), ladderQuote(row, 106.5, -110, -110)]);
+  assert.equal(tie.app.rowPriceState(tie.featured, 'receiving_yards').quote.line, 102.5);
+});
+
+test('edge case (ii): no line inside 40-60% — nothing is the book line and there is no range marker', async () => {
+  const { registry, featured, app } = await bootWithQuotes((row) => [ladderQuote(row, 29.5, -614, 245), ladderQuote(row, 49.5, -300, 245)]);
+  const st = app.rowPriceState(featured, 'receiving_yards');
+  assert.equal(st.isMain, false);
+  assert.equal(st.main, null);
+  const card = cardFor(registry, featured.player_id);
+  assert.match(bookCell(card), /data-alt-line="1">Alt line 49\.5</, 'the alt nearest 50% is shown, labelled');
+  assert.doesNotMatch(card, /ps-scan-value-book">/);
+  assert.doesNotMatch(card, /class="rf-dist-book"/);
+  assert.match(text(pricerLine(registry.get('#pickResult').innerHTML)), /alt line 49\.5/);
+});
+
+test('no quote: "No Polymarket quote yet", said once, and never "verified"', async () => {
+  const { registry, featured } = await bootWithQuotes(() => []);
+  assert.equal(text(pricerLine(registry.get('#pickResult').innerHTML)), 'No quote · No Polymarket quote yet');
+  assert.match(text(heroCard(registry.get('#homeEdgeList').innerHTML, featured.player_display_name)),
+    /MODEL FAIR · NO QUOTE No Polymarket quote yet\. Research only · no current edge or stake is available\./);
+});
+
+test('no rendered price copy contains the word "verified"', async () => {
+  for (const quotes of [() => [], (row) => [ladderQuote(row, 49.5, -300, 245, 180)], (row) => [ladderQuote(row, 104.5, -110, -110, 5)],
+    (row) => [{ ...ladderQuote(row, 104.5, -110, -110), verified: true, verification_status: 'VERIFIED', receipt_id: 'r1' }]]) {
+    const { registry, featured } = await bootWithQuotes(quotes);
+    // Scope: the player card (hero), the list card and the Line Pricer. The audit and verify
+    // pages may describe verification status and are not checked here.
+    const copy = [
+      text(heroCard(registry.get('#homeEdgeList').innerHTML, featured.player_display_name)),
+      text(registry.get('#pickResult').innerHTML),
+      text(cardFor(registry, featured.player_id)),
+    ].join(' | ');
+    assert.doesNotMatch(copy, /\bverified\b/i, copy); // "Unverified quote" is an approved label
   }
 });

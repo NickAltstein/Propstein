@@ -73,6 +73,15 @@
     return { main: null, alts: byCentre(list), rule: 'no_main_line' };
   }
 
+  /* Only prediction-market venues are named in price copy. A sportsbook's name is
+   * never rendered: any other venue shows no source name at all. */
+  function venueName(book) {
+    const slug = String(book || '').toLowerCase();
+    if (slug.includes('polymarket')) return 'Polymarket';
+    if (slug.includes('kalshi')) return 'Kalshi';
+    return null;
+  }
+
   const ageText = (quotedAt, now) => {
     if (typeof quotedAt !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(quotedAt)) return null;
     const ms = Date.parse(quotedAt);
@@ -103,7 +112,8 @@
    *   presentation  page-level state from deriveMarketStatus()
    *   offerFor(q)   → { freshness, verification } from deriveMarketStatus().offers
    *   now           Date or ms
-   *   source        display name of the venue when no quote names one
+   *   source        the board's venue when no quote names one (only Polymarket or
+ *                 Kalshi is ever returned as `source`; see venueName)
    */
   function derivePriceState(quotes, ctx = {}) {
     const { main, alts, rule } = selectMainQuote(quotes);
@@ -114,11 +124,11 @@
       return { ...base, quote: null, kind: 'unavailable', label: LABELS.unavailable, age: null, source: null };
     }
     if (!shown) {
-      return { ...base, kind: 'none', label: LABELS.none, age: null, source: null };
+      return { ...base, kind: 'none', label: LABELS.none, age: null, source: venueName(ctx.source) };
     }
     const offer = typeof ctx.offerFor === 'function' ? (ctx.offerFor(shown) || {}) : {};
     const age = ageText(shown.quoted_at, ctx.now ?? Date.now());
-    const source = String(shown.book || ctx.source || '').trim() || null;
+    const source = shown.book ? venueName(shown.book) : venueName(ctx.source);
     let kind;
     if (presentation === 'started') kind = 'started';
     else if (age === null) kind = 'undated';
@@ -127,7 +137,7 @@
     return { ...base, kind, label: LABELS[kind], age, source, live: false };
   }
 
-  const api = Object.freeze({ MAIN_LINE_MAX_SKEW, LABELS, noVigOver, selectMainQuote, derivePriceState });
+  const api = Object.freeze({ MAIN_LINE_MAX_SKEW, LABELS, noVigOver, selectMainQuote, derivePriceState, venueName });
   root.PropSteinPriceState = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
