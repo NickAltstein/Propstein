@@ -169,7 +169,8 @@ def compute_kalshi_nba_offset_coverage() -> dict[str, Any]:
         odds = json.loads(of.read_text(encoding="utf-8")) if of.exists() else {}
         if odds.get("_fixture") is True or (games and all(isinstance(g, dict) and g.get("_fixture") is True for g in games)):
             continue  # synthetic fixture night, not a stored Kalshi slate
-        quotes = odds.get("quotes") or []
+        quotes = [q for q in (odds.get("quotes") or [])
+                  if isinstance(q, dict) and q.get("_fixture") is not True]
 
         quotes_by_gid: dict[str, list[dict[str, Any]]] = {}
         for q in quotes:
@@ -177,6 +178,8 @@ def compute_kalshi_nba_offset_coverage() -> dict[str, Any]:
                 quotes_by_gid.setdefault(str(q["game_id"]), []).append(q)
 
         for g in games:
+            if not isinstance(g, dict) or g.get("_fixture") is True:
+                continue
             gid = str(g.get("game_id") or "")
             tip = _parse_utc(g.get("tipoff_utc") or g.get("scheduled_start"))
             if not gid or tip is None:
