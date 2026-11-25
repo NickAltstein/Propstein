@@ -1,6 +1,6 @@
 # Standalone page script order: diagnosis (Step 1)
 
-This inventory is from `main` at `cb8968444` on 2026-11-24. The companion TSV lists **every one of the 1,662 `viewer/**/*.html` files** and its script-stack group. The tags below are the exact opening tags, in document order. Group 2's JSON-LD tag is structured data, not an executable script.
+This inventory is from `main` at `cb8968444` on 2026-11-24. It covered **all 1,662 `viewer/**/*.html` files** at that commit; the per-file list was removed (#294) because it went stale with every page change, and `test/viewer-script-order.test.mjs` plus the "Viewer page-load smoke" job now guard the behaviour against the live tree. The tags below are the exact opening tags, in document order. Group 2's JSON-LD tag is structured data, not an executable script.
 
 | Group | Files | Ordered script tags |
 | --- | ---: | --- |
