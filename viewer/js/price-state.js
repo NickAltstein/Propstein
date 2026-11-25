@@ -18,8 +18,11 @@
  *   b. Spread gate: if implied P(over) + implied P(under) > MAIN_LINE_MAX_OVERROUND
  *      (1.15, i.e. more than 15% vig), the market is too thin to have a centre and
  *      the quote is never the main line (e.g. Over -223 / Under -300 adds up to
- *      1.44). There is deliberately no liquidity floor: what the feed's
- *      liquidity_usd measures has not been verified.
+ *      1.44). There is deliberately no liquidity floor yet. The feed's
+ *      liquidity_usd is per quote: the smaller of the over and under best-ask
+ *      dollar depth (scripts/fetch_polymarket_props.py:295/336, the only script
+ *      that sets it; fetch_nfl_props_sweep.py merges sportsbook rows without it).
+ *      The floor waits for Thursday's survival counts.
  *   c. Remove the vig: p = P(over) normalised so P(over) + P(under) = 1. The main
  *      line is the remaining quote with p closest to 0.50, and only if
  *      |p - 0.50| <= MAIN_LINE_MAX_SKEW (0.10, i.e. a 40%-60% no-vig price).
