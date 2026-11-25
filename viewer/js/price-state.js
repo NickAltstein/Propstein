@@ -12,15 +12,19 @@
  * Showing an alt line beside the model fair line reads as an edge that is not
  * there (fair 96.0 next to "Under 49.5" looks like a 46-yard disagreement).
  *
- *   1. Take every quote for the player and market.
- *   2. For each quote with both an over and an under price, remove the vig:
- *      p = P(over) normalised so P(over) + P(under) = 1.
- *   3. The main line is the quote with p closest to 0.50, and only if
+ *   Checks, in this order, for every quote for the player and market:
+ *   a. A quote without both an over and an under price cannot be checked, so it
+ *      is never the main line, even when it is the only line listed.
+ *   b. Spread gate: if implied P(over) + implied P(under) > MAIN_LINE_MAX_OVERROUND
+ *      (1.15, i.e. more than 15% vig), the market is too thin to have a centre and
+ *      the quote is never the main line (e.g. Over -223 / Under -300 adds up to
+ *      1.44). There is deliberately no liquidity floor: what the feed's
+ *      liquidity_usd measures has not been verified.
+ *   c. Remove the vig: p = P(over) normalised so P(over) + P(under) = 1. The main
+ *      line is the remaining quote with p closest to 0.50, and only if
  *      |p - 0.50| <= MAIN_LINE_MAX_SKEW (0.10, i.e. a 40%-60% no-vig price).
  *      Ties go to the quote listed first in the feed.
- *   4. A quote without both an over and an under price cannot be checked, so it
- *      is never the main line, even when it is the only line listed.
- *   5. Every other quote is an alt line. Alt lines are never shown beside the
+ *   d. Every other quote is an alt line. Alt lines are never shown beside the
  *      fair line as "Book"; they are labelled "Alt line <line>". When there is
  *      no main line, the alt nearest the market centre is the one displayed.
  *
@@ -31,6 +35,7 @@
   'use strict';
 
   const MAIN_LINE_MAX_SKEW = 0.10;
+  const MAIN_LINE_MAX_OVERROUND = 1.15;
 
   const finite = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
   const implied = (odds) => {
@@ -39,8 +44,8 @@
     return o > 0 ? 100 / (o + 100) : -o / (-o + 100);
   };
 
-  /** No-vig P(over) for a two-sided quote, or null when one side is missing. */
-  function noVigOver(quote) {
+  /** Implied P(over) and P(under) as quoted (vig included), or null when one side is missing. */
+  function impliedPair(quote) {
     if (!quote) return null;
     const cents = (v) => (finite(v) && Number(v) > 0 && Number(v) < 100 ? Number(v) / 100 : null);
     let over = cents(quote.over_cents ?? quote.yes_cents);
@@ -50,7 +55,19 @@
       under = implied(quote.under_odds);
     }
     if (over === null || under === null || over + under <= 0) return null;
-    return over / (over + under);
+    return { over, under };
+  }
+
+  /** No-vig P(over) for a two-sided quote, or null when one side is missing. */
+  function noVigOver(quote) {
+    const pair = impliedPair(quote);
+    return pair ? pair.over / (pair.over + pair.under) : null;
+  }
+
+  /** Implied P(over) + P(under) (1 = no vig), or null when one side is missing. */
+  function overround(quote) {
+    const pair = impliedPair(quote);
+    return pair ? pair.over + pair.under : null;
   }
 
   /** Split one player's quotes for one market into the main line and alt lines. */
@@ -61,7 +78,8 @@
     let bestSkew = Infinity;
     for (const quote of list) {
       const p = noVigOver(quote);
-      if (p === null) continue;
+      if (p === null) continue; // (a) one side missing
+      if (overround(quote) > MAIN_LINE_MAX_OVERROUND + 1e-9) continue; // (b) spread gate
       const skew = Math.abs(p - 0.5);
       if (skew <= MAIN_LINE_MAX_SKEW + 1e-9 && skew < bestSkew) { best = quote; bestSkew = skew; }
     }
@@ -137,7 +155,7 @@
     return { ...base, kind, label: LABELS[kind], age, source, live: false };
   }
 
-  const api = Object.freeze({ MAIN_LINE_MAX_SKEW, LABELS, noVigOver, selectMainQuote, derivePriceState, venueName });
+  const api = Object.freeze({ MAIN_LINE_MAX_SKEW, MAIN_LINE_MAX_OVERROUND, LABELS, noVigOver, overround, selectMainQuote, derivePriceState, venueName });
   root.PropSteinPriceState = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
