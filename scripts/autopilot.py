@@ -633,11 +633,23 @@ def scan_nba_slates(now: datetime) -> dict:
             pretty = f"{day.strftime('%b')} {day.day}"
         except Exception:
             pretty = date
+        rows = json.loads(slate_file.read_text(encoding="utf-8"))
+        # A night whose every row is synthetic (scripts/build_nba_fixtures.py,
+        # _fixture: true) is sample data, not a research record: label it as
+        # fixtures so the archive never presents it as a real night or model.
+        fixture = (isinstance(rows, list) and bool(rows)
+                   and all(isinstance(r, dict) and r.get("_fixture") is True for r in rows))
+        if fixture:
+            short_label = f"{pretty} Fixtures"
+            state = f"Research fixtures (synthetic) · {date}"
+        else:
+            short_label = f"{pretty} {'Audit' if is_past else 'Slate'}"
+            state = f"{'Historical audit' if is_past else 'Slate'} · {date}"
         slates[date] = {
             "season": day.year,
             "date": date,
-            "shortLabel": f"{pretty} {'Audit' if is_past else 'Slate'}",
-            "state": f"{'Historical audit' if is_past else 'Slate'} · {date}",
+            "shortLabel": short_label,
+            "state": state,
             "slate": f"nba_slate_{date}.json",
             "games": f"nba_games_{date}.json",
             "picks": None,
@@ -646,7 +658,8 @@ def scan_nba_slates(now: datetime) -> dict:
             "snapshots": None,
             "historical": is_past,
             "timezone": "America/New_York",
-            "marketOnly": json.loads(slate_file.read_text(encoding="utf-8")) == [],
+            "marketOnly": rows == [],
+            "fixture": fixture,
         }
     return slates
 

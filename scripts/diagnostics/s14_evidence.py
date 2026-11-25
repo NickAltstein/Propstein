@@ -111,9 +111,12 @@ def inspect_field_inventory() -> list[dict[str, Any]]:
     nba_files = [p for p in nba_files if not p.name.endswith(".manifest.json")]
     nba_keys: set[str] = set()
     nba_count = 0
+    # Fixture nights (scripts/build_nba_fixtures.py) are synthetic sample data,
+    # not stored Kalshi evidence: leave them out of every count.
+    nba_files = [p for p in nba_files if json.loads(p.read_text(encoding="utf-8")).get("_fixture") is not True]
     for p in nba_files:
         d = json.loads(p.read_text(encoding="utf-8"))
-        qs = d.get("quotes") or []
+        qs = [q for q in (d.get("quotes") or []) if not (isinstance(q, dict) and q.get("_fixture") is True)]
         nba_count += len(qs)
         for q in qs:
             if isinstance(q, dict):
@@ -164,6 +167,8 @@ def compute_kalshi_nba_offset_coverage() -> dict[str, Any]:
         of = ROOT / "viewer" / f"nba_odds_{day}.json"
         games = json.loads(gf.read_text(encoding="utf-8"))
         odds = json.loads(of.read_text(encoding="utf-8")) if of.exists() else {}
+        if odds.get("_fixture") is True or (games and all(isinstance(g, dict) and g.get("_fixture") is True for g in games)):
+            continue  # synthetic fixture night, not a stored Kalshi slate
         quotes = odds.get("quotes") or []
 
         quotes_by_gid: dict[str, list[dict[str, Any]]] = {}
