@@ -1,15 +1,15 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v290-remove-nba-points-card';
+const CACHE_NAME = 'propstein-v291-quoted-card-layout';
 const STATIC_ASSETS = [
   '/tokens.css?v=2026_v1',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v266',
+  '/style.css?v=2026_v267',
   '/feed-status.css?v=2026_v260',
   '/app.js?v=2026_v288',
   '/design-system.css?v=2026_v231',
-  '/terminal-ui.css?v=2026_v278',
+  '/terminal-ui.css?v=2026_v279',
   '/js/market-status.js?v=2026_v5',
   '/js/price-state.js?v=2026_v1',
   '/js/instrument-panel.js?v=2026_v1',

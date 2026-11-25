@@ -12347,21 +12347,6 @@ body {
 
 @media (min-width: 769px) {
   #cardView.card-grid { grid-template-columns: 1fr !important; max-width: 1220px !important; gap: var(--sp-3) !important; }
-  #cardView:not(.compact-grid) .mobile-quant-row.quoted-card {
-    display: grid !important; grid-template-columns: minmax(215px,.85fr) minmax(205px,1fr) minmax(250px,1.15fr);
-    gap: var(--sp-3) var(--sp-4); align-items: stretch; padding: var(--sp-4) !important;
-  }
-  #cardView:not(.compact-grid) .quoted-card .card-header-row { grid-column: 1; grid-row: 1 / span 2; margin: 0 !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; gap: var(--sp-3) !important; }
-  #cardView:not(.compact-grid) .quoted-card .card-id-block { align-items: flex-start !important; width: 100%; flex: 0 0 auto !important; }
-  #cardView:not(.compact-grid) .quoted-card .card-name-group { min-width: 0; }
-  #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar { width: 52px !important; height: 52px !important; min-width: 52px !important; min-height: 52px !important; border-radius: var(--r-3) !important; }
-  #cardView:not(.compact-grid) .quoted-card .card-hero-edge-block { align-self: flex-start; align-items: flex-start !important; margin-left: 36px; }
-  #cardView:not(.compact-grid) .quoted-card .card-hairline-sep { display: none !important; }
-  #cardView:not(.compact-grid) .quoted-card .card-grid-row { display: contents !important; }
-  #cardView:not(.compact-grid) .quoted-card .col-book { grid-column: 2; grid-row: 1; }
-  #cardView:not(.compact-grid) .quoted-card .col-model { grid-column: 3; grid-row: 1; }
-  #cardView:not(.compact-grid) .quoted-card .col-steam { grid-column: 2; grid-row: 2; }
-  #cardView:not(.compact-grid) .quoted-card .col-action { grid-column: 3; grid-row: 2; flex-direction: row !important; justify-content: flex-end !important; }
 }
 #cardView:not(.compact-grid) .mobile-quant-row {
   border-color: rgba(210,220,230,.12) !important;
