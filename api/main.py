@@ -110,6 +110,11 @@ from api.ledger_router import router as ledger_api_router  # noqa: E402
 app.include_router(extension_api_router)
 app.include_router(ledger_api_router)
 
+if os.environ.get("PROPSTEIN_PRIVATE_VALIDATION", "").strip() == "1":
+    from api.private_validation_router import router as private_validation_api_router  # noqa: E402
+
+    app.include_router(private_validation_api_router)
+
 
 # ---------------------------------------------------------------------------
 # Entitlement. Whop is the storefront; Stripe is the processor behind it.
