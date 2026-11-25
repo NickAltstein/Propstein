@@ -31,17 +31,33 @@ turned off.
 State comes from Vercel's deployments API (last READY production
 deployment: time and commit), never from memory or a state file.
 
-After calling the hook it polls the API until a new production deployment
-shows up. If none appears (for example because deploy hooks do not fire
-once automatic git deployments are off; Vercel's docs do not say), or the
-hook call fails or is rate limited, it POSTs to ALARM_WEBHOOK_URL and exits
-1. The deploy hook URL can trigger a production deploy: it is read from the
-environment, used only as a request target, and never printed.
+After calling the hook it waits for the new production deployment's
+final state, because "a deployment was created" is not "the site changed":
+
+  READY (and promoted)            success
+  CANCELED by the Ignored Build   success, logged as "no change", only when
+    Step, on the exact commit     production is already on that commit
+    production already serves
+  anything else: CANCELED for     fail: page ALARM_WEBHOOK_URL and exit 1
+    another reason, ERROR, built
+    but not promoted, or still
+    not final at --ready-timeout
+
+If the hook call fails, or it is accepted but no deployment appears within
+--verify-timeout, the hook is tried once more. If that fails too, the gate
+creates the deployment directly through the Vercel API (POST
+/v13/deployments from the GitHub commit), pages that the hook is broken,
+and still waits for READY. Once automatic git deploys are off this gate is
+the only route to production, so it never reports success on less than a
+live deploy. The deploy hook URL can trigger a production deploy: it is
+read from the environment, used only as a request target, and never printed.
 
 Env:
   VERCEL_DEPLOY_HOOK_URL  secret; the main-branch deploy hook
-  VERCEL_API_TOKEN        secret; reads the deployments list
-  VERCEL_PROJECT_ID, VERCEL_TEAM_ID
+  VERCEL_API_TOKEN        secret; reads deployments, and creates one when
+                          the hook fails twice
+  VERCEL_PROJECT_ID, VERCEL_TEAM_ID, VERCEL_PROJECT_NAME
+  GITHUB_REPOSITORY_ID    set by Actions; needed for the API fallback
   ALARM_WEBHOOK_URL       secret; optional {"content","text"} pager
 """
 from __future__ import annotations
@@ -72,6 +88,9 @@ DATA_PATTERNS = ("viewer/*.json", "viewer/*.csv", "public/*.json", "public/*.csv
 CODE_JSON = ("viewer/manifest.json",)
 
 IN_FLIGHT = {"BUILDING", "INITIALIZING", "QUEUED"}
+FINAL = {"READY", "ERROR", "CANCELED"}
+#: Vercel's message when scripts/vercel_ignore.sh exits 0.
+IGNORED_BUILD = "Ignored Build Step"
 
 
 def classify_path(path: str) -> str:
@@ -132,6 +151,32 @@ def decide(kind: str, *, last_ready_at: datetime | None, in_flight: bool, now: d
                    f"(< {min_data_interval.total_seconds() / 60:.0f} min), the next data merge catches up")
 
 
+def dep_state(dep: dict) -> str | None:
+    return dep.get("readyState") or dep.get("state")
+
+
+def judge_final(dep: dict | None, *, production_sha: str | None) -> tuple[bool, str]:
+    """(ok?, message) for a production deployment's final state. Pure."""
+    if dep is None:
+        return False, "no final state"
+    state = dep_state(dep)
+    sha = deployment_sha(dep)
+    short = (sha or "?")[:9]
+    if state == "READY":
+        sub = dep.get("readySubstate")
+        if sub and sub != "PROMOTED":
+            return False, f"deployment {short} built but is {sub}, not live"
+        return True, f"deployment {short} is READY and live"
+    if state == "CANCELED":
+        why = dep.get("errorMessage") or "no reason given"
+        if IGNORED_BUILD in why and sha and sha == production_sha:
+            return True, f"no change: production already serves {short}, so Vercel skipped the build"
+        return False, f"deployment {short} was CANCELED: {why}"
+    if state == "ERROR":
+        return False, f"deployment {short} failed to build: {dep.get('errorMessage') or 'no reason given'}"
+    return False, f"deployment {short} still {state or 'unknown'} at the timeout"
+
+
 # ── I/O ──────────────────────────────────────────────────────────────────
 
 class GateError(RuntimeError):
@@ -168,6 +213,40 @@ def deployment_sha(dep: dict) -> str | None:
     return meta.get("githubCommitSha") or None
 
 
+def get_deployment(token: str, dep_id: str, team: str | None,
+                   opener=urllib.request.urlopen) -> dict:
+    params = {"teamId": team} if team else {}
+    query = f"?{urllib.parse.urlencode(params)}" if params else ""
+    req = urllib.request.Request(f"{API}/v13/deployments/{urllib.parse.quote(dep_id)}{query}",
+                                 headers={"Authorization": f"Bearer {token}"})
+    try:
+        with opener(req, timeout=20) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise GateError(f"Vercel deployment API returned HTTP {exc.code}") from None
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+        raise GateError(f"Vercel deployment API unreachable ({type(exc).__name__})") from None
+
+
+def create_deployment(token: str, *, project: str, name: str, team: str | None, repo_id: str,
+                      sha: str, opener=urllib.request.urlopen) -> dict:
+    """Production deployment of `sha` on main, straight from the GitHub repo."""
+    params = {"teamId": team} if team else {}
+    query = f"?{urllib.parse.urlencode(params)}" if params else ""
+    body = json.dumps({"name": name, "project": project, "target": "production",
+                       "gitSource": {"type": "github", "repoId": repo_id, "ref": "main", "sha": sha}})
+    req = urllib.request.Request(f"{API}/v13/deployments{query}", data=body.encode(), method="POST",
+                                 headers={"Authorization": f"Bearer {token}",
+                                          "Content-Type": "application/json"})
+    try:
+        with opener(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise GateError(f"Vercel create-deployment API returned HTTP {exc.code}") from None
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+        raise GateError(f"Vercel create-deployment API unreachable ({type(exc).__name__})") from None
+
+
 def call_hook(url: str, opener=urllib.request.urlopen) -> dict:
     req = urllib.request.Request(url, data=b"", method="POST")
     try:
@@ -199,6 +278,21 @@ def wait_for_new_deployment(list_fn, *, after: datetime, timeout_s: float, inter
                 return dep
         if clock() >= deadline:
             return None
+        sleep(interval_s)
+
+
+def wait_for_final_state(get_fn, *, timeout_s: float, interval_s: float,
+                         sleep=None, clock=None) -> dict | None:
+    """Poll one deployment until READY, ERROR or CANCELED. The last state
+    seen if the timeout passes first (judge_final then fails it)."""
+    sleep = sleep or time.sleep
+    clock = clock or time.monotonic
+    deadline = clock() + timeout_s
+    dep = None
+    while True:
+        dep = get_fn()
+        if dep_state(dep) in FINAL or clock() >= deadline:
+            return dep
         sleep(interval_s)
 
 
@@ -283,30 +377,72 @@ def run(args, env=os.environ) -> int:
     if not hook:
         return fail("VERCEL_DEPLOY_HOOK_URL is not set; a deploy was needed and none was triggered")
 
-    called_at = datetime.now(timezone.utc)
-    try:
-        call_hook(hook)
-    except GateError as exc:
-        return fail(str(exc))
-    try:
-        dep = wait_for_new_deployment(
-            lambda: list_production(token, project, team, limit=5),
-            after=called_at, timeout_s=args.verify_timeout, interval_s=15)
-    except GateError as exc:
-        return fail(f"hook called but the deployment check failed: {exc}")
+    def list_recent():
+        return list_production(token, project, team, limit=5)
+
+    dep, problems = None, []
+    for attempt in (1, 2):
+        called_at = datetime.now(timezone.utc)
+        try:
+            call_hook(hook)
+            dep = wait_for_new_deployment(list_recent, after=called_at,
+                                          timeout_s=args.verify_timeout, interval_s=15)
+        except GateError as exc:
+            problems.append(f"hook attempt {attempt}: {exc}")
+            continue
+        if dep is not None:
+            break
+        problems.append(f"hook attempt {attempt}: accepted but no production deployment appeared "
+                        f"within {args.verify_timeout:.0f}s")
+    for p in problems:
+        summary(f"deploy gate: {p}")
+
     if dep is None:
-        return fail(f"deploy hook accepted but no production deployment appeared within "
-                    f"{args.verify_timeout:.0f}s (are deploy hooks blocked by vercel.json git settings?)")
-    summary(f"deploy gate: production deployment created ({dep.get('state') or dep.get('readyState')}, "
-            f"{(deployment_sha(dep) or '?')[:9]})")
+        repo_id = env.get("GITHUB_REPOSITORY_ID", "").strip()
+        name = env.get("VERCEL_PROJECT_NAME", "").strip()
+        sha = head_sha(args.head)
+        if not (repo_id and name and sha):
+            return fail("; ".join(problems) + "; no API fallback (GITHUB_REPOSITORY_ID, "
+                        "VERCEL_PROJECT_NAME or the head commit is missing)")
+        try:
+            dep = create_deployment(token, project=project, name=name, team=team,
+                                    repo_id=repo_id, sha=sha)
+        except GateError as exc:
+            return fail("; ".join(problems) + f"; API fallback failed: {exc}")
+        send_alarm("PropStein deploy hook FAILED twice (" + "; ".join(problems) +
+                   f"). Deployed {sha[:9]} through the Vercel API instead; fix or replace the hook.",
+                   alarm)
+        summary(f"deploy gate: hook failed twice; created deployment through the API for {sha[:9]}")
+
+    dep_id = dep.get("uid") or dep.get("id")
+    if not dep_id:
+        return fail("deployment found but it has no id to follow")
+    try:
+        final = wait_for_final_state(lambda: get_deployment(token, dep_id, team),
+                                     timeout_s=args.ready_timeout, interval_s=15)
+    except GateError as exc:
+        return fail(f"deployment {dep_id} created but its state could not be read: {exc}")
+    ok, message = judge_final(final, production_sha=last_sha)
+    if not ok:
+        return fail(message)
+    summary(f"deploy gate: {message}")
     return 0
+
+
+def head_sha(head: str = "HEAD") -> str | None:
+    out = subprocess.run(["git", "rev-parse", "--verify", f"{head}^{{commit}}"],
+                         capture_output=True, text=True)
+    return out.stdout.strip() if out.returncode == 0 else None
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--head", default="HEAD")
     ap.add_argument("--min-data-interval", type=float, default=60.0, help="minutes")
-    ap.add_argument("--verify-timeout", type=float, default=180.0, help="seconds")
+    ap.add_argument("--verify-timeout", type=float, default=180.0,
+                    help="seconds to wait for a deployment to appear after each hook call")
+    ap.add_argument("--ready-timeout", type=float, default=600.0,
+                    help="seconds to wait for that deployment to reach READY, ERROR or CANCELED")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--sweep", action="store_true",
                     help="scheduled catch-up: deploy any served change, ignoring the data throttle")
