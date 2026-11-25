@@ -1254,7 +1254,7 @@
     await loadSlate(defaultBootSlate());
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   }
 
@@ -2452,6 +2452,11 @@
     // unique URL. Keep this pattern in sync with viewer/sw.js and vercel.json.
     const revalidate = REVALIDATED_DATA_RE.test(String(path).split('?')[0]);
     try {
+      // Standalone routes are nested, while all viewer data is at /.
+      const pagePath = window.location?.pathname || '/';
+      if (pagePath !== '/' && !/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(path)) {
+        path = `/${path}`;
+      }
       const url = revalidate ? path : `${path}?v=${Date.now()}`;
       const response = await fetch(url, { cache: revalidate ? 'no-cache' : 'no-store', signal: controller.signal });
       return { response, data: response.ok ? await response.json() : null };
@@ -9240,7 +9245,8 @@
     $('#clvReportContent').innerHTML = `
       <p>The 8-row hand ledger is a different file and is not this denominator.</p>
       <p>${summary.beat_close_count} of ${summary.total_graded} beat the last stored pre-kickoff price (captured 2.3–5.4 days before kickoff, not T-0 closes). This is not a model-skill claim. See the time-to-close table on the performance page.</p>
-      <div class="clv-table-scroll">
+      <p class="clv-table-hint">Swipe the table to see the snapshot and status →</p>
+      <div class="clv-table-scroll" role="region" aria-label="CLV audit results; scroll horizontally for all columns" tabindex="0">
         <table class="clv-audit-table">
           <thead><tr><th>Player</th><th>Market</th><th>Entry</th><th>Snapshot labeled close</th><th>Status</th></tr></thead>
           <tbody>${body}</tbody>
