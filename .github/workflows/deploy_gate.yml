@@ -7,7 +7,8 @@ name: Production deploy gate
 #   nothing served  -> skip
 # Runs on every push. An hourly sweep (cron here; Vercel Schedules once
 # PR 260 lands) deploys any served change the 60-min data throttle left
-# behind, e.g. the last data merge of the night. A missed sweep costs
+# behind, e.g. the last data merge of the night. Vercel Schedules sends
+# the same sweep as workflow_dispatch with sweep=true. A missed sweep costs
 # nothing: the next push or sweep catches up. It commits nothing, so it
 # cannot trigger itself.
 #
@@ -44,6 +45,11 @@ on:
         required: false
         type: boolean
         default: false
+      sweep:
+        description: 'Hourly catch-up: deploy any served change the data throttle left behind (Vercel Schedules sends this)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -75,10 +81,11 @@ jobs:
           VERCEL_PROJECT_NAME: propstein
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
           EVENT: ${{ github.event_name }}
+          SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.sweep }}
         run: |
           if [ "$FORCE" = "true" ]; then
             python3 scripts/deploy_gate.py --force
-          elif [ "$EVENT" = "schedule" ]; then
+          elif [ "$EVENT" = "schedule" ] || [ "$SWEEP" = "true" ]; then
             python3 scripts/deploy_gate.py --sweep
           else
             python3 scripts/deploy_gate.py
