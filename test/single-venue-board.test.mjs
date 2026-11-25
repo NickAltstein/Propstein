@@ -227,7 +227,8 @@ test('cents units are preserved verbatim and missing prices display Price unavai
   const { row, quote } = await seedEvaluatedNflSlate(app, {
     sandbox,
     quoteOverrides: {
-      book: 'Kalshi',
+      // NFL boards show Polymarket only (other venues are hidden); cents still render verbatim.
+      book: 'Polymarket',
       over_odds: null,
       under_odds: null,
       price_unit: 'cents',
@@ -250,6 +251,12 @@ test('cents units are preserved verbatim and missing prices display Price unavai
   assert.match(cardsHtml, /Price unavailable/);
   assert.doesNotMatch(cardsHtml, /-110/);
   assert.doesNotMatch(cardsHtml, /offer-qualified-green/);
+
+  // The same quote from Kalshi is not the NFL board's venue: hidden, not re-labelled.
+  Object.assign(quote, { book: 'Kalshi', price_unit: 'cents', over_cents: 54, under_cents: 46 });
+  app.renderBoard();
+  cardsHtml = registry.get('#cardView').innerHTML;
+  assert.doesNotMatch(cardsHtml, /49\.5 · 54¢|Kalshi/);
 });
 
 test('model-less NBA row shows Model unavailable in headline and quote details drawer', () => {
