@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v291-quoted-card-layout';
+const CACHE_NAME = 'propstein-v292-main-line-spread-gate';
 const STATIC_ASSETS = [
   '/tokens.css?v=2026_v1',
   '/index.html',
@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
   '/design-system.css?v=2026_v231',
   '/terminal-ui.css?v=2026_v279',
   '/js/market-status.js?v=2026_v5',
-  '/js/price-state.js?v=2026_v1',
+  '/js/price-state.js?v=2026_v2',
   '/js/instrument-panel.js?v=2026_v1',
   '/widget/line-pricer/widget.css?v=2026_v1',
   '/widget/line-pricer/widget.js?v=2026_v2',
