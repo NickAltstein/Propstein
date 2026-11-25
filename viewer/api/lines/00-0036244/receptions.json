@@ -1,7 +1,7 @@
 {
   "player_id": "00-0036244",
   "market": "receptions",
-  "generated_at": "2026-11-25T22:46:31.953041+00:00",
+  "generated_at": "2026-11-25T23:01:48.140387+00:00",
   "series": {
     "polymarket": [
       {
@@ -212,6 +212,13 @@
         "line": 1.5,
         "over": -300,
         "under": 186,
+        "verified": false
+      },
+      {
+        "t": "2026-11-25T23:01:45.672369+00:00",
+        "line": 2.5,
+        "over": -108,
+        "under": -133,
         "verified": false
       }
     ]
