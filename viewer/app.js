@@ -7444,11 +7444,14 @@
 
     return `<article class="prop-card ps-scan-card td-scorer-card" data-td-card="1" data-scan-card="1" data-player-id="${esc(row.player_id || '')}">
       <header class="ps-scan-header">
+        <div class="ps-scan-who">
+        ${avatarFor(row.player_id, name, row.team)}
         <div class="ps-scan-identity">
           <div class="ps-scan-name-row">
             <strong class="ps-scan-player">${esc(name)}</strong>
           </div>
           <span class="ps-scan-meta">${esc(pos)} · ${esc(matchup)}</span>
+        </div>
         </div>
         <span class="ps-signal-badge ${signalClass}">${esc(signalLabel)}</span>
       </header>
@@ -7603,11 +7606,14 @@
     return `
       <article class="prop-card ps-scan-card mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${qualifiedGreen ? 'row-state-actionable offer-qualified-green' : ''} ${isTopEdge && qualifiedGreen ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-scan-card="1" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="View quote details for ${esc(row.player_display_name)}">
         <header class="ps-scan-header">
+          <div class="ps-scan-who">
+          ${avatarFor(row.player_id, row.player_display_name, row.team)}
           <div class="ps-scan-identity">
             <div class="ps-scan-name-row">
               <strong class="ps-scan-player" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}</strong>
             </div>
             <span class="card-team-matchup">${cardSubtitleMatchup(row, state.filters.market)}</span>${sportCalibrationBadge()}
+          </div>
           </div>
           <span class="ps-signal-badge ${signalClass}">${esc(signalLabel)}</span>
         </header>
