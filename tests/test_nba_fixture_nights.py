@@ -59,8 +59,7 @@ FIXTURE_NIGHTS = ("2026-10-22", "2026-10-23", "2026-10-29")
 
 
 def test_live_recalc_agent_loads_no_synthetic_nba_baselines():
-    """The money-path agent used to load all 169 fx- rows from the three
-    fixture nights as NBA baselines (base_mu, base_sd, line)."""
+    """The committed fixture nights cannot seed the live pricing catalog."""
     from src.agents import recalc_agent as ra
 
     agent = ra.ProjectionRecalcAgent.__new__(ra.ProjectionRecalcAgent)
@@ -74,6 +73,39 @@ def test_live_recalc_agent_loads_no_synthetic_nba_baselines():
         for r in json.loads((ROOT / "viewer" / f"nba_slate_{d}.json").read_text())
     }
     assert fixture_ids and not (fixture_ids & set(agent.baseline_catalog))
+
+
+def test_live_recalc_agent_loads_only_real_rows_from_current_slate(tmp_path, monkeypatch):
+    from src.agents import recalc_agent as ra
+
+    viewer = tmp_path / "viewer"
+    (viewer / "feeds").mkdir(parents=True)
+    index = {"sports": {"nba": {"default_slate": "2026-11-24", "slates": {
+        "2026-11-24": {"slate": "nba_slate_2026-11-24.json", "fixture": False},
+    }}}}
+    (viewer / "feeds/slate-index.json").write_text(json.dumps(index))
+    fixture = {"player_id": "fx-player", "_fixture": True, "proj_points": 99}
+    real = {"player_id": "real-player", "_fixture": False, "proj_points": 24,
+            "sd_points": 5, "proj_minutes": 31, "usage_rate": 0.27}
+    monkeypatch.setattr(ra, "VIEWER_DIR", viewer)
+
+    agent = ra.ProjectionRecalcAgent.__new__(ra.ProjectionRecalcAgent)
+    agent.baseline_catalog = {}
+    (viewer / "nba_slate_2026-11-24.json").write_text(json.dumps([fixture]))
+    agent._load_baseline_catalog()
+    assert agent.baseline_catalog == {}
+
+    (viewer / "nba_slate_2026-11-24.json").write_text(json.dumps([fixture, real]))
+    agent._load_baseline_catalog()
+    assert set(agent.baseline_catalog) == {"real-player"}
+    assert agent.baseline_catalog["real-player"]["base_mu"] == 24
+    assert agent.baseline_catalog["real-player"]["base_minutes"] == 31
+
+    index["sports"]["nba"]["slates"]["2026-11-24"]["fixture"] = True
+    (viewer / "feeds/slate-index.json").write_text(json.dumps(index))
+    agent.baseline_catalog = {}
+    agent._load_baseline_catalog()
+    assert agent.baseline_catalog == {}
 
 
 def test_s14_evidence_counts_leave_out_fixture_nights():
@@ -93,3 +125,35 @@ def test_s14_evidence_counts_leave_out_fixture_nights():
         for g in json.loads((ROOT / "viewer" / f"nba_games_{d}.json").read_text()):
             gid = str(g.get("game_id") or "")
             assert not gid or gid not in blob, f"fixture game {gid} counted in offset coverage"
+
+
+def test_s14_evidence_excludes_fixture_files_and_rows(tmp_path, monkeypatch):
+    from scripts.diagnostics import s14_evidence as s14
+
+    viewer = tmp_path / "viewer"
+    viewer.mkdir()
+    monkeypatch.setattr(s14, "ROOT", tmp_path)
+    (viewer / "nba_odds_2026-10-22.json").write_text(json.dumps({
+        "_fixture": True, "quotes": [{"quote_id": "fixture-file", "_fixture": True}],
+    }))
+    (viewer / "nba_odds_2026-11-24.json").write_text(json.dumps({
+        "quotes": [
+            {"quote_id": "fixture-row", "game_id": "real-game", "_fixture": True,
+             "quoted_at": "2026-11-24T18:00:00Z"},
+            {"quote_id": "real-row", "game_id": "real-game",
+             "quoted_at": "2026-11-24T18:00:00Z"},
+        ],
+    }))
+    (viewer / "nba_games_2026-11-24.json").write_text(json.dumps([
+        {"game_id": "fixture-game", "_fixture": True, "tipoff_utc": "2026-11-24T19:00:00Z"},
+        {"game_id": "real-game", "tipoff_utc": "2026-11-24T19:00:00Z"},
+    ]))
+
+    inventory = s14.inspect_field_inventory()
+    kalshi = next(row for row in inventory if row["source"].startswith("Kalshi NBA"))
+    assert kalshi["rows"] == 1
+    assert "(1 files)" in kalshi["files"]
+    coverage = s14.compute_kalshi_nba_offset_coverage()
+    assert coverage["total_games"] == 1
+    assert [row["game_id"] for row in coverage["per_game"]] == ["real-game"]
+    assert coverage["per_game"][0]["pre_start_quotes"] == 1
