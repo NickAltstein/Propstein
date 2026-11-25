@@ -286,7 +286,7 @@ test('NBA: a DraftKings line nearer 50% does not change which Kalshi line is mai
   app.state.livePicks = { picks: [] };
   const market = app.state.filters.market;
   const row = app.state.slate.find((r) => Number.isFinite(Number(app.fairValue(r))) && Number(app.fairValue(r)) > 0);
-  const mk = (book, line, over, under) => ({ ...ladderQuote(row, line, over, under), market, book });
+  const mk = (book, line, over, under) => ({ ...ladderQuote(row, line, over, under), market, book, _fixture: false, verified: false });
   app.state.odds = { ...app.state.odds, quotes: [mk('DraftKings', 27.5, -105, -105), mk('Kalshi', 28.5, -125, 105), ...app.state.odds.quotes] };
   app.renderAll(); app.renderHomeEdgePreview(); app.renderPickFlow();
   const st = app.rowPriceState(row, market);
@@ -294,13 +294,18 @@ test('NBA: a DraftKings line nearer 50% does not change which Kalshi line is mai
   assert.equal(st.quote.book, 'Kalshi');
   assert.equal(st.quote.line, 28.5);
   assert.equal(st.isMain, true);
-  for (const id of ['#homeEdgeList', '#cardView', '#pickResult']) {
-    assert.doesNotMatch(registry.get(id).innerHTML, /DraftKings/, `${id} names DraftKings`);
+  // NBA has no model: the list is the market-only Kalshi list, never model cards.
+  app.state.filters.playMode = 'all';
+  app.renderAll();
+  const marketList = registry.get('#emptyState').innerHTML;
+  assert.equal(registry.get('#cardView').innerHTML, '');
+  assert.match(marketList, /data-testid="nba-market-quote"/);
+  assert.match(marketList, /Over 28\.5 <b>/, 'the Kalshi line is listed');
+  for (const id of ['#homeEdgeList', '#cardView', '#pickResult', '#emptyState']) {
+    const html = registry.get(id).innerHTML;
+    assert.doesNotMatch(html, /DraftKings|27\.5 <b>/, `${id} shows the DraftKings line`);
+    assert.doesNotMatch(html, /MODEL FAIR/, `${id} shows MODEL FAIR on NBA`);
   }
-  const cell = bookCell(cardFor(registry, row.player_id));
-  assert.match(cell, /ps-scan-value-book">(Over|Under) 28\.5 · /, 'the Kalshi line is the book line');
-  assert.doesNotMatch(cell, /27\.5/, 'the DraftKings line is not shown');
-  assert.match(cell, /Kalshi · /);
 });
 
 test('edge case (i): two lines inside 40-60% — the one nearer 50% is main; exact ties go to feed order', async () => {

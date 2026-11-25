@@ -3697,7 +3697,10 @@
 
   function renderBoard() {
     renderHomeEdgePreview();
-    if (SPORT_ID === 'nba' && state.slate.length === 0 && SLATES[state.slateKey]?.marketOnly) {
+    // A sport with no model never lists fair lines: NBA (adapter.model === null) always uses the
+    // market-only list, on every night — including archived nights whose rows carry synthetic
+    // fixture fair lines.
+    if (SPORT_ID === 'nba' && (adapter.model === null || (state.slate.length === 0 && SLATES[state.slateKey]?.marketOnly))) {
       renderNbaMarketOnly();
       return;
     }
