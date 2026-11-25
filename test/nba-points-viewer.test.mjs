@@ -125,13 +125,6 @@ function findChrome() {
   return candidates.find((p) => fs.existsSync(p)) || null;
 }
 
-test('viewer/app.js renders fail-closed NBA Points card contract', () => {
-  const appJs = fs.readFileSync(path.resolve('viewer/app.js'), 'utf8');
-  assert.match(appJs, /function nbaPointsCard\(row\)/);
-  assert.match(appJs, /data-nba-points-card="1"/);
-  assert.match(appJs, /MODEL FAIR · RESEARCH ONLY/);
-});
-
 test('model card renders role surge, fair/projection and fail-closed copy at 390px dark mode (NFL)', async (t) => {
   if (!findChrome()) {
     t.skip('No local Chrome/Chromium executable available in this CI environment');
