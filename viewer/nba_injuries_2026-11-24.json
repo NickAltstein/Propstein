@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-24",
-  "as_of": "2026-11-25T00:34:11Z",
+  "as_of": "2026-11-25T01:29:07Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -109,13 +109,6 @@
       "report_status": "Out",
       "reported_at": "2026-10-24T16:47Z",
       "comment": "Banchero is expected to be sidelined for the next four-to-six weeks due to a right high-ankle sprain, Shams Charania of ESPN reports."
-    },
-    {
-      "player_name": "Tre Mann",
-      "team": "WAS",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-24T16:47Z",
-      "comment": "Mann (illness) has been downgraded to questionable for Tuesday's game against Boston."
     },
     {
       "player_name": "Tristan Vukcevic",
