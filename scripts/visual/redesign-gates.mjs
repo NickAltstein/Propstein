@@ -2,6 +2,13 @@
 // Evidence harness for the viewer redesign PRs: screenshots + layout assertions + axe.
 //
 //   node scripts/visual/redesign-gates.mjs <outDir> [--data-ref <sha>] [--axe <path/to/axe.min.js>]
+//                                          [--baseline <base report.json>]
+//
+// Exit code: without --baseline, 1 if any assertion fails. With --baseline (how CI
+// runs it, see .github/workflows/viewer-gates.yml), 1 only on a REGRESSION: an
+// assertion that passes in the baseline report but fails here, or a serious/critical
+// axe rule that the baseline did not have. Failures the base branch already has are
+// listed but do not block.
 //
 // - Page code comes from the working tree; every .json/.csv comes from ONE pinned
 //   commit (default: scripts/visual/redesign-data-ref) so before/after shots and
@@ -33,6 +40,7 @@ const outDir = path.resolve(ROOT, args[0] && !args[0].startsWith('--') ? args[0]
 const DATA_REF = flag('--data-ref') || fs.readFileSync(path.join(ROOT, 'scripts/visual/redesign-data-ref'), 'utf8').trim();
 const AXE = flag('--axe');
 const ONLY = flag('--only');
+const BASELINE = flag('--baseline');
 
 const show = (rel) => {
   try { return execFileSync('git', ['show', `${DATA_REF}:viewer/${rel}`], { cwd: ROOT, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return null; }
@@ -235,6 +243,28 @@ try {
   await browser.close();
   server.close();
 }
+const regressions = [];
+if (BASELINE) {
+  const base = new Map(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).results.map((r) => [r.name, r]));
+  for (const r of report.results) {
+    const b = base.get(r.name);
+    if (!b) continue;
+    for (const [k, v] of Object.entries(r)) {
+      if (!v || typeof v !== 'object' || v.pass !== false || !b[k]) continue;
+      if (b[k].pass === true) regressions.push(`${r.name} ${k}: passes on base, fails here`);
+      if (k === 'axe') {
+        const had = new Set((b.axe.serious || []).map((x) => x.id));
+        for (const x of v.serious) if (!had.has(x.id)) regressions.push(`${r.name} axe: new ${x.impact} rule ${x.id}`);
+      }
+    }
+  }
+  report.regressions = regressions;
+}
 fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
 console.log(`${report.results.length} scenarios -> ${path.relative(ROOT, outDir)} (data @ ${DATA_REF.slice(0, 9)}, clock ${FIXED_TIME}); ${failures} failing assertions`);
-process.exitCode = failures ? 1 : 0;
+if (BASELINE) {
+  console.log(regressions.length ? `REGRESSIONS vs baseline (${regressions.length}):\n  ${regressions.join('\n  ')}` : 'No regressions vs baseline (failures above also fail on the base branch).');
+  process.exitCode = regressions.length ? 1 : 0;
+} else {
+  process.exitCode = failures ? 1 : 0;
+}
