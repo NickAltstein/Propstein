@@ -1,7 +1,7 @@
 {
   "player_id": "00-0033921",
   "market": "receiving_yards",
-  "generated_at": "2026-11-26T21:46:32.543697+00:00",
+  "generated_at": "2026-11-26T22:01:27.430355+00:00",
   "series": {
     "polymarket": [
       {
@@ -401,6 +401,13 @@
         "line": 19.5,
         "over": -127,
         "under": -1011,
+        "verified": false
+      },
+      {
+        "t": "2026-11-26T22:01:26.085556+00:00",
+        "line": 19.5,
+        "over": -163,
+        "under": -1150,
         "verified": false
       }
     ]
