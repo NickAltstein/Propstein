@@ -204,6 +204,8 @@ def main() -> None:
     games = load_schedule()
 
     targets = discover(games, a.snapshot_days)
+    if not a.no_commit:
+        commit("research(data): Kalshi NFL series discovery")
     snapshot_done = False
     it = 0
     last_discover = datetime.now(timezone.utc)
@@ -220,7 +222,7 @@ def main() -> None:
             log({"event": "window_pass", "captured": n,
                  "games": sorted({t["game"]["game_id"] for t in window})})
             it += 1
-            if it % 5 == 0 and not a.no_commit:
+            if (it == 1 or it % 5 == 0) and not a.no_commit:
                 commit("research(data): Kalshi NFL close-window captures")
         elif not snapshot_done and all(mins(t) > 115 or mins(t) < -10 for t in targets):
             later = [t for t in targets if mins(t) > 115]
