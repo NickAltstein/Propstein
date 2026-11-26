@@ -183,8 +183,8 @@ def capture(targets: list[dict], phase: str) -> int:
 
 
 def commit(msg: str) -> None:
-    if subprocess.run(["git", "status", "--porcelain", str(OUT_DIR)], capture_output=True, text=True).stdout.strip():
-        subprocess.run(["git", "add", str(OUT_DIR)], check=True)
+    if subprocess.run(["git", "status", "--porcelain", "--ignored", str(OUT_DIR)], capture_output=True, text=True).stdout.strip():
+        subprocess.run(["git", "add", "-f", str(OUT_DIR)], check=True)
         subprocess.run(["git", "commit", "-q", "-m", msg], check=True)
         for _ in range(3):
             if subprocess.run(["git", "push", "-q", "origin", "HEAD"]).returncode == 0:
