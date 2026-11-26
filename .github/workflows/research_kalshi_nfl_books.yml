@@ -1,0 +1,36 @@
+name: Research - Kalshi NFL prop book capture (branch only)
+
+# Research-only. Runs on pushes to this research branch, captures Kalshi NFL
+# player-prop order books, and commits them under research/kalshi-nfl-close-source/
+# on this branch. It never writes to main, data/, ledgers or EDGE_GATE values.
+on:
+  push:
+    branches: [research/kalshi-nfl-close-source]
+    paths:
+      - .github/workflows/research_kalshi_nfl_books.yml
+      - research/kalshi-nfl-close-source/capture_kalshi_nfl_books.py
+
+concurrency:
+  group: research-kalshi-nfl-books
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: research/kalshi-nfl-close-source
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Capture
+        run: |
+          git config user.name "propstein-research-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python research/kalshi-nfl-close-source/capture_kalshi_nfl_books.py \
+            --until 2026-11-27T01:35:00Z --interval 3 --snapshot-days 5
