@@ -5,47 +5,53 @@
       "last_success_at": "2026-11-26T01:02:41Z",
       "last_success_quotes": 122,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-25T20:24:31Z",
-      "last_attempt_at": "2026-11-26T12:17:07Z",
+      "last_error_at": "2026-11-26T20:01:04Z",
+      "last_attempt_at": "2026-11-26T20:01:04Z",
       "schedule": {
-        "observed_at": "2026-11-26T12:17:07Z",
-        "state": "none",
-        "starts": []
+        "observed_at": "2026-11-26T20:01:04Z",
+        "state": "pending",
+        "starts": [
+          "2026-11-28T22:00:00Z",
+          "2026-11-28T23:00:00Z",
+          "2026-11-29T01:00:00Z",
+          "2026-11-29T01:00:00Z",
+          "2026-11-29T01:30:00Z"
+        ]
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-26T19:46:26Z",
-      "last_success_quotes": 197,
+      "last_success_at": "2026-11-26T20:01:12Z",
+      "last_success_quotes": 104,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-26T19:46:26Z",
+      "last_attempt_at": "2026-11-26T20:01:12Z",
       "schedule": {
         "observed_at": null,
         "state": null,
         "starts": []
       },
       "slate_state": {
-        "observed_at": "2026-11-26T19:46:26Z",
+        "observed_at": "2026-11-26T20:01:12Z",
         "state_since": "2026-11-24T21:01:28Z",
         "state": "OK",
-        "detail": "slate '2026_w12' has 546 priced row(s)",
+        "detail": "slate '2026_w12' has 486 priced row(s)",
         "slate_key": "2026_w12",
         "since": null,
         "alarm_after": null,
         "overdue": false,
         "exclusions": [],
-        "priced_rows": 546,
+        "priced_rows": 486,
         "markets": null
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-26T19:46:26Z",
+        "observed_at": "2026-11-26T20:01:12Z",
         "events": 15,
-        "matched": 197,
-        "skipped_low_liquidity": 161,
-        "skipped_off_slate": 48,
+        "matched": 104,
+        "skipped_low_liquidity": 152,
+        "skipped_off_slate": 203,
         "skipped_unparsed": 0,
-        "skipped_no_book": 985,
+        "skipped_no_book": 952,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
