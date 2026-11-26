@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Collection, Mapping, Sequence
 import urllib.request
 from zoneinfo import ZoneInfo
 
@@ -243,6 +243,21 @@ def normalize_kalshi_capture(
     }
 
 
+def capture_record_id(cap: Mapping[str, Any]) -> str:
+    """Stable id of a capture record; replaying the same capture never appends twice."""
+    identity = {
+        "source": cap.get("source"),
+        "market_id": cap.get("market_id"),
+        "quoted_at": cap.get("quoted_at"),
+        "raw_payload_sha256": cap.get("raw_payload_sha256"),
+    }
+    # Each v2 observation is a distinct snapshot, even when the provider's
+    # last-update timestamp and book payload have not changed.
+    if cap.get("schema_version") == SCHEMA_VERSION:
+        identity["captured_at"] = cap.get("captured_at")
+    return canonical_json_sha256(identity)[:24]
+
+
 def append_captures(
     *,
     jsonl_path: Path,
@@ -260,17 +275,7 @@ def append_captures(
     appended = 0
     for cap in captures:
         rec = dict(cap)
-        identity = {
-            "source": rec.get("source"),
-            "market_id": rec.get("market_id"),
-            "quoted_at": rec.get("quoted_at"),
-            "raw_payload_sha256": rec.get("raw_payload_sha256"),
-        }
-        # Each v2 observation is a distinct snapshot, even when the provider's
-        # last-update timestamp and book payload have not changed.
-        if rec.get("schema_version") == SCHEMA_VERSION:
-            identity["captured_at"] = rec.get("captured_at")
-        rec_id = canonical_json_sha256(identity)[:24]
+        rec_id = capture_record_id(rec)
         if rec_id in seen_ids:
             continue
         seen_ids.add(rec_id)
@@ -328,6 +333,119 @@ def _last_volume_by_market(
     return {key: value for key, (_, value) in latest.items()}
 
 
+GameKey = tuple[str, str, str]  # (source, game_id, scheduled_start ISO)
+
+
+def _game_key(source: str, game_id: Any, start_dt: datetime) -> GameKey:
+    return (source, str(game_id or ""), start_dt.isoformat())
+
+
+def _iter_feed_markets(viewer_dir: Path, now_dt: datetime):
+    """Yield `(source, market_id, game_id, start_dt)` for every market in the live feeds.
+
+    Kalshi NBA comes from today's (ET) `nba_odds_<day>.json`; Polymarket NFL
+    from `live_odds_feed.json`, one entry per over/under token.
+    """
+    et_day = now_dt.astimezone(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+    nba_odds_path = viewer_dir / f"nba_odds_{et_day}.json"
+    if nba_odds_path.exists():
+        nba_data = json.loads(nba_odds_path.read_text(encoding="utf-8"))
+        for q in nba_data.get("quotes") or ():
+            ticker = str(q.get("provider_quote_id") or "").strip()
+            start_dt = _parse_utc(q.get("scheduled_start"))
+            if ticker and start_dt is not None:
+                yield "kalshi", ticker, q.get("game_id"), start_dt
+
+    pm_path = viewer_dir / "live_odds_feed.json"
+    if pm_path.exists():
+        pm_data = json.loads(pm_path.read_text(encoding="utf-8"))
+        for q in pm_data.get("quotes") or ():
+            start_dt = _parse_utc(q.get("end_date"))
+            if start_dt is None:
+                continue
+            for side_key in ("over_token_id", "under_token_id"):
+                tok = str(q.get(side_key) or "").strip()
+                if tok:
+                    yield "polymarket", tok, q.get("game_id"), start_dt
+
+
+def upcoming_games(
+    viewer_dir: Path, now: datetime, horizon_minutes: float
+) -> dict[GameKey, int]:
+    """Games in the live feeds starting after `now` and within the horizon, with market counts."""
+    now_dt = now.astimezone(timezone.utc)
+    games: dict[GameKey, int] = {}
+    for source, _market_id, game_id, start_dt in _iter_feed_markets(viewer_dir, now_dt):
+        ahead = (start_dt - now_dt).total_seconds() / 60.0
+        if 0 < ahead <= horizon_minutes:
+            key = _game_key(source, game_id, start_dt)
+            games[key] = games.get(key, 0) + 1
+    return games
+
+
+def collect_live_captures(
+    *,
+    viewer_dir: Path,
+    prev_vols: Mapping[tuple[str, str], float],
+    now: datetime,
+    window_min_before: float = 75.0,
+    window_min_after: float = -10.0,
+    only_starts: Collection[datetime] | None = None,
+) -> tuple[list[dict[str, Any]], list[str], dict[GameKey, dict[str, int]]]:
+    """Fetch and normalize captures for markets in the start window.
+
+    `only_starts`, when given, limits the fetch to games with one of those
+    scheduled starts (the pre-game session captures one start group at a
+    time). Returns `(captures, errors, per_game)` where `per_game` counts the
+    markets attempted and the fetch errors for each game.
+    """
+    now_dt = now.astimezone(timezone.utc)
+    wanted = {s.astimezone(timezone.utc) for s in only_starts} if only_starts is not None else None
+    captures: list[dict[str, Any]] = []
+    errors: list[str] = []
+    per_game: dict[GameKey, dict[str, int]] = {}
+
+    for source, market_id, game_id, start_dt in _iter_feed_markets(viewer_dir, now_dt):
+        if wanted is not None and start_dt not in wanted:
+            continue
+        off_min = (start_dt - now_dt).total_seconds() / 60.0
+        if not (window_min_after <= off_min <= window_min_before):
+            continue
+        counts = per_game.setdefault(_game_key(source, game_id, start_dt), {"markets": 0, "errors": 0})
+        counts["markets"] += 1
+        try:
+            if source == "kalshi":
+                mkt = _fetch_json(KALSHI_MARKET_URL.format(ticker=market_id))
+                ob = _fetch_json(KALSHI_ORDERBOOK_URL.format(ticker=market_id))
+                observed_at = datetime.now(timezone.utc)
+                captures.append(normalize_kalshi_capture(
+                    market_id=market_id,
+                    game_id=str(game_id or ""),
+                    scheduled_start=start_dt,
+                    market_payload=mkt,
+                    orderbook_payload=ob,
+                    captured_at=observed_at,
+                    prev_volume_total=prev_vols.get(("kalshi", market_id)),
+                ))
+            else:
+                bk = _fetch_json(POLYMARKET_BOOK_URL.format(token_id=market_id))
+                gm = _fetch_json(POLYMARKET_GAMMA_URL.format(token_id=market_id))
+                observed_at = datetime.now(timezone.utc)
+                captures.append(normalize_polymarket_capture(
+                    market_id=market_id,
+                    game_id=str(game_id or ""),
+                    scheduled_start=start_dt,
+                    book_payload=bk,
+                    gamma_payload=gm,
+                    captured_at=observed_at,
+                    prev_volume_total=prev_vols.get(("polymarket", market_id)),
+                ))
+        except Exception as exc:
+            counts["errors"] += 1
+            errors.append(f"{source.upper()}_FETCH_FAILED:{market_id}:{exc}")
+    return captures, errors, per_game
+
+
 def run_live_capture(
     *,
     viewer_dir: Path = Path("viewer"),
@@ -341,70 +459,13 @@ def run_live_capture(
     now_dt = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     existing, _, _ = load_captures_jsonl(jsonl_path)
     prev_vols = _last_volume_by_market(existing, now_dt)
-
-    captures: list[dict[str, Any]] = []
-    errors: list[str] = []
-
-    # 1. Kalshi NBA active day file (today ET)
-    et_day = now_dt.astimezone(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
-    nba_odds_path = viewer_dir / f"nba_odds_{et_day}.json"
-    if nba_odds_path.exists():
-        nba_data = json.loads(nba_odds_path.read_text(encoding="utf-8"))
-        for q in nba_data.get("quotes") or ():
-            ticker = str(q.get("provider_quote_id") or "").strip()
-            start_dt = _parse_utc(q.get("scheduled_start"))
-            if not ticker or start_dt is None:
-                continue
-            off_min = (start_dt - now_dt).total_seconds() / 60.0
-            if not (window_min_after <= off_min <= window_min_before):
-                continue
-            try:
-                mkt = _fetch_json(KALSHI_MARKET_URL.format(ticker=ticker))
-                ob = _fetch_json(KALSHI_ORDERBOOK_URL.format(ticker=ticker))
-                observed_at = datetime.now(timezone.utc)
-                captures.append(normalize_kalshi_capture(
-                    market_id=ticker,
-                    game_id=str(q.get("game_id") or ""),
-                    scheduled_start=start_dt,
-                    market_payload=mkt,
-                    orderbook_payload=ob,
-                    captured_at=observed_at,
-                    prev_volume_total=prev_vols.get(("kalshi", ticker)),
-                ))
-            except Exception as exc:
-                errors.append(f"KALSHI_FETCH_FAILED:{ticker}:{exc}")
-
-    # 2. Polymarket NFL live_odds_feed.json
-    pm_path = viewer_dir / "live_odds_feed.json"
-    if pm_path.exists():
-        pm_data = json.loads(pm_path.read_text(encoding="utf-8"))
-        for q in pm_data.get("quotes") or ():
-            start_dt = _parse_utc(q.get("end_date"))
-            if start_dt is None:
-                continue
-            off_min = (start_dt - now_dt).total_seconds() / 60.0
-            if not (window_min_after <= off_min <= window_min_before):
-                continue
-            for side_key in ("over_token_id", "under_token_id"):
-                tok = str(q.get(side_key) or "").strip()
-                if not tok:
-                    continue
-                try:
-                    bk = _fetch_json(POLYMARKET_BOOK_URL.format(token_id=tok))
-                    gm = _fetch_json(POLYMARKET_GAMMA_URL.format(token_id=tok))
-                    observed_at = datetime.now(timezone.utc)
-                    captures.append(normalize_polymarket_capture(
-                        market_id=tok,
-                        game_id=str(q.get("game_id") or ""),
-                        scheduled_start=start_dt,
-                        book_payload=bk,
-                        gamma_payload=gm,
-                        captured_at=observed_at,
-                        prev_volume_total=prev_vols.get(("polymarket", tok)),
-                    ))
-                except Exception as exc:
-                    errors.append(f"POLYMARKET_FETCH_FAILED:{tok}:{exc}")
-
+    captures, errors, _ = collect_live_captures(
+        viewer_dir=viewer_dir,
+        prev_vols=prev_vols,
+        now=now_dt,
+        window_min_before=window_min_before,
+        window_min_after=window_min_after,
+    )
     return append_captures(
         jsonl_path=jsonl_path,
         status_path=status_path,
