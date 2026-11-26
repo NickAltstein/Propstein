@@ -15,6 +15,7 @@ Phases:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
 import re
 import subprocess
@@ -40,7 +41,13 @@ ET = ZoneInfo("America/New_York")
 MONTHS = {m: i for i, m in enumerate(
     ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"], 1)}
 ALIASES = {"LA": {"LA", "LAR"}, "JAX": {"JAX", "JAC"}, "WAS": {"WAS", "WSH"}, "LV": {"LV", "LVR"}}
-GAME_LEVEL = {"KXNFLGAME", "KXNFLSPREAD", "KXNFLTOTAL"}
+# Single-game player-prop series (the headline markets; ladder, escalator and
+# "protected" variants are left out). Chosen from the series list, not from prices.
+PROP_SERIES = {
+    "KXNFLPASSYDS", "KXNFLRSHYDS", "KXNFLRECYDS", "KXNFLREC", "KXNFLANYTD",
+    "KXNFLPASSTDS", "KXNFLPASSCOMP", "KXNFLPASSATT", "KXNFLRSHATT", "KXNFLRRYDS",
+    "KXNFLPASSINT",
+}
 
 
 def get_json(path: str, params: dict | None = None, tries: int = 5):
@@ -128,6 +135,8 @@ def discover(games: list[dict], horizon_days: float) -> list[dict]:
     targets = []
     for s in series:
         st = s["ticker"]
+        if st not in PROP_SERIES:
+            continue
         try:
             mkts = open_markets(st)
         except Exception as exc:  # keep going; logged
@@ -150,36 +159,39 @@ def log(obj: dict) -> None:
     print(json.dumps(obj), flush=True)
 
 
+def _one(t: dict, phase: str) -> dict | None:
+    tk = t["market"]["ticker"]
+    try:
+        mkt = get_json(f"/markets/{tk}")
+        ob = get_json(f"/markets/{tk}/orderbook", {"depth": 5})
+    except Exception as exc:
+        log({"event": "fetch_error", "ticker": tk, "error": str(exc)[:200]})
+        return None
+    rec = normalize_kalshi_capture(
+        market_id=tk, game_id=t["game"]["game_id"], scheduled_start=t["game"]["start"],
+        market_payload=mkt, orderbook_payload=ob, captured_at=datetime.now(timezone.utc))
+    mm = mkt.get("market", mkt)
+    no_bids = (ob.get("orderbook_fp") or {}).get("yes_dollars") or []
+    rec.update({
+        "phase": phase, "series_ticker": t["series_ticker"], "series_title": t["series_title"],
+        "event_ticker": mm.get("event_ticker"), "market_title": mm.get("title"),
+        "yes_sub_title": mm.get("yes_sub_title"), "strike_type": mm.get("strike_type"),
+        "floor_strike": mm.get("floor_strike"), "no_ask": mm.get("no_ask_dollars"),
+        "no_bid": mm.get("no_bid_dollars"), "status": mm.get("status"),
+        "no_ask_levels": sorted(
+            ({"price": round(1 - float(p), 4), "size": round(float(s), 4)} for p, s in no_bids),
+            key=lambda x: x["price"])[:5],
+    })
+    return rec
+
+
 def capture(targets: list[dict], phase: str) -> int:
-    n = 0
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        recs = [r for r in ex.map(lambda t: _one(t, phase), targets) if r]
     with CAPTURES.open("a") as fh:
-        for t in targets:
-            m = t["market"]
-            tk = m["ticker"]
-            try:
-                mkt = get_json(f"/markets/{tk}")
-                ob = get_json(f"/markets/{tk}/orderbook", {"depth": 5})
-            except Exception as exc:
-                log({"event": "fetch_error", "ticker": tk, "error": str(exc)[:200]})
-                continue
-            rec = normalize_kalshi_capture(
-                market_id=tk, game_id=t["game"]["game_id"], scheduled_start=t["game"]["start"],
-                market_payload=mkt, orderbook_payload=ob, captured_at=datetime.now(timezone.utc))
-            mm = mkt.get("market", mkt)
-            no_bids = (ob.get("orderbook_fp") or {}).get("yes_dollars") or []
-            rec.update({
-                "phase": phase, "series_ticker": t["series_ticker"], "series_title": t["series_title"],
-                "event_ticker": mm.get("event_ticker"), "market_title": mm.get("title"),
-                "yes_sub_title": mm.get("yes_sub_title"), "strike_type": mm.get("strike_type"),
-                "floor_strike": mm.get("floor_strike"), "no_ask": mm.get("no_ask_dollars"),
-                "no_bid": mm.get("no_bid_dollars"), "status": mm.get("status"),
-                "no_ask_levels": sorted(
-                    ({"price": round(1 - float(p), 4), "size": round(float(s), 4)} for p, s in no_bids),
-                    key=lambda x: x["price"])[:5],
-            })
+        for rec in recs:
             fh.write(json.dumps(rec, sort_keys=True) + "\n")
-            n += 1
-    return n
+    return len(recs)
 
 
 def commit(msg: str) -> None:
@@ -219,7 +231,7 @@ def main() -> None:
         window = [t for t in targets if -10 <= mins(t) <= 75]
         if window:
             n = capture(window, "close_window")
-            log({"event": "window_pass", "captured": n,
+            log({"event": "window_pass", "captured": n, "secs": round(time.time() - t0, 1),
                  "games": sorted({t["game"]["game_id"] for t in window})})
             it += 1
             if (it == 1 or it % 5 == 0) and not a.no_commit:
