@@ -1,7 +1,7 @@
 {
   "player_id": "00-0039880",
   "market": "receptions",
-  "generated_at": "2026-11-26T20:28:47.902413+00:00",
+  "generated_at": "2026-11-26T20:46:32.357981+00:00",
   "series": {
     "polymarket": [
       {
@@ -324,6 +324,27 @@
         "line": 3.5,
         "over": 104,
         "under": -170,
+        "verified": false
+      },
+      {
+        "t": "2026-11-26T20:46:30.769567+00:00",
+        "line": 2.5,
+        "over": -213,
+        "under": 127,
+        "verified": false
+      },
+      {
+        "t": "2026-11-26T20:46:30.769568+00:00",
+        "line": 3.5,
+        "over": 113,
+        "under": -1900,
+        "verified": false
+      },
+      {
+        "t": "2026-11-26T20:46:30.769569+00:00",
+        "line": 4.5,
+        "over": 203,
+        "under": -355,
         "verified": false
       }
     ]
