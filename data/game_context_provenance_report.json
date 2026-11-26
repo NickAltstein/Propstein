@@ -3,11 +3,11 @@
   "excluded": [],
   "failed_fetches": [],
   "games_excluded": 0,
-  "games_in_pricing_window": 15,
-  "games_ingested": 15,
-  "games_priced": 15,
-  "games_ready": 15,
-  "generated_at": "2026-11-26T10:37:58.503157+00:00",
+  "games_in_pricing_window": 14,
+  "games_ingested": 14,
+  "games_priced": 14,
+  "games_ready": 14,
+  "generated_at": "2026-11-26T19:46:37.804225+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [],
   "per_game_readiness": {
@@ -22,11 +22,6 @@
       "status": "READY"
     },
     "2026_12_CAR_TB": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_12_CHI_DET": {
       "missing_fields": [],
       "ready_for_pricing": true,
       "status": "READY"
