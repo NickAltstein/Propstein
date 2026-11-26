@@ -1,11 +1,11 @@
 {
   "counts_by_category": {
-    "ACTIVE": 131,
-    "DOUBTFUL": 3,
-    "INACTIVE": 2,
-    "IR": 371,
-    "OUT": 24,
-    "QUESTIONABLE": 137
+    "ACTIVE": 144,
+    "DOUBTFUL": 4,
+    "INACTIVE": 12,
+    "IR": 368,
+    "OUT": 21,
+    "QUESTIONABLE": 151
   },
   "crosswalk_stats": {
     "espn_matched": 798,
@@ -14,7 +14,7 @@
   },
   "disagreements": [
     {
-      "player_id": "00-0029592",
+      "player_id": "00-0029606",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -41,6 +41,19 @@
     },
     {
       "player_id": "00-0031408",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0031411",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -157,7 +170,7 @@
       ]
     },
     {
-      "player_id": "00-0033281",
+      "player_id": "00-0033110",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -196,7 +209,33 @@
       ]
     },
     {
+      "player_id": "00-0033546",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0033876",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0033885",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -216,7 +255,7 @@
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -248,6 +287,19 @@
       ]
     },
     {
+      "player_id": "00-0034391",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0034399",
       "sources": [
         {
@@ -264,11 +316,11 @@
       "player_id": "00-0034431",
       "sources": [
         {
-          "category": "QUESTIONABLE",
+          "category": "OUT",
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -313,19 +365,6 @@
       ]
     },
     {
-      "player_id": "00-0034720",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
       "player_id": "00-0034778",
       "sources": [
         {
@@ -353,19 +392,6 @@
     },
     {
       "player_id": "00-0034805",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0034869",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -431,6 +457,19 @@
     },
     {
       "player_id": "00-0035242",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0035279",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -563,6 +602,19 @@
       "player_id": "00-0035700",
       "sources": [
         {
+          "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "INACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0035702",
+      "sources": [
+        {
           "category": "QUESTIONABLE",
           "source": "espn_injuries"
         },
@@ -573,7 +625,7 @@
       ]
     },
     {
-      "player_id": "00-0035702",
+      "player_id": "00-0035704",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -593,7 +645,7 @@
           "source": "espn_injuries"
         },
         {
-          "category": "IR",
+          "category": "ACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -632,6 +684,19 @@
           "source": "espn_injuries"
         },
         {
+          "category": "IR",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0036187",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
           "category": "ACTIVE",
           "source": "nflverse_roster"
         }
@@ -651,14 +716,14 @@
       ]
     },
     {
-      "player_id": "00-0036231",
+      "player_id": "00-0036237",
       "sources": [
         {
-          "category": "QUESTIONABLE",
+          "category": "OUT",
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -677,14 +742,14 @@
       ]
     },
     {
-      "player_id": "00-0036256",
+      "player_id": "00-0036284",
       "sources": [
         {
-          "category": "IR",
+          "category": "OUT",
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -729,7 +794,7 @@
       ]
     },
     {
-      "player_id": "00-0036341",
+      "player_id": "00-0036355",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -742,7 +807,7 @@
       ]
     },
     {
-      "player_id": "00-0036355",
+      "player_id": "00-0036369",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -781,7 +846,7 @@
       ]
     },
     {
-      "player_id": "00-0036421",
+      "player_id": "00-0036550",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -821,6 +886,19 @@
     },
     {
       "player_id": "00-0036563",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0036616",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -885,19 +963,6 @@
       ]
     },
     {
-      "player_id": "00-0036871",
-      "sources": [
-        {
-          "category": "ACTIVE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "IR",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
       "player_id": "00-0036902",
       "sources": [
         {
@@ -924,19 +989,6 @@
       ]
     },
     {
-      "player_id": "00-0036932",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
       "player_id": "00-0036985",
       "sources": [
         {
@@ -950,20 +1002,7 @@
       ]
     },
     {
-      "player_id": "00-0037076",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0037091",
+      "player_id": "00-0036994",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -980,32 +1019,6 @@
       "sources": [
         {
           "category": "OUT",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0037190",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0037205",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
           "source": "espn_injuries"
         },
         {
@@ -1080,7 +1093,20 @@
       ]
     },
     {
-      "player_id": "00-0037413",
+      "player_id": "00-0037320",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0037633",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1120,6 +1146,19 @@
     },
     {
       "player_id": "00-0037757",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0037758",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1197,19 +1236,6 @@
       ]
     },
     {
-      "player_id": "00-0038090",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
       "player_id": "00-0038111",
       "sources": [
         {
@@ -1227,6 +1253,32 @@
       "sources": [
         {
           "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0038124",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0038127",
+      "sources": [
+        {
+          "category": "DOUBTFUL",
           "source": "espn_injuries"
         },
         {
@@ -1276,6 +1328,19 @@
     },
     {
       "player_id": "00-0038454",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0038543",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1366,19 +1431,6 @@
       ]
     },
     {
-      "player_id": "00-0038578",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
       "player_id": "00-0038601",
       "sources": [
         {
@@ -1457,6 +1509,19 @@
       ]
     },
     {
+      "player_id": "00-0038778",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0038933",
       "sources": [
         {
@@ -1474,6 +1539,19 @@
       "sources": [
         {
           "category": "DOUBTFUL",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0039020",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
           "source": "espn_injuries"
         },
         {
@@ -1516,7 +1594,20 @@
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0039061",
+      "sources": [
+        {
+          "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -1526,6 +1617,19 @@
       "sources": [
         {
           "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0039064",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
           "source": "espn_injuries"
         },
         {
@@ -1548,14 +1652,27 @@
       ]
     },
     {
-      "player_id": "00-0039138",
+      "player_id": "00-0039074",
       "sources": [
         {
-          "category": "ACTIVE",
+          "category": "QUESTIONABLE",
           "source": "espn_injuries"
         },
         {
-          "category": "IR",
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0039111",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -1582,6 +1699,19 @@
         },
         {
           "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0039272",
+      "sources": [
+        {
+          "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -1627,32 +1757,6 @@
     },
     {
       "player_id": "00-0039451",
-      "sources": [
-        {
-          "category": "QUESTIONABLE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "ACTIVE",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0039784",
-      "sources": [
-        {
-          "category": "ACTIVE",
-          "source": "espn_injuries"
-        },
-        {
-          "category": "IR",
-          "source": "nflverse_roster"
-        }
-      ]
-    },
-    {
-      "player_id": "00-0039819",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1743,7 +1847,46 @@
       ]
     },
     {
+      "player_id": "00-0040010",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0040058",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0040066",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0040076",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1770,6 +1913,19 @@
     },
     {
       "player_id": "00-0040143",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0040152",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1835,6 +1991,19 @@
     },
     {
       "player_id": "00-0040169",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0040172",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -1964,6 +2133,19 @@
       ]
     },
     {
+      "player_id": "00-0040673",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0040677",
       "sources": [
         {
@@ -1978,6 +2160,19 @@
     },
     {
       "player_id": "00-0040719",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
+      "player_id": "00-0040722",
       "sources": [
         {
           "category": "QUESTIONABLE",
@@ -2029,6 +2224,19 @@
       ]
     },
     {
+      "player_id": "00-0040884",
+      "sources": [
+        {
+          "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "INACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0041037",
       "sources": [
         {
@@ -2068,6 +2276,19 @@
       ]
     },
     {
+      "player_id": "00-0041061",
+      "sources": [
+        {
+          "category": "QUESTIONABLE",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "ACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
+    },
+    {
       "player_id": "00-0041125",
       "sources": [
         {
@@ -2094,14 +2315,14 @@
       ]
     },
     {
-      "player_id": "00-0041447",
+      "player_id": "00-0041421",
       "sources": [
         {
-          "category": "IR",
+          "category": "OUT",
           "source": "espn_injuries"
         },
         {
-          "category": "ACTIVE",
+          "category": "INACTIVE",
           "source": "nflverse_roster"
         }
       ]
@@ -2209,11 +2430,24 @@
           "source": "nflverse_roster"
         }
       ]
+    },
+    {
+      "player_id": "00-0041568",
+      "sources": [
+        {
+          "category": "OUT",
+          "source": "espn_injuries"
+        },
+        {
+          "category": "INACTIVE",
+          "source": "nflverse_roster"
+        }
+      ]
     }
   ],
   "excluded_by_source": {
-    "espn_injuries": 80,
-    "nflverse_roster": 320
+    "espn_injuries": 77,
+    "nflverse_roster": 328
   },
   "excluded_player_ids": [
     "00-0028292",
@@ -2251,6 +2485,7 @@
     "00-0034377",
     "00-0034407",
     "00-0034419",
+    "00-0034431",
     "00-0034446",
     "00-0034613",
     "00-0034673",
@@ -2284,7 +2519,7 @@
     "00-0035663",
     "00-0035676",
     "00-0035686",
-    "00-0035705",
+    "00-0035700",
     "00-0035707",
     "00-0035713",
     "00-0035743",
@@ -2297,6 +2532,7 @@
     "00-0036166",
     "00-0036198",
     "00-0036215",
+    "00-0036237",
     "00-0036239",
     "00-0036252",
     "00-0036256",
@@ -2304,6 +2540,7 @@
     "00-0036261",
     "00-0036262",
     "00-0036272",
+    "00-0036284",
     "00-0036290",
     "00-0036295",
     "00-0036298",
@@ -2322,7 +2559,6 @@
     "00-0036626",
     "00-0036634",
     "00-0036638",
-    "00-0036871",
     "00-0036885",
     "00-0036896",
     "00-0036915",
@@ -2398,6 +2634,7 @@
     "00-0038114",
     "00-0038116",
     "00-0038117",
+    "00-0038127",
     "00-0038128",
     "00-0038134",
     "00-0038136",
@@ -2438,15 +2675,16 @@
     "00-0039042",
     "00-0039051",
     "00-0039058",
+    "00-0039061",
     "00-0039062",
     "00-0039075",
-    "00-0039138",
     "00-0039144",
     "00-0039146",
     "00-0039236",
     "00-0039237",
     "00-0039263",
     "00-0039267",
+    "00-0039272",
     "00-0039284",
     "00-0039299",
     "00-0039344",
@@ -2477,7 +2715,6 @@
     "00-0039737",
     "00-0039751",
     "00-0039764",
-    "00-0039784",
     "00-0039800",
     "00-0039809",
     "00-0039814",
@@ -2556,6 +2793,7 @@
     "00-0040873",
     "00-0040875",
     "00-0040881",
+    "00-0040884",
     "00-0040901",
     "00-0040929",
     "00-0040933",
@@ -2593,13 +2831,13 @@
     "00-0041360",
     "00-0041374",
     "00-0041381",
-    "00-0041382",
     "00-0041387",
     "00-0041390",
     "00-0041396",
     "00-0041402",
     "00-0041414",
     "00-0041415",
+    "00-0041421",
     "00-0041429",
     "00-0041442",
     "00-0041446",
@@ -2613,16 +2851,17 @@
     "00-0041553",
     "00-0041555",
     "00-0041557",
+    "00-0041568",
     "00-0041577",
     "00-0041587",
     "00-0041592"
   ],
-  "generated_at": "2026-11-25T23:06:10.182169+00:00",
+  "generated_at": "2026-11-26T10:54:03.254762+00:00",
   "last_successful_poll": {
-    "espn_injuries": "2026-11-25T23:06:10.182169+00:00",
-    "nflverse_roster": "2026-11-25T23:06:10.182169+00:00"
+    "espn_injuries": "2026-11-26T10:54:03.254762+00:00",
+    "nflverse_roster": "2026-11-26T10:54:03.254762+00:00"
   },
-  "new_events_count": 247,
+  "new_events_count": 65,
   "overrides_applied": [],
   "receipt_consumer": {
     "dirty_receipt_ids": [],
@@ -2660,6 +2899,7 @@
     "00-0033902",
     "00-0033945",
     "00-0033955",
+    "00-0034114",
     "00-0034234",
     "00-0034285",
     "00-0034320",
@@ -2712,14 +2952,18 @@
     "00-0035942",
     "00-0035992",
     "00-0035993",
+    "00-0036158",
     "00-0036166",
     "00-0036198",
     "00-0036215",
+    "00-0036237",
     "00-0036239",
     "00-0036252",
+    "00-0036256",
     "00-0036260",
     "00-0036262",
     "00-0036272",
+    "00-0036284",
     "00-0036290",
     "00-0036295",
     "00-0036298",
@@ -2736,7 +2980,6 @@
     "00-0036626",
     "00-0036634",
     "00-0036638",
-    "00-0036871",
     "00-0036885",
     "00-0036896",
     "00-0036915",
@@ -2849,14 +3092,15 @@
     "00-0039042",
     "00-0039051",
     "00-0039058",
+    "00-0039061",
     "00-0039075",
-    "00-0039138",
     "00-0039144",
     "00-0039146",
     "00-0039236",
     "00-0039237",
     "00-0039263",
     "00-0039267",
+    "00-0039272",
     "00-0039284",
     "00-0039299",
     "00-0039344",
@@ -2887,7 +3131,6 @@
     "00-0039737",
     "00-0039751",
     "00-0039764",
-    "00-0039784",
     "00-0039800",
     "00-0039809",
     "00-0039814",
@@ -2963,6 +3206,7 @@
     "00-0040873",
     "00-0040875",
     "00-0040881",
+    "00-0040884",
     "00-0040901",
     "00-0040929",
     "00-0040933",
@@ -3000,16 +3244,17 @@
     "00-0041360",
     "00-0041374",
     "00-0041381",
-    "00-0041382",
     "00-0041387",
     "00-0041390",
     "00-0041396",
     "00-0041402",
     "00-0041414",
     "00-0041415",
+    "00-0041421",
     "00-0041429",
     "00-0041442",
     "00-0041446",
+    "00-0041447",
     "00-0041463",
     "00-0041468",
     "00-0041484",
@@ -3019,6 +3264,7 @@
     "00-0041553",
     "00-0041555",
     "00-0041557",
+    "00-0041568",
     "00-0041577",
     "00-0041587",
     "00-0041592"
@@ -3027,2583 +3273,2555 @@
   "stale_context": false,
   "stale_exclusions_for_review": [
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0028292",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0030035",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0031237",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0031381",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0031595",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0031921",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0032265",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0032380",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0032667",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0032918",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033038",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033051",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033109",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033217",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033284",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033307",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033553",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033752",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033783",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033872",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033901",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033902",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033945",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0033955",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "OUT",
+      "age_days": 7.62,
+      "category": "INACTIVE",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034114",
-      "source": "espn_injuries"
+      "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034234",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034285",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034320",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034333",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "OUT",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034342",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034371",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034377",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034407",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034419",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034446",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034613",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034673",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034775",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034779",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034790",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034796",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034798",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034810",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034828",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0034987",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035020",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035045",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035062",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035112",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035125",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035166",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035235",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035249",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035251",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035253",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035289",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035317",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035378",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035544",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035639",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035645",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035659",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035686",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "IR",
-      "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
-      "player_id": "00-0035705",
-      "source": "nflverse_roster"
-    },
-    {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035707",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035713",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035743",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035829",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035889",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035942",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035992",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0035993",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036166",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036198",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036215",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036239",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036252",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036260",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "OUT",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036261",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036262",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036272",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036290",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036295",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036298",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036310",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036374",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036376",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036389",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036396",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036480",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036511",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036619",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036626",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036634",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036638",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "IR",
-      "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
-      "player_id": "00-0036871",
-      "source": "espn_injuries"
-    },
-    {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036885",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036896",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036915",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036917",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036922",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036926",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036944",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036953",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036967",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036968",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036979",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036982",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036984",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0036988",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037009",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037012",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037031",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037057",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037078",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037081",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037085",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037094",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037112",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037120",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037141",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037195",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037197",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037203",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037229",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037236",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037241",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037251",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037258",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037260",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037266",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037275",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037276",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037281",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037297",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037303",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037307",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037324",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037327",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037329",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037395",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037431",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037526",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037544",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037563",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037602",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037664",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037746",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037753",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037804",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037808",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037816",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037817",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037819",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037831",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037832",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0037837",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "OUT",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038041",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "INACTIVE",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038098",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038101",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038104",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038105",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038106",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038107",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038114",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038117",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038128",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038136",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038401",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038440",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.38,
+      "category": "OUT",
+      "first_excluded_at": "2026-11-19T01:53:08.160039+00:00",
+      "player_id": "00-0038493",
+      "source": "espn_injuries"
+    },
+    {
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038505",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038540",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038555",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038559",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038566",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038585",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038589",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038619",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038629",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038640",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038703",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038720",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038724",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038735",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038752",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038781",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038791",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038865",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038905",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038934",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "DOUBTFUL",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038994",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0038995",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039004",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039009",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039018",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039034",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039040",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039042",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039051",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "OUT",
+      "age_days": 7.62,
+      "category": "INACTIVE",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039058",
-      "source": "espn_injuries"
+      "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039075",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "IR",
-      "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
-      "player_id": "00-0039138",
-      "source": "nflverse_roster"
-    },
-    {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039144",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039146",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039236",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039237",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039263",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039267",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039284",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039344",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039358",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039362",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039363",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039370",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039377",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039384",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039389",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039412",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039427",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039430",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039436",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039438",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039521",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039534",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039565",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039568",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039603",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039620",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039623",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039626",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039660",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039676",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039692",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039718",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039737",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039751",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039764",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "IR",
-      "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
-      "player_id": "00-0039784",
-      "source": "nflverse_roster"
-    },
-    {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039800",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039809",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039814",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039817",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039824",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039830",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039836",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039842",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039850",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "OUT",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039851",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039855",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039877",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039878",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039883",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039886",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039907",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039916",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039921",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0039936",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "OUT",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040007",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040012",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040016",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040033",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040073",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040074",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040078",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040106",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040116",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040120",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040130",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040135",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040137",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040138",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040145",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040164",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040167",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040174",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040175",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040186",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040190",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040196",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040197",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040211",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040212",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040232",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040240",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040243",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040244",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040248",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040328",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040329",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040395",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040413",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040466",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040492",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040550",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040576",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040577",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040582",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040649",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040652",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040661",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040691",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040721",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040730",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040734",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040737",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040739",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040746",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040751",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040786",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040853",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040873",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040875",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040881",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040901",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040929",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040933",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040937",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040953",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040955",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0040988",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041003",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041004",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041027",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041035",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041047",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041087",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041091",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041097",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041104",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041122",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041127",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041128",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041136",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041142",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041161",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041170",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041181",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041206",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041208",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041219",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041239",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041265",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041303",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041321",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041323",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041360",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041374",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
-      "category": "INACTIVE",
-      "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
-      "player_id": "00-0041382",
-      "source": "nflverse_roster"
-    },
-    {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041387",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041390",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041396",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041402",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041414",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041415",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041429",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041442",
       "source": "espn_injuries"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041446",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041463",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041468",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041484",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041526",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041537",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041546",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041553",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041555",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041557",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041577",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041587",
       "source": "nflverse_roster"
     },
     {
-      "age_days": 7.13,
+      "age_days": 7.62,
       "category": "IR",
       "first_excluded_at": "2026-11-18T19:57:36.637680+00:00",
       "player_id": "00-0041592",
@@ -5611,8 +5829,8 @@
     }
   ],
   "stale_reasons": [],
-  "sticky_excluded_count": 400,
-  "total_events_count": 865,
+  "sticky_excluded_count": 405,
+  "total_events_count": 930,
   "unmatched": [
     {
       "espn_id": "4691889",
