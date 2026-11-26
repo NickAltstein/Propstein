@@ -314,6 +314,7 @@ def run_session(
             state.rounds += 1
             log(json.dumps({
                 "round": state.rounds,
+                "started_at": _iso(round_start),
                 "starts": sorted(_iso(s) for s in due),
                 "captured": len(captures),
                 "errors": len(errors),
@@ -456,6 +457,8 @@ class GitHubSession:
 def main() -> int:
     publish_enabled = os.environ.get("CLOSE_CAPTURE_PUBLISH", "0") == "1"
     max_minutes = float(os.environ.get("CLOSE_CAPTURE_MAX_MINUTES") or MAX_SESSION_MIN)
+    offsets_env = os.environ.get("CLOSE_CAPTURE_OFFSETS", "").strip()
+    offsets = tuple(int(x) for x in offsets_env.split(",") if x.strip()) if offsets_env else TARGET_OFFSETS_MIN
     run_meta = {
         "run_id": os.environ.get("GITHUB_RUN_ID"),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
@@ -472,6 +475,8 @@ def main() -> int:
         root=Path("."),
         run_meta=run_meta,
         max_session_min=max_minutes,
+        offsets=offsets,
+        log=lambda msg: print(msg, flush=True),
     )
     print(json.dumps(result))
     if result["reason"] == "max_age" and result["next_target_at"] and publish_enabled and run_meta["run_id"]:

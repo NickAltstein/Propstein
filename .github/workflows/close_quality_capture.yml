@@ -27,6 +27,10 @@ on:
         description: 'Session length cap in minutes (default 300).'
         type: string
         default: ''
+      offsets:
+        description: 'Target minutes before start, comma-separated (default 60,30,15,11,8). For test runs.'
+        type: string
+        default: ''
 
 # No concurrency group: a pending run would wait behind a session for hours.
 # The leader step keeps it to one session instead.
@@ -68,8 +72,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           CLOSE_CAPTURE_PUBLISH: ${{ (github.ref == 'refs/heads/main' && inputs.dry_run != true) && '1' || '0' }}
           CLOSE_CAPTURE_MAX_MINUTES: ${{ inputs.max_minutes }}
+          CLOSE_CAPTURE_OFFSETS: ${{ inputs.offsets }}
         run: |
           PYTHONPATH=. python -m src.close_quality_session
+
+      - name: Show dry-run capture rounds
+        if: always() && inputs.dry_run == true
+        run: |
+          grep '"kind":"round"' data/close_capture_log.jsonl || echo "No capture rounds."
 
       - name: Upload dry-run capture log
         if: always() && inputs.dry_run == true
