@@ -195,6 +195,13 @@ test('every dispatched workflow accepts workflow_dispatch', () => {
   for (const file of new Set(Object.values(SCHEDULE_WORKFLOWS))) {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows', file), 'utf8');
     assert.match(yml, /^\s*workflow_dispatch:/m, `${file} has no workflow_dispatch trigger`);
+    if (file === 'close_quality_capture.yml') {
+      // A capture session holds its run for hours, so a queued run would wait
+      // behind it. The leader step lets only the oldest active run capture.
+      assert.match(yml, /scripts\/close_capture_leader\.sh/, `${file} must run the leader step`);
+      assert.doesNotMatch(yml, /^concurrency:/m, `${file} must not queue runs behind a session`);
+      continue;
+    }
     assert.match(yml, /^concurrency:\n\s+group: .+\n\s+cancel-in-progress: false/m,
       `${file} must queue overlapping runs (cancel-in-progress: false)`);
   }
