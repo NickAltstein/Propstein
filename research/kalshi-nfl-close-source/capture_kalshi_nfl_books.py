@@ -198,10 +198,13 @@ def commit(msg: str) -> None:
     if subprocess.run(["git", "status", "--porcelain", "--ignored", str(OUT_DIR)], capture_output=True, text=True).stdout.strip():
         subprocess.run(["git", "add", "-f", str(OUT_DIR)], check=True)
         subprocess.run(["git", "commit", "-q", "-m", msg], check=True)
-        for _ in range(3):
-            if subprocess.run(["git", "push", "-q", "origin", "HEAD"]).returncode == 0:
+        branch = "research/kalshi-nfl-close-source"
+        for _ in range(4):
+            if subprocess.run(["git", "push", "-q", "origin", f"HEAD:refs/heads/{branch}"]).returncode == 0:
                 return
-            subprocess.run(["git", "pull", "-q", "--rebase", "origin", "HEAD"])
+            # rebase onto this branch (not the remote default branch) and retry
+            subprocess.run(["git", "pull", "-q", "--rebase", "origin", branch])
+        log({"event": "push_failed"})
 
 
 def main() -> None:
