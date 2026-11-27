@@ -20,18 +20,18 @@
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-27T04:01:29Z",
-      "last_success_quotes": 110,
+      "last_success_at": "2026-11-27T04:16:24Z",
+      "last_success_quotes": 170,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-27T04:01:29Z",
+      "last_attempt_at": "2026-11-27T04:16:24Z",
       "schedule": {
         "observed_at": null,
         "state": null,
         "starts": []
       },
       "slate_state": {
-        "observed_at": "2026-11-27T04:01:29Z",
+        "observed_at": "2026-11-27T04:16:24Z",
         "state_since": "2026-11-24T21:01:28Z",
         "state": "OK",
         "detail": "slate '2026_w12' has 416 priced row(s)",
@@ -45,13 +45,13 @@
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-27T04:01:29Z",
+        "observed_at": "2026-11-27T04:16:24Z",
         "events": 14,
-        "matched": 110,
-        "skipped_low_liquidity": 125,
+        "matched": 170,
+        "skipped_low_liquidity": 84,
         "skipped_off_slate": 363,
         "skipped_unparsed": 0,
-        "skipped_no_book": 796,
+        "skipped_no_book": 786,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
