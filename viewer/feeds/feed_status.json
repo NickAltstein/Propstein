@@ -1,45 +1,45 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-25T04:38:10Z",
+  "generated_at": "2026-11-27T00:39:33Z",
   "sports": {
     "nba": {
-      "level": "ok",
+      "level": "suppressed",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-25T03:53:15Z",
-      "age_hours": 0.75,
+      "stale_since": "2026-11-26T01:02:41Z",
+      "age_hours": 23.61,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "quotes": 20,
-      "slate": "pending"
+      "quotes": 122,
+      "slate": "none"
     },
     "nfl": {
       "level": "ok",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-25T03:53:32Z",
-      "age_hours": 0.74,
+      "stale_since": "2026-11-27T00:31:23Z",
+      "age_hours": 0.14,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
-      "quotes": 91,
+      "quotes": 159,
       "slate": "pending",
       "slate_state": {
         "state": "OK",
-        "detail": "slate '2026_w12' has 544 priced row(s)",
+        "detail": "slate '2026_w12' has 546 priced row(s)",
         "slate_key": "2026_w12",
         "since": null,
         "alarm_after": null,
         "overdue": false,
         "exclusions": [],
-        "priced_rows": 544
+        "priced_rows": 546
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-25T03:53:32Z",
-        "events": 13,
-        "matched": 91,
-        "skipped_low_liquidity": 98,
-        "skipped_off_slate": 17,
+        "observed_at": "2026-11-27T00:31:23Z",
+        "events": 15,
+        "matched": 159,
+        "skipped_low_liquidity": 94,
+        "skipped_off_slate": 68,
         "skipped_unparsed": 0,
-        "skipped_no_book": 544,
+        "skipped_no_book": 1196,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
