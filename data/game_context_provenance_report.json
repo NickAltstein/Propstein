@@ -3,11 +3,11 @@
   "excluded": [],
   "failed_fetches": [],
   "games_excluded": 0,
-  "games_in_pricing_window": 14,
-  "games_ingested": 14,
-  "games_priced": 14,
-  "games_ready": 14,
-  "generated_at": "2026-11-26T19:46:37.804225+00:00",
+  "games_in_pricing_window": 12,
+  "games_ingested": 12,
+  "games_priced": 12,
+  "games_ready": 12,
+  "generated_at": "2026-11-27T10:37:58.719109+00:00",
   "max_excluded_games": 3,
   "missing_timestamps": [],
   "per_game_readiness": {
@@ -27,11 +27,6 @@
       "status": "READY"
     },
     "2026_12_DEN_PIT": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_12_KC_BUF": {
       "missing_fields": [],
       "ready_for_pricing": true,
       "status": "READY"
@@ -57,11 +52,6 @@
       "status": "READY"
     },
     "2026_12_NYJ_MIA": {
-      "missing_fields": [],
-      "ready_for_pricing": true,
-      "status": "READY"
-    },
-    "2026_12_PHI_DAL": {
       "missing_fields": [],
       "ready_for_pricing": true,
       "status": "READY"
