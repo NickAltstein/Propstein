@@ -1,0 +1,17 @@
+{
+ "captures": 13775,
+ "games": 2,
+ "markets": 672,
+ "markets_with_fresh_close": 672,
+ "all_captures_median_spread_pp": 1.0,
+ "all_captures_spread_le_5pp_pct": 100.0,
+ "t5_closes": 672,
+ "t5_close_median_spread_pp": 1.0,
+ "t5_spread_le_5pp_pct_of_closes": 99.6,
+ "t5_impact100_le_1pp_pct_of_closes": 97.2,
+ "t5_both_floors_pct_of_closes": 97.2,
+ "t5_both_floors_pct_of_markets": 97.2,
+ "t5_survivors": 653,
+ "t5_ask_sum_le_115_pct_of_closes": 100.0,
+ "t5_ask_sum_le_115_pct_of_markets": 100.0
+}

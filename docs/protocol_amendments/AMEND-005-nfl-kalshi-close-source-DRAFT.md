@@ -45,7 +45,35 @@ of closes, 60.1% of markets).
 
 ### Results
 
-RESULTS_TABLE
+Kalshi NFL closes captured 2026-11-26 (Thanksgiving): PHI@DAL (start 21:30Z,
+close capture 21:24Z) and KC@BUF (start 01:20Z, close capture 01:13Z). Polymarket
+and Kalshi NBA rows are from `data/close_quality_captures.jsonl` (Nov 19 to 26).
+
+| Source | Games | Markets | Fresh T-5 close | Spread ≤ 5pp | $100 impact ≤ 1pp | **Survive (both)** | Ask sum ≤ 115% |
+|---|---|---|---|---|---|---|---|
+| Kalshi NFL props, all rungs | 2 | 672 | 672 (100%) | 99.6% | 97.2% | **653 (97.2%)** | 100% |
+| Kalshi NFL props, main line per player and stat | 2 | 102 | 102 | 100% | 100% | **102 (100%)** | 100% |
+| PHI@DAL alone | 1 | 335 | 335 | 99.4% | 96.4% | 323 (96.4%) | 100% |
+| KC@BUF alone | 1 | 337 | 337 | 99.7% | 97.9% | 330 (97.9%) | 100% |
+| Polymarket NFL (registered today) | 12 | 564 | 244 | 16.0% | 49.2% | **21 (3.7% of markets; 8.6% of closes)** | 38.3% of markets |
+| Kalshi NBA (for reference) | 45 | 632 | 416 | 96.9% | 93.5% | 380 (60.1%; 91.3% of closes) | 64.7% of markets |
+
+Median T-5 spread is 1pp on Kalshi NFL against 9pp on Polymarket NFL. The 19
+Kalshi NFL markets that fail are deep tails and fringe players (for example
+3+ interceptions, 15+ receptions). "Main line" keeps the rung whose T-5 mid is
+nearest 50% for each player and stat, the closest match to Polymarket's one
+line per player.
+
+Fresh-close coverage is 100% here because these captures ran every 3 minutes
+in the pre-game window. Under the GitHub cron, Kalshi NBA coverage at T-5 is
+66%, which is why its share of markets (60.1%) trails its share of closes.
+
+**Days-ahead check (not closes).** One pass over 13 other games on Nov 26,
+21:30 to 21:47Z, 3,078 markets, found 55% passing both floors (median spread
+4pp). Books deepen toward kickoff: KC@BUF was already at 95% about 3.5 hours
+out, Friday's DEN@PIT 83%, Sunday games 25% to 60% about 2.7 days out, and
+Monday's CAR@TB 3%. This says nothing directly about Sunday closes, but it is
+the reason the sample above, two marquee holiday games, may flatter Kalshi.
 
 ### The "115% spread check"
 
@@ -58,7 +86,14 @@ floors do.
 
 ## 4. Change (if approved)
 
-RECOMMENDATION
+Kalshi clears the rule: 97.2% of measured Kalshi NFL prop markets survive,
+against 3.7% for Polymarket. The draft therefore registers Kalshi for NFL.
+
+The sample is two Thanksgiving games, so the recommended condition is: **the
+effective date is set only after one regular Sunday slate's closes are
+measured the same way and most markets survive.** If a Sunday slate does not
+clear the rule, NFL stays out rather than getting a thin close source, and this
+draft is withdrawn.
 
 `docs/EDGE_GATE.md` §3, NFL column, for signals registered on or after the
 effective timestamp:
@@ -82,9 +117,8 @@ classes).
 ## 5. Open items for review
 
 1. Confirm what the 115% check is (§3).
-2. Sample size: see the results table. Thanksgiving games only, so treat it as
-   directional; a re-measure on a normal Sunday slate before the effective date
-   is cheap.
+2. Sample size: two Thanksgiving games (672 markets, 102 main lines). The
+   Sunday-slate condition in §4 covers this.
 3. Whether a source switch inside the current NFL attempt counts as a new
    attempt under §1 ("maximum two prospective attempts"; a second attempt must
    be registered before new observations).
