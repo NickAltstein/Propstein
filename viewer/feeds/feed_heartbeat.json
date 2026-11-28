@@ -2,36 +2,38 @@
   "schema_version": "feed-heartbeat.v1",
   "sports": {
     "nba": {
-      "last_success_at": "2026-11-28T11:38:24Z",
-      "last_success_quotes": 58,
+      "last_success_at": "2026-11-28T18:43:45Z",
+      "last_success_quotes": 61,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "last_error_at": "2026-11-28T03:01:01Z",
-      "last_attempt_at": "2026-11-28T11:38:24Z",
+      "last_error_at": "2026-11-28T18:43:45Z",
+      "last_attempt_at": "2026-11-28T18:43:45Z",
       "schedule": {
-        "observed_at": "2026-11-28T11:38:24Z",
+        "observed_at": "2026-11-28T18:43:45Z",
         "state": "pending",
         "starts": [
-          "2026-11-28T22:00:00Z",
-          "2026-11-28T23:00:00Z",
-          "2026-11-29T01:00:00Z",
-          "2026-11-29T01:00:00Z",
-          "2026-11-29T01:30:00Z"
+          "2026-12-01T00:00:00Z",
+          "2026-12-01T00:00:00Z",
+          "2026-12-01T00:30:00Z",
+          "2026-12-01T00:30:00Z",
+          "2026-12-01T01:00:00Z",
+          "2026-12-01T01:00:00Z",
+          "2026-12-01T03:00:00Z"
         ]
       }
     },
     "nfl": {
-      "last_success_at": "2026-11-28T18:31:22Z",
-      "last_success_quotes": 80,
+      "last_success_at": "2026-11-28T18:43:53Z",
+      "last_success_quotes": 88,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
       "last_error_at": "2026-11-24T05:04:41Z",
-      "last_attempt_at": "2026-11-28T18:31:22Z",
+      "last_attempt_at": "2026-11-28T18:43:53Z",
       "schedule": {
         "observed_at": null,
         "state": null,
         "starts": []
       },
       "slate_state": {
-        "observed_at": "2026-11-28T18:31:22Z",
+        "observed_at": "2026-11-28T18:43:53Z",
         "state_since": "2026-11-24T21:01:28Z",
         "state": "OK",
         "detail": "slate '2026_w12' has 383 priced row(s)",
@@ -45,13 +47,13 @@
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-28T18:31:22Z",
+        "observed_at": "2026-11-28T18:43:53Z",
         "events": 11,
-        "matched": 80,
-        "skipped_low_liquidity": 239,
+        "matched": 88,
+        "skipped_low_liquidity": 211,
         "skipped_off_slate": 55,
         "skipped_unparsed": 0,
-        "skipped_no_book": 644,
+        "skipped_no_book": 665,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
