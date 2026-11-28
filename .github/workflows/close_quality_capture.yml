@@ -1,25 +1,50 @@
-name: Capture Close-Quality Liquidity (T-60/-30/-15/-5)
+name: Capture Close-Quality Liquidity (pre-game session, T-60 to T-8)
+
+# One run stays up through each game's pre-game window and captures at
+# T-60/-30/-15/-11/-8 on the runner's own clock (src/close_quality_session.py).
+# The triggers below only have to start a session before the window; they
+# no longer have to land on the right minute. GitHub's schedule drops most
+# ticks, so the Vercel Schedules backstop (api/schedules, every 15 minutes)
+# and the news-watcher chain dispatch this workflow too. Only the oldest
+# active run on main leads (scripts/close_capture_leader.sh); the rest exit
+# in seconds. Every round is logged per game in data/close_capture_log.jsonl;
+# scripts/close_capture_coverage.py counts T-5 coverage from it.
 
 on:
   schedule:
-    # Target every 10 minutes on odd minutes across 12:00-05:59 UTC.
-    # GitHub schedule delivery is best-effort and cannot guarantee all four
-    # target offsets. news_watcher.yml dispatches a separate ~30-minute
-    # backstop when its self-handoff chain is healthy.
     - cron: '3,13,23,33,43,53 12-23,0-5 * * *'
   workflow_dispatch:
+    inputs:
+      handoff_from:
+        description: 'Set by a session that hands over to this run. Leave empty.'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Capture and log on this run only: no data PR, results uploaded as an artifact.'
+        type: boolean
+        default: false
+      max_minutes:
+        description: 'Session length cap in minutes (default 300).'
+        type: string
+        default: ''
+      offsets:
+        description: 'Target minutes before start, comma-separated (default 60,30,15,11,8). For test runs.'
+        type: string
+        default: ''
 
-concurrency:
-  group: close-quality-capture-data
-  cancel-in-progress: false
+# No concurrency group: a pending run would wait behind a session for hours.
+# The leader step keeps it to one session instead.
 
 permissions:
   contents: read
+  actions: write        # leader check reads runs; a session dispatches its successor
+  pull-requests: read   # wait for the session's previous data PR to merge
 
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Session cap 300 min + last data PR wait (25 min) + setup.
+    timeout-minutes: 345
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,27 +57,40 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run additive close-quality capture
-        run: |
-          PYTHONPATH=. python -m src.close_quality_capture
-
-      - name: Open auto-merge PR only when new capture records exist
+      - name: Leave the window to an older session
+        id: leader
+        if: inputs.dry_run != true
         env:
-          GH_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          HANDOFF_FROM: ${{ inputs.handoff_from }}
+        run: bash scripts/close_capture_leader.sh
+
+      - name: Run pre-game capture session
+        if: inputs.dry_run == true || steps.leader.outputs.lead == 'true'
+        env:
+          DATA_BOT_TOKEN: ${{ secrets.DATA_BOT_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          CLOSE_CAPTURE_PUBLISH: ${{ (github.ref == 'refs/heads/main' && inputs.dry_run != true) && '1' || '0' }}
+          CLOSE_CAPTURE_MAX_MINUTES: ${{ inputs.max_minutes }}
+          CLOSE_CAPTURE_OFFSETS: ${{ inputs.offsets }}
         run: |
-          if [ ! -f data/close_quality_captures.jsonl ]; then
-            echo "No close-quality captures yet — skipping PR."
-            exit 0
-          fi
-          git add -N data/close_quality_captures.jsonl 2>/dev/null || true
-          if git diff --quiet data/close_quality_captures.jsonl; then
-            echo "No new close-quality capture records — skipping PR."
-            exit 0
-          fi
-          git add data/close_quality_captures.jsonl data/close_quality_capture_status.json
-          bash scripts/open_automerge_data_pr.sh \
-            "close-quality-capture" \
-            "chore(data): append close-quality captures [vercel skip]"
+          PYTHONPATH=. python -m src.close_quality_session
+
+      - name: Show dry-run capture rounds
+        if: always() && inputs.dry_run == true
+        run: |
+          grep '"kind":"round"' data/close_capture_log.jsonl || echo "No capture rounds."
+
+      - name: Upload dry-run capture log
+        if: always() && inputs.dry_run == true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: close-capture-dry-run
+          path: |
+            data/close_capture_log.jsonl
+            data/close_quality_captures.jsonl
+            data/close_quality_capture_status.json
+          if-no-files-found: warn
 
       - name: Notify on failure (webhook)
         if: failure()
