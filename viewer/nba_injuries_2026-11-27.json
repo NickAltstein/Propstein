@@ -1,7 +1,7 @@
 {
   "_fixture": false,
   "slate_date": "2026-11-27",
-  "as_of": "2026-11-27T23:59:35Z",
+  "as_of": "2026-11-28T00:36:52Z",
   "source": "ESPN injuries API",
   "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   "injuries": [
@@ -167,13 +167,6 @@
       "comment": "McConnell (hamstring) has been ruled out for Friday's game against the 76ers, Alex Golden of SI.com reports."
     },
     {
-      "player_name": "Larry Nance Jr.",
-      "team": "IND",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-27T18:07Z",
-      "comment": "Nance (ankle) is probable for Friday's game against the 76ers."
-    },
-    {
       "player_name": "Tyrese Haliburton",
       "team": "IND",
       "report_status": "Out",
@@ -204,8 +197,8 @@
     {
       "player_name": "Isaiah Stewart",
       "team": "MEM",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-26T23:27Z",
+      "report_status": "Out",
+      "reported_at": "2026-11-28T00:10Z",
       "comment": "Stewart is questionable for Friday's game against the Timberwolves due to right hip soreness."
     },
     {
@@ -354,13 +347,6 @@
       "report_status": "Out",
       "reported_at": "2026-11-27T23:15Z",
       "comment": "Brown (hamstring) underwent an MRI that showed no signs of a new injury or re-aggravation, but he didn't travel with the team for the road trip, so he will miss the team's next two games, Kris Rhim of ESPN reports."
-    },
-    {
-      "player_name": "Joel Embiid",
-      "team": "PHI",
-      "report_status": "Day-To-Day",
-      "reported_at": "2026-11-27T16:32Z",
-      "comment": "Embiid (illness) was at shootaround for the 76ers on Friday, Chris Hine of The Philly Inquirer reports."
     },
     {
       "player_name": "Ariel Hukporti",
