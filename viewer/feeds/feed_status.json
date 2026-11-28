@@ -1,25 +1,25 @@
 {
   "schema_version": "feed-status.v1",
-  "generated_at": "2026-11-28T10:36:30Z",
+  "generated_at": "2026-11-28T18:31:21Z",
   "sports": {
     "nba": {
-      "level": "ok",
+      "level": "degraded",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-28T09:26:45Z",
-      "age_hours": 1.16,
+      "stale_since": "2026-11-28T11:38:24Z",
+      "age_hours": 6.88,
       "last_error": "empty/zero-event response: 0 Kalshi quotes",
-      "quotes": 56,
+      "quotes": 58,
       "slate": "pending"
     },
     "nfl": {
       "level": "ok",
       "fail_closed": false,
       "show_edges": true,
-      "stale_since": "2026-11-28T10:16:21Z",
-      "age_hours": 0.34,
+      "stale_since": "2026-11-28T18:16:28Z",
+      "age_hours": 0.25,
       "last_error": "empty/zero-event response: 0 Polymarket quotes",
-      "quotes": 217,
+      "quotes": 136,
       "slate": "pending",
       "slate_state": {
         "state": "OK",
@@ -33,13 +33,13 @@
       },
       "line_collisions_excluded": 0,
       "fetch_counters": {
-        "observed_at": "2026-11-28T10:16:21Z",
+        "observed_at": "2026-11-28T18:16:28Z",
         "events": 11,
-        "matched": 217,
-        "skipped_low_liquidity": 30,
+        "matched": 136,
+        "skipped_low_liquidity": 159,
         "skipped_off_slate": 55,
         "skipped_unparsed": 0,
-        "skipped_no_book": 695,
+        "skipped_no_book": 659,
         "unparsed_market_ids": [],
         "line_collisions_excluded": 0
       }
