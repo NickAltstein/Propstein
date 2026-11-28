@@ -297,7 +297,7 @@ export function loadApp(sandbox) {
     sportSwitcherItems, switchToSport, defaultBootSlate, initSlateIndex,
     feedHealthStates, updateFeedHealthUI, feedVerificationLabel, updateFeedVerificationUI, marketFeedSourceLabel, detectBookDiscrepancy, executionDecision, stampProvenance,
     renderPickFlow, priceLine, findQuote, rowPriceState, quoteIsSynthetic, resolveDataKind,
-    renderSportChrome, renderDetailModal,
+    renderSportChrome, renderDetailModal, loadSniperTerminalSnapshot,
     quantMath: { americanToDecimal, impliedProbability, devig, pRecOver, pYardsOver, compoundYardsCdf, regularizedGammaP, logGamma },
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };
